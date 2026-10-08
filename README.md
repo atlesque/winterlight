@@ -4,8 +4,27 @@ A practical ground-level Christmas pixel light show project for a Belgian brick 
 
 The design uses 1,050 RGB pixels in four arches, four short bars, two stars and a small matrix. All props are freestanding, with no roof access, wall mounting, door garland or Christmas trees. Three independent 350-pixel power banks support xLights sequencing and wired FPP playback.
 
+## Run the Three.js simulator
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local address printed by the server. Press Play for a full 3:05 original demo score, or choose **Load audio** to decode a local MP3/WAV and drive the lights from that recording's musical accents. Files stay in the browser. Phrase choreography is adapted; it is not the recovered original sequence. The official video blocks embedded playback in the tested environment (YouTube error150), so use a lawfully obtained local recording for the intended soundtrack.
+
+The scene models the house, garden, all1,050 individual pixels, all11 data outputs and21 isolated50-node power sections. Drag to orbit, choose street/garden/plan views, inspect props, show cable routes and use the brightness/full-white controls. Dimensions are provisional. The pixel-power estimate is not a fuse, thermal, voltage-drop or photometric simulation.
+
+`npm test` checks the physical constraints, channel continuity, all185seconds of deterministic effects, audio accent detection and maximum bank loads. `npm run build` creates a distributable site in `dist/`, including the project documents; `npm run preview` serves that build locally.
+
+### Exported show frames
+
+The export button renders40frames/second using the same recording analysis, channel map and intensity setting. It ignores the temporary full-white test override. `.wlshow` is a custom preview format, **not FSEQ**: bytes0–3 are ASCII `WLS1`, bytes4–7 are the little-endian JSON-header length, followed by UTF-8 metadata and frame-major RGB bytes (3,150 channels/frame). It contains no audio. A deployment adapter and real xLights verification are still required before playback on hardware.
+
 ## Project files
 
+- [Critical parts review](outputs/parts-critical-review.md)
+- [Revised parts checklist](outputs/revised-bom.csv)
 - [Complete project guide](outputs/christmas-show-project.md)
 - [Printable HTML guide](outputs/christmas-show-project.html) — download/clone and open locally with its SVG files beside it
 - [Ground-level layout](outputs/layout.svg)
@@ -21,4 +40,4 @@ Prices and research were checked on 8 October 2026. Exact music cue timings rema
 
 Run `python3 work/package.py` from the repository root. The script uses the Python standard library to regenerate the HTML guide, SVG diagrams and CSV worksheets from the project material, and checks the channel totals and bank allocations.
 
-This repository contains planning documentation and its packaging script; no tested controller firmware or ready-to-play show sequence is included.
+This repository includes the simulator, planning documentation and document packaging script. It does not send network commands to real controllers or include a licensed commercial recording.

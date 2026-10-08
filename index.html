@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111923"><title>Winterlight · Show studio</title></head>
+<body>
+<div id="app">
+  <header><a class="brand" href="/">✳ <span>Winterlight<small>CHRISTMAS SHOW STUDIO</small></span></a><div class="header-note">A Belgian winter, reimagined.</div><a class="guide-link" href="/outputs/christmas-show-project.md" target="_blank">Project guide ↗</a></header>
+  <main>
+    <section class="stage" aria-label="Interactive 3D light show">
+      <div id="viewport"></div>
+      <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> THE GROUND-LEVEL EDITION</div><h1>A little winter magic.</h1><p>Eleven props. One shared musical clock.</p></div>
+      <div class="scene-controls"><button id="front" class="small-button">Street view</button><button id="orbit" class="small-button">Garden view</button><button id="overhead" class="small-button">Plan view</button></div>
+      <div class="scene-footer"><span>Drag to orbit · Scroll to zoom · Click a light to inspect</span><span class="scale-tag">Concept dimensions · no roof or wall lights</span></div>
+      <div id="scene-error" hidden></div>
+    </section>
+    <aside>
+      <div class="tabs"><button class="tab active" id="show-tab">The show</button><button class="tab" id="parts-tab">Parts review <span>6</span></button></div>
+      <div id="show-panel">
+        <div class="eyebrow muted">YOUR DISPLAY</div><h2>Small scale.<br>Big atmosphere.</h2>
+        <div class="stats"><div><strong>1,050</strong><span>RGB pixels</span></div><div><strong>11</strong><span>low props</span></div><div><strong>3</strong><span>power banks</span></div></div>
+        <div class="field-title">Soundtrack</div>
+        <div class="source-card"><span class="music-icon">♫</span><div><strong id="track-name">Winterlight demo</strong><small id="track-info">Original synthetic test score · 3:05</small></div><span class="chip" id="source-chip">DEMO</span></div>
+        <p id="source-note" class="note">The demo is an original test score, not Wizards in Winter. Load your recording for audio-driven accents.</p>
+        <div class="source-buttons"><label class="small-button upload">Load audio<input id="audio-file" type="file" accept="audio/*"></label><button id="youtube-button" class="small-button">YouTube reference</button></div>
+        <button id="demo-button" class="text-button" hidden>Return to original demo</button>
+        <div id="youtube-container" hidden><div id="youtube-player"></div><p class="note">Video-clock choreography is approximate. Embedding depends on YouTube availability.</p></div>
+        <div class="settings"><label class="range-label" for="brightness">Light intensity <span id="brightness-value">30%</span></label><input id="brightness" type="range" min="5" max="100" value="30">
+          <label class="switch-row"><span>Show cable routes <small>Data + 21 separate power feeds</small></span><input id="wires" type="checkbox"></label>
+          <label class="switch-row"><span>Full-white power test <small>Overrides the show; includes brightness cap</small></span><input id="white-test" type="checkbox"></label>
+        </div>
+        <div class="power-card"><div><span>Estimated pixel load</span><strong id="power-total">— W</strong></div><div id="bank-bars"></div><small>RGB duty estimate · excludes controllers / losses.<br>Hardware design maximum: 756 W, regardless of dimming.</small></div>
+        <div class="inspector" id="inspector"><span class="eyebrow muted">PROP INSPECTOR</span><p>Click a pixel in the scene to see its port, channels and power sections.</p></div>
+        <label class="range-label" for="prop-select">Inspect a prop</label><select id="prop-select" aria-label="Inspect a prop"><option value="">Choose a prop…</option></select>
+        <button id="export" class="small-button export">Export 40 fps show frames ↓</button><p id="export-note" class="note">Exports RGB channel data and cues. Browser simulation; does not send to real controllers.</p>
+      </div>
+      <div id="parts-panel" hidden><div class="eyebrow muted">BEFORE YOU BUY</div><h2>The missing pieces.</h2><p class="note">The concept holds up. The original shopping list still needs these six decisions closed.</p><div id="review-list"></div><a class="small-button export" href="/outputs/parts-critical-review.md" target="_blank">Read the full review ↗</a><a class="text-button" href="/outputs/revised-bom.csv" download>Download complete parts checklist ↓</a></div>
+    </aside>
+  </main>
+  <footer class="transport"><button id="play" class="play-button" aria-label="Play show">▶</button><button id="restart" class="restart-button" aria-label="Restart show">↺</button><div class="timeline-wrap"><div class="timeline-top"><strong id="cue-name">Opening · warm call & response</strong><span><b id="time">0:00</b> / <span id="duration">3:05</span></span></div><input id="timeline" type="range" aria-label="Show position" min="0" max="185" step="0.025" value="0"><div class="timeline-labels"><span>OPENING</span><span>CHASE</span><span>EXPAND</span><span>FINALE</span></div></div><label class="volume">♫<input id="volume" type="range" aria-label="Volume" min="0" max="100" value="35"></label></footer>
+</div><script type="module" src="/src/main.js"></script>
+</body></html>
