@@ -7,6 +7,7 @@ export function validateTiming(meta, timestamps, rgb, channels = 3150) {
   if (meta.channels !== channels || !Number.isInteger(meta.frameCount) || meta.frameCount < 1) throw new Error('Invalid frame/channel count');
   if (!/^[a-f0-9]{64}$/.test(meta.sourceSha256 || '')) throw new Error('Missing source-video SHA-256');
   if (!/^[a-f0-9]{64}$/.test(meta.channelMapSha256 || '')) throw new Error('Missing channel-map SHA-256');
+  if (!/^[a-f0-9]{64}$/.test(meta.rgbSha256 || '')) throw new Error('Missing RGB payload SHA-256');
   if (timestamps.length !== meta.frameCount || rgb.length !== channels * meta.frameCount) throw new Error('Incomplete source-frame coverage');
   if (!Number.isSafeInteger(meta.durationUs) || meta.durationUs <= 0) throw new Error('Invalid source duration');
   for (let i=0;i<timestamps.length;i++) {
@@ -53,4 +54,8 @@ export function copyFrame(sequence,index,out) {
 export async function sha256(input) {
   const data=input instanceof Blob?await input.arrayBuffer():input;
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data)),b=>b.toString(16).padStart(2,'0')).join('');
+}
+export async function verifyRgbIntegrity(sequence) {
+  if(await sha256(sequence.rgb)!==sequence.meta.rgbSha256)throw new Error('RGB payload checksum mismatch; timing file is corrupt.');
+  return sequence;
 }

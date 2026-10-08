@@ -29,7 +29,10 @@ WLT2 stores native source-frame presentation times and one RGB frame per source 
 
 ```bash
 node tools/pack-source-frames.mjs source.mp4 reviewed-frame-major.rgb output.wltiming
+node tools/verify-source-frames.mjs source.mp4 output.wltiming report.json
 ```
+
+The verifier checks the RGB checksum, source identity, channel map, every native timestamp and final frame duration. It rejects changed RGB bytes or altered playback timestamps. Browser loading also checks the RGB checksum before enabling playback. These checks establish artifact integrity, not extracted-light fidelity or physical display alignment.
 
 The packer preserves source timings; it does **not** recover light states from the video. The requested recording is still missing, so no source-specific timing file has been created. Browser video callbacks also cannot guarantee simultaneous video/canvas display. See [remaining verification work](outputs/source-frame-timing-status.md). Hardware reuse still requires a player/export adapter and measured output latency.
 

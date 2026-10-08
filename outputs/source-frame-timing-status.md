@@ -35,3 +35,11 @@ The goal remains active. Core format tests and a successful build establish impl
 A locally generated three-second H.264/AAC diagnostic recording at 30000/1001 fps was paired with 90 deliberately distinct RGB frames. Full browser playback covered all 90 source frames, with zero skipped source frames and zero unmatched timestamps. One late callback was reported, so this test does not establish strict compositor alignment. Seeking to 0.050 seconds selected the source frame at 0.033367 seconds, as expected, without regenerating RGB data. The end blackout retains the completed audit. Browser error logs were empty.
 
 Eleven automated tests pass, including variable timestamp boundaries, byte-preserving round trips, deterministic seeks, incomplete artifact rejection, wrong-source rejection, dropped-frame auditing and end-of-video coverage retention. The production build passes. These diagnostic media files are generated test data outside the repository, not the requested recording.
+
+## Integrity verification added
+
+The browser now verifies the RGB payload SHA-256 before enabling source playback. Switching timing files suspends playback while verification runs; a superseded asynchronous load cannot apply stale data. Missing checksums and corrupt payloads are rejected.
+
+`tools/verify-source-frames.mjs source.mp4 show.wltiming [report.json]` independently reads the source with ffprobe and checks the source hash, channel-map hash, RGB hash, native time base, media origin, every native PTS, every stored playback timestamp, frame count and final-frame duration. It emits a report explicitly limited to artifact integrity. It cannot establish that extracted light colours match the source images or that physical outputs align with audio.
+
+On the 90-frame diagnostic recording, repacking and full verification passed. A one-byte RGB mutation and a one-microsecond PTS mutation were both rejected. Browser testing confirmed corrupt RGB data produces an error and disables Play, then a valid file restores playback. Twelve automated tests pass and the production build passes. The actual source recording remains unavailable.
