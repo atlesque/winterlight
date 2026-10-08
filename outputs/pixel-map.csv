@@ -1,0 +1,12 @@
+model,pixels,channel_start,channel_end,bank,data_port,50_node_power_sections,local_pixel_start_zero_based
+Arch1,100,1,300,A,1,2,0
+Arch2,100,301,600,A,2,2,100
+Star1,100,601,900,A,3,2,200
+Bar1,50,901,1050,A,4,1,300
+Arch3,100,1051,1350,B,1,2,0
+Arch4,100,1351,1650,B,2,2,100
+Star2,100,1651,1950,B,3,2,200
+Bar2,50,1951,2100,B,4,1,300
+Matrix25x10,250,2101,2850,C,1,5,0
+Bar3,50,2851,3000,C,2,1,250
+Bar4,50,3001,3150,C,3,1,300
