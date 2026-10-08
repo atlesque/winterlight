@@ -21,6 +21,18 @@ The scene models the house, garden, all1,050 individual pixels, all11 data outpu
 
 The export button renders40frames/second using the same recording analysis, channel map and intensity setting. It ignores the temporary full-white test override. `.wlshow` is a custom preview format, **not FSEQ**: bytes0–3 are ASCII `WLS1`, bytes4–7 are the little-endian JSON-header length, followed by UTF-8 metadata and frame-major RGB bytes (3,150 channels/frame). It contains no audio. A deployment adapter and real xLights verification are still required before playback on hardware.
 
+### Source-frame playback (work in progress)
+
+**Load video** and **Load timing** pair a local recording with an immutable `.wltiming` artifact. Video supplies picture and audio; its presented frame timestamps select stored RGB bytes. Source-video and channel-map hashes must match. Brightness and full-white overrides are disabled in this mode. The audit records frame coverage, skipped frames, unmatched timestamps and late callbacks.
+
+WLT2 stores native source-frame presentation times and one RGB frame per source frame. It is distinct from the approximate 40 fps `.wlshow` export. To package already reviewed RGB frames, install FFmpeg/ffprobe and run:
+
+```bash
+node tools/pack-source-frames.mjs source.mp4 reviewed-frame-major.rgb output.wltiming
+```
+
+The packer preserves source timings; it does **not** recover light states from the video. The requested recording is still missing, so no source-specific timing file has been created. Browser video callbacks also cannot guarantee simultaneous video/canvas display. See [remaining verification work](outputs/source-frame-timing-status.md). Hardware reuse still requires a player/export adapter and measured output latency.
+
 ## Project files
 
 - [Critical parts review](outputs/parts-critical-review.md)

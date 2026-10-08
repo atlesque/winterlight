@@ -23,6 +23,12 @@
         <div class="source-buttons"><label class="small-button upload">Load audio<input id="audio-file" type="file" accept="audio/*"></label><button id="youtube-button" class="small-button">YouTube reference</button></div>
         <button id="demo-button" class="text-button" hidden>Return to original demo</button>
         <div id="youtube-container" hidden><div id="youtube-player"></div><p class="note">Video-clock choreography is approximate. Embedding depends on YouTube availability.</p></div>
+        <div class="frame-source">
+          <div class="field-title">Source-frame playback</div>
+          <div class="source-buttons"><label class="small-button upload">Load video<input id="source-video-file" type="file" accept="video/*"></label><label class="small-button upload">Load timing<input id="timing-file" type="file" accept=".wltiming"></label></div>
+          <div id="source-video-container" hidden><video id="source-video" playsinline preload="auto"></video><p id="frame-audit" class="note">A matching source video and timing file are required.</p></div>
+          <p class="note">Reuses stored RGB frames and original timestamps. Exact source recording required; the demo and audio analysis are not a substitute.</p>
+        </div>
         <div class="settings"><label class="range-label" for="brightness">Light intensity <span id="brightness-value">30%</span></label><input id="brightness" type="range" min="5" max="100" value="30">
           <label class="switch-row"><span>Show cable routes <small>Data + 21 separate power feeds</small></span><input id="wires" type="checkbox"></label>
           <label class="switch-row"><span>Full-white power test <small>Overrides the show; includes brightness cap</small></span><input id="white-test" type="checkbox"></label>
