@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;width:1200px;height:630px;overflow:hidden;background:#06101c;font-family:'DM Sans',sans-serif;color:#eaf0f4}
+.scene{position:absolute;left:113px;top:-48px;height:700px}
+.fade{position:absolute;inset:0;background:linear-gradient(90deg,#06101c 0%,#06101cf2 24%,#06101c99 38%,#06101c00 52%)}
+.text{position:absolute;left:64px;top:0;bottom:0;width:440px;display:flex;flex-direction:column;justify-content:center}
+.brand{font-family:Manrope,sans-serif;font-weight:700;font-size:26px;letter-spacing:-.6px;color:#f3f3ee;display:flex;align-items:center;gap:12px}
+.brand i{font-style:normal;color:#e9b886;font-size:34px}
+.eyebrow{margin-top:44px;font-size:14px;letter-spacing:3px;font-weight:700;color:#d8b48b;display:flex;align-items:center;gap:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:#e3b981;box-shadow:0 0 14px #e3b981}
+h1{font-family:Manrope,sans-serif;font-weight:500;font-size:62px;line-height:1.04;letter-spacing:-2.4px;margin:16px 0 20px}
+p{font-size:23px;line-height:1.4;color:#a3b3c2;margin:0}
+</style></head><body>
+<img class="scene" id="scene"><div class="fade"></div>
+<div class="text"><div class="brand"><i>✳</i>Winterlight</div>
+<div class="eyebrow"><span class="dot"></span><span id="eyebrow">CHRISTMAS LIGHT SHOW</span></div>
+<h1 id="title">A little winter magic.</h1>
+<p id="subtitle">A 3D house light show<br>synced to Wizards in Winter.</p></div>
+<script>
+const q=new URLSearchParams(location.search);
+document.getElementById('scene').src=q.get('scene')||'scene.png';
+for(const k of ['eyebrow','title','subtitle'])if(q.get(k))document.getElementById(k).innerHTML=q.get(k);
+</script>
+</body></html>
