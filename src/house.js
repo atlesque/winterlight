@@ -12,11 +12,10 @@ export const HOUSE = {
   mailbox:{x:3.7,z:3.975,width:.56,depth:.45,height:1.05},
   garden:{minX:5.65,maxX:8.5,minZ:.25,maxZ:3.9},
   // Four square cut-outs in the slate paving, read from the street photo:
-  // a 2x2 grid right of the door, each with one tall variegated shrub and
-  // small boxwood balls at its base. Sizes/heights are photo estimates.
-  planters:{size:.8,tiles:[
-    {x:6.03,z:1.55,height:1.1},{x:7.45,z:1.55,height:1},
-    {x:6.03,z:3.2,height:.9},{x:7.45,z:3.2,height:.85},
+  // a 2x2 grid right of the door. Each holds a full variegated shrub clipped
+  // into a cube (bush = width and height). Positions are photo estimates.
+  planters:{size:.8,bush:.72,tiles:[
+    {x:6.03,z:1.55},{x:7.45,z:1.55},{x:6.03,z:3.2},{x:7.45,z:3.2},
   ]},
 };
 // Standing props keep to the paving between the planting tiles: two arch rows

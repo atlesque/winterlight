@@ -50,23 +50,29 @@ export function createScene(host,pixels,onSelect,{preview=false}={}) {
   box(.025,.18,.04,door.x+.4,1.1,.23,mats.metal);
   // One level forecourt across the full frontage; access zones only guide prop placement.
   box(HOUSE.width,.035,HOUSE.forecourtDepth,HOUSE.width/2,.005,HOUSE.forecourtDepth/2,mats.path);
-  // Planting tiles: dark mulch flush with the paving, a slim variegated shrub and boxwood balls.
+  // Planting tiles: dark mulch flush with the paving under a full, cube-clipped variegated shrub.
   const mulch=new THREE.MeshStandardMaterial({color:'#2e2620',roughness:1});
-  const leafMats=[new THREE.MeshStandardMaterial({color:'#5d7a4a',roughness:.85,flatShading:true}),new THREE.MeshStandardMaterial({color:'#7f9666',roughness:.85,flatShading:true}),new THREE.MeshStandardMaterial({color:'#d3d6b4',roughness:.85,flatShading:true})];
-  const boxwood=new THREE.MeshStandardMaterial({color:'#2f4a2b',roughness:.9,flatShading:true});
-  const leafGeo=new THREE.IcosahedronGeometry(1,0), ballGeo=new THREE.IcosahedronGeometry(1,1);
-  function blob(geo,r,x,y,z,mat){const m=new THREE.Mesh(geo,mat);m.scale.setScalar(r);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+  const leafColors=['#4f6b3e','#5d7a4a','#7f9666','#d3d6b4'].map(c=>new THREE.Color(c));
+  const leafMat=new THREE.MeshStandardMaterial({roughness:.85,flatShading:true});
+  const leafGeo=new THREE.IcosahedronGeometry(1,0), leaf=new THREE.Object3D();
+  const leaves=[];
   HOUSE.planters.tiles.forEach((tile,t)=>{
-    const size=HOUSE.planters.size;
+    const {size,bush}=HOUSE.planters,half=bush/2;
     box(size,.024,size,tile.x,.025,tile.z,mulch);
+    box(bush*.9,bush*.92,bush*.9,tile.x,.037+bush*.46,tile.z,new THREE.MeshStandardMaterial({color:'#3c5530',roughness:.95}));
     let seed=t*977+31;const rand=()=>((seed=(seed*16807)%2147483647)/2147483647);
-    cylinder(.015,tile.height*.6,tile.x,tile.height*.3,tile.z,mats.frame);
-    for(let k=0;k<26;k++){
-      const f=k/25, spread=.13*(1-.55*f)+.03, a=rand()*Math.PI*2, r=spread*Math.sqrt(rand());
-      blob(leafGeo,.06+.045*(1-f)*rand()+.025,tile.x+Math.cos(a)*r,.2+f*(tile.height-.27),tile.z+Math.sin(a)*r,leafMats[Math.floor(rand()*3)]);
+    // Leaf clusters cover the top and four sides on a jittered grid, so the outline reads as a clipped block.
+    const steps=7;
+    for(let i=0;i<=steps;i++)for(let j=0;j<=steps;j++){
+      const u=-half+bush*i/steps,v=bush*j/steps;
+      const faces=[[u,.037+v,half],[u,.037+v,-half],[half,.037+v,u],[-half,.037+v,u]];
+      if(j<steps)for(const f of faces)leaves.push([tile.x+f[0],f[1],tile.z+f[2],rand]);
+      leaves.push([tile.x+u,.037+bush,tile.z-half+bush*j/steps,rand]);
     }
-    for(const [dx,dz] of [[-.25,.21],[.23,.24],[-.22,-.2],[.25,-.19]]){const r=.1+.03*rand();blob(ballGeo,r,tile.x+dx,.03+r*.85,tile.z+dz,boxwood);}
   });
+  const mesh=new THREE.InstancedMesh(leafGeo,leafMat,leaves.length);mesh.castShadow=true;mesh.receiveShadow=true;
+  leaves.forEach((p,i)=>{const rand=p[3],j=()=>(rand()-.5)*.05;leaf.position.set(p[0]+j(),p[1]+j(),p[2]+j());leaf.rotation.set(rand()*3,rand()*3,rand()*3);leaf.scale.setScalar(.055+.03*rand());leaf.updateMatrix();mesh.setMatrixAt(i,leaf.matrix);mesh.setColorAt(i,leafColors[Math.floor(rand()*leafColors.length)]);});
+  scene.add(mesh);
   const mailbox=HOUSE.mailbox;
   const concrete=new THREE.MeshStandardMaterial({color:'#97968e',roughness:1});
   box(mailbox.width,mailbox.height,mailbox.depth,mailbox.x,mailbox.height/2+.023,mailbox.z,concrete);
