@@ -10,7 +10,7 @@ import {HostedAudioClock} from './hosted-clock.js';
 import {prepareCues,renderNotes} from './note-show.js';
 
 const $=id=>document.getElementById(id), props=parseMap(mapCSV),pixels=makeLayout(props),audio=new AudioClock();
-let mode='demo',youtube=null,ytReady=false,ytError=null,brightness=.3,white=false,colors=new Float32Array(CHANNEL_COUNT),scene,selected=null,latestTime=0,exporting=false;
+let mode='demo',youtube=null,ytReady=false,ytError=null,brightness=.6,white=false,colors=new Float32Array(CHANNEL_COUNT),scene,selected=null,latestTime=0,exporting=false;
 let sourceSequence=null,sourceFrame=-1,noteCues=null;
 const hostedAudio=document.getElementById('hosted-audio'),SOUNDTRACK_SECONDS=185.875737;
 const sourceClock=new SourceVideoClock($('source-video'),(index,metadata,audit)=>{
@@ -89,8 +89,10 @@ async function prepareNoteShow(autoplay=false){
   setTrack('Wizards in Winter','Original soundtrack · instrument note cues','NOTES','Each MIDI instrument has its own props, and its notes move round robin across them: piano on the front poles, lead on the back poles, guitar on the arches, bass on the windows, strings and synths on the stars, drums across the door sides and lintel.');if(autoplay)await hostedAudio.play();}
  catch(error){if(generation===loadGeneration){noteCues=null;$('play').disabled=true;notice(error.message);}}
 }
-$('note-show').onclick=()=>prepareNoteShow(true);
-$('hosted-show').onclick=()=>prepareHostedShow(true);
+// Both timing sources share the hosted soundtrack; the dropdown picks which drives the lights.
+const prepareWizards=autoplay=>$('wizards-timing').value==='filmed'?prepareHostedShow(autoplay):prepareNoteShow(autoplay);
+$('wizards-timing').onchange=()=>prepareWizards(false);
+$('wizards-play').onclick=()=>prepareWizards(true);
 prepareNoteShow(false);
 
 // Read-only diagnostics for bench/browser verification, never controller output.
