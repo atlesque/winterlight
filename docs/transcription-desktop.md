@@ -49,4 +49,4 @@ Verified on 9 October 2026:
 
 The reused GPU runtime is Torch 2.13.0+cu130 with CUDA 13.0, torchaudio 2.11.0+cu130 and an RTX 5090. These short checks establish that this workflow works with those installed versions; retest after changing the shared runtime. Resolved desktop software versions and the validation logs remain in the ignored desktop work directory.
 
-These are migration checks, not a new full-song model benchmark or listening approval. The original results and musical-review caveats still apply. Laptop inference is disabled. Removing the old laptop checkpoint/runtime copies requires separate cleanup approval.
+These are migration checks, not a new full-song model benchmark or listening approval. The original results and musical-review caveats still apply. Laptop inference is disabled. The old laptop checkpoints, transcription runtime, source snapshots, caches and soundfont were removed after explicit cleanup approval. Stems, MIDI, metrics and listening previews remain on the laptop for review.
