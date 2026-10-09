@@ -86,8 +86,9 @@ export function createOriginalScene(host){
   }else if(ch.kind==='minitree'){
    const [x]=toMeters(m.x,0);for(let s=0;s<6;s++){const a=2*Math.PI*s/6;along([[x+Math.cos(a)*m.radius,0,m.z+Math.sin(a)*m.radius],[x,m.height,m.z]],.07).forEach(p=>addBulb(c,p,col,.75));}
   }else if(ch.kind==='treeStrip'){
-   const [bx]=toMeters(TREE.base[0],0),R=TREE.halfWidth/PX_PER_M,top=toMeters(...TREE.apex)[1];
-   along([[bx+Math.sin(m.theta)*R,0,TREE.depth+Math.cos(m.theta)*R],[bx,top,TREE.depth]],.11).forEach(p=>addBulb(c,p,col,.85));
+   // The strips meet at the measured apex, under the star, not above the base centre.
+   const [bx]=toMeters(TREE.base[0],0),R=TREE.halfWidth/PX_PER_M,[ax,top]=toMeters(...TREE.apex);
+   along([[bx+Math.sin(m.theta)*R,0,TREE.depth+Math.cos(m.theta)*R],[ax,top,TREE.depth]],.11).forEach(p=>addBulb(c,p,col,.85));
   }
  });
  const sphere=new THREE.SphereGeometry(.035,8,6),material=new THREE.MeshBasicMaterial({toneMapped:false});
