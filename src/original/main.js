@@ -11,7 +11,28 @@ const SOUNDTRACK_SECONDS=185.875737;
 let scene=null,cues=null,brightness=.6,allOn=false;
 const states=new Uint8Array(CHANNELS.length),levels=new Uint8Array(CHANNELS.length),ALL_ON=new Uint8Array(CHANNELS.map(c=>c.palette==='multi'?3:1)),FULL=new Uint8Array(CHANNELS.length).fill(100);
 try{scene=createOriginalScene($('viewport'));scene.view('video');}catch(error){$('scene-error').hidden=false;$('scene-error').textContent='The 3D scene needs WebGL. Enable hardware acceleration or try a WebGL-capable browser.';console.error(error);}
-for(const name of ['video','orbit','yard'])$('view-'+name).onclick=()=>scene?.view(name);
+// Overlay mode: the model's lights over the original video, lined up in Video
+// view, so each frame can be compared with what was filmed.
+const stage=document.querySelector('.stage'),overlayCanvas=$('overlay-video'),overlayContext=overlayCanvas.getContext('2d');
+let overlayOn=false;
+function setView(name){
+ overlayOn=name==='overlay';stage.classList.toggle('overlay',overlayOn);overlayCanvas.hidden=!overlayOn;$('overlay-controls').hidden=!overlayOn;
+ $('view-overlay').setAttribute('aria-pressed',overlayOn);scene?.view(name);
+}
+for(const name of ['video','orbit','yard','overlay'])$('view-'+name).onclick=()=>setView(name==='overlay'&&overlayOn?'video':name);
+$('overlay-mix').oninput=e=>stage.style.setProperty('--model-mix',+e.target.value/100);
+$('overlay-diff').onchange=e=>stage.classList.toggle('difference',e.target.checked);
+// Draws the frame the video is showing, fitted to the stage the same way the overlay camera is.
+function paintOverlay(){
+ const dpr=Math.min(devicePixelRatio,2),w=Math.round(stage.clientWidth*dpr),h=Math.round(stage.clientHeight*dpr);
+ if(overlayCanvas.width!==w||overlayCanvas.height!==h){overlayCanvas.width=w;overlayCanvas.height=h;}
+ overlayContext.fillStyle='#000';overlayContext.fillRect(0,0,w,h);
+ const ready=clock.usingVideo&&video.readyState>=2&&video.videoWidth;
+ $('overlay-note').textContent=ready?'Lights from the model over the original video, lined up frame by frame. Difference turns matching light dark.':'Load the original video in the sidebar to compare it with the model.';
+ if(!ready)return;
+ const k=Math.min(w/video.videoWidth,h/video.videoHeight),vw=video.videoWidth*k,vh=video.videoHeight*k;
+ overlayContext.drawImage(video,(w-vw)/2,(h-vh)/2,vw,vh);
+}
 
 // One lamp per channel, grouped by prop, so the detected states can be read alongside the model.
 const lamps=[];
@@ -69,7 +90,7 @@ function animate(now){
  requestAnimationFrame(animate);
  const t=clock.time(),d=Number.isFinite(media().duration)?media().duration:SOUNDTRACK_SECONDS;
  const values=allOn?ALL_ON:cues?cues.stateAt(t,states,levels):states.fill(0),level=allOn?FULL:levels;
- scene?.draw(values,level,brightness);board(values,level);
+ scene?.draw(values,level,brightness);board(values,level);if(overlayOn)paintOverlay();
  if(now-lastUI>80){lastUI=now;$('time').textContent=format(t);$('duration').textContent=format(d);$('timeline').max=d;if(document.activeElement!==$('timeline'))$('timeline').value=t;
   const f=cues?.frameAt(t);$('frame-label').textContent=cues?(f>=cues.startFrame&&f<cues.endFrame?`· video frame ${f+1}`:'· outside the detected range'):'';}
 }

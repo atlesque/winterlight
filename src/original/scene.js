@@ -4,15 +4,18 @@ import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
-import {CHANNELS,COLORS,TREE,toMeters,PX_PER_M} from './layout.js';
+import {CHANNELS,COLORS,TREE,REFERENCE,toMeters,PX_PER_M} from './layout.js';
 
 // The original two-storey house from the filmed show, built from the same
 // reference-still coordinates the detector samples. Facade lights sit on the
 // facade plane; yard props stand in front of it at their own depth.
-const OFF=.07,BULB_SPACING=.2;
+const OFF=.07,BULB_SPACING=.2,OVERLAY_DISTANCE=400,BLACK=new THREE.Color('#000');
+// The whole video frame in facade metres: its centre and half extents.
+const VIDEO_FRAME=(()=>{const {scale,offset}=REFERENCE.toVideo960,{width,height}=REFERENCE.video,ref=(vx,vy)=>toMeters((vx-offset[0])/scale,(vy-offset[1])/scale),[x0,y0]=ref(0,0),[x1,y1]=ref(width,height);
+ return {x:(x0+x1)/2,y:(y0+y1)/2,halfW:(x1-x0)/2,halfH:(y0-y1)/2};})();
 
 export function createOriginalScene(host){
- const scene=new THREE.Scene();scene.background=new THREE.Color('#05070c');scene.fog=new THREE.FogExp2('#05070c',.012);
+ const scene=new THREE.Scene(),background=new THREE.Color('#05070c'),fog=new THREE.FogExp2('#05070c',.012);scene.background=background;scene.fog=fog;
  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;host.appendChild(renderer.domElement);
  const camera=new THREE.PerspectiveCamera(30,1,.1,200);
  const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=6;controls.maxDistance=60;controls.maxPolarAngle=Math.PI/2-.03;
@@ -49,6 +52,9 @@ export function createOriginalScene(host){
  rect(185,150,345,225,-.97,mats.glass);rect(705,138,860,212,-.97,mats.glass);rect(180,150,200,225,-.95,mats.dark,.04);rect(330,150,350,225,-.95,mats.dark,.04);rect(840,138,865,212,-.95,mats.dark,.04);
  // Walkway to the door.
  box(1.4,.03,5,1.1,.02,2.5,mats.snow);
+
+ // Everything so far is the house; overlay mode hides it so only the lights sit over the video.
+ const houseParts=[...scene.children];
 
  // Lights. Bulbs are one instanced mesh; each channel owns a range of bulbs
  // with their base colours, so a state change only rewrites that range.
@@ -107,11 +113,21 @@ export function createOriginalScene(host){
   video:()=>{camera.fov=Math.max(22,2*Math.atan(10.6/34/camera.aspect)*180/Math.PI);camera.position.set(2.3,3,34);controls.target.set(2.3,3.3,0);},
   orbit:()=>{camera.fov=40;camera.position.set(-12,7,18);controls.target.set(1.5,2.4,0);},
   yard:()=>{camera.fov=45;camera.position.set(4,1.6,9);controls.target.set(3,1.4,1);},
+  // Lines the facade up with the video frame: the layout is traced in video
+  // pixels on the facade plane, so a distant camera centred on the frame
+  // reproduces those pixels (yard props up to 3 m forward shift by under 1%).
+  overlay:()=>{const {x,y,halfW,halfH}=VIDEO_FRAME,half=Math.max(halfH,halfW/camera.aspect);
+   camera.fov=2*Math.atan(half/OVERLAY_DISTANCE)*180/Math.PI;camera.position.set(x,y,OVERLAY_DISTANCE);controls.target.set(x,y,0);},
  };
  let current='video';
- function view(name){current=name;views[name]();camera.updateProjectionMatrix();controls.update();}
- function resize(){const w=host.clientWidth||1,h=host.clientHeight||1;renderer.setSize(w,h,false);composer.setSize(w,h);bloom.resolution.set(w,h);camera.aspect=w/h;if(current==='video')view('video');else camera.updateProjectionMatrix();}
+ function view(name){
+  const overlay=name==='overlay';current=name;
+  houseParts.forEach(o=>{o.visible=!overlay;});scene.fog=overlay?null:fog;scene.background=overlay?BLACK:background;
+  controls.enabled=!overlay;controls.maxDistance=overlay?Infinity:60;camera.far=overlay?OVERLAY_DISTANCE+50:200;
+  views[name]();camera.updateProjectionMatrix();controls.update();
+ }
+ function resize(){const w=host.clientWidth||1,h=host.clientHeight||1;renderer.setSize(w,h,false);composer.setSize(w,h);bloom.resolution.set(w,h);camera.aspect=w/h;if(current==='video'||current==='overlay')view(current);else camera.updateProjectionMatrix();}
  new ResizeObserver(resize).observe(host);resize();
  renderer.setAnimationLoop(()=>{controls.update();composer.render();});
- return {draw,view,setBrightness,bulbCount:bulbs.length};
+ return {draw,view,setBrightness,bulbCount:bulbs.length,get current(){return current;}};
 }

@@ -42,9 +42,9 @@ test('invalid cue runs are rejected',()=>{
  assert.throws(()=>prepareOriginalCues({...cueData({}),format:'x'},CHANNELS),/format/);
 });
 const stored=new URL('../outputs/original-house-cues.json',import.meta.url);
-test('stored original-video cues cover the first 30 seconds of every channel',{skip:!existsSync(stored)},()=>{
+test('stored original-video cues cover the whole video for every channel',{skip:!existsSync(stored)},()=>{
  const data=JSON.parse(readFileSync(stored,'utf8')),cues=prepareOriginalCues(data,CHANNELS);
  assert.equal(data.source.sha256,'32bac17909d2b27a5d065470c52666c2f7f9d727cd721b60d14c93a0b1f27c42');
- assert.equal(cues.startFrame,0);assert.ok(cues.end>=30-1/cues.rate);
+ assert.equal(cues.startFrame,0);assert.equal(cues.endFrame,data.source.frameCount);
  assert.deepEqual(Object.keys(data.channels).sort(),CHANNELS.map(c=>c.id).sort());
 });

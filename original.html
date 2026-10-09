@@ -6,9 +6,10 @@
   <header><a class="brand" href="/">✳ <span>Winterlight<small>CHRISTMAS SHOW STUDIO</small></span></a><div class="header-note">The filmed house, rebuilt prop by prop.</div><a class="guide-link" href="/">Your house ↗</a></header>
   <main>
     <section class="stage" aria-label="3D model of the original filmed house">
-      <div id="viewport"></div>
+      <canvas id="overlay-video" class="overlay-video" hidden></canvas><div id="viewport"></div>
       <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> THE ORIGINAL HOUSE</div><h1>Frame by frame.</h1><p>Every prop switched exactly as it was filmed.</p></div>
-      <div class="scene-controls"><button id="view-video" class="small-button">Video view</button><button id="view-orbit" class="small-button">Garden view</button><button id="view-yard" class="small-button">Yard view</button></div>
+      <div class="scene-controls"><button id="view-video" class="small-button">Video view</button><button id="view-orbit" class="small-button">Garden view</button><button id="view-yard" class="small-button">Yard view</button><button id="view-overlay" class="small-button" aria-pressed="false">Overlay video</button></div>
+      <div id="overlay-controls" class="overlay-controls" hidden><label for="overlay-mix">Model opacity <input id="overlay-mix" type="range" min="0" max="100" value="70"></label><label><input id="overlay-diff" type="checkbox"> Difference</label><small id="overlay-note">Lights from the model over the original video, aligned frame by frame.</small></div>
       <div class="scene-footer"><span>Drag to orbit · Scroll to zoom</span><span class="scale-tag">Layout traced from the filmed show · dimensions estimated</span></div>
       <div id="scene-error" hidden></div>
     </section>

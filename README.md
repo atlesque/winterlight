@@ -58,10 +58,10 @@ Because the original video is filmed from a fixed camera, `tools/original/detect
 ```bash
 # Check the regions against a frame of the video, then detect a range.
 python3 -I tools/original/detect.py source.mp4 --overlay work/original/overlay.png --at 180
-python3 -I tools/original/detect.py source.mp4 --end 30 --out outputs/original-house-cues.json --levels work/original/levels.csv
+python3 -I tools/original/detect.py source.mp4 --out outputs/original-house-cues.json --levels work/original/levels.csv
 ```
 
-Light spills between neighbouring props, so each channel has a floor below which it counts as off: 10% for the floor strips, 25% for the canes and circles, 50% for the letters (they catch up to ~46% spill from the icicles above) and 45% for the ground strip (snow lit by the icicles and mini trees). The mini trees stand closer together than their glow is wide, so each is watched along its centre line by mean brightness with a 45% floor. The window-strip regions stop short of the icicles, and the peace sign is watched only along its upper half, above the mini-tree tops, for the same reason. `outputs/original-house-cues.json` currently covers 0:00–0:30 (900 frames).
+Light spills between neighbouring props, so each channel has a floor below which it counts as off: 10% for the floor strips, 25% for the canes and circles, 50% for the letters (they catch up to ~46% spill from the icicles above) and 45% for the ground strip (snow lit by the icicles and mini trees). The mini trees stand closer together than their glow is wide, so each is watched along its centre line by mean brightness with a 45% floor. The window-strip regions stop short of the icicles, and the peace sign is watched only along its upper half, above the mini-tree tops, for the same reason. `outputs/original-house-cues.json` covers the whole video, 0:00–3:05 (all 5,569 frames).
 
 The side panel plays the original video with its own sound, and while it plays the lights follow the frame on screen (`src/original/video-clock.js`). The site hosts a 720p copy at `public/media/wizards-in-winter-video.mp4` (about 13 MB, every source frame and timestamp kept). If it is ever missing, the page asks for a local MP4 once and keeps it in that browser, and without any video the hosted soundtrack drives the lights. The hosted copy was made with:
 

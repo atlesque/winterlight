@@ -49,8 +49,14 @@ function build(){
  // decay through 40% to off within a frame or two, so little is lost.
  const FLOORS={strip:{floor:.1},letter:{floor:.5},minitree:{floor:.45,stat:'mean'},cane:{floor:.25},wreath:{floor:.25},peace:{floor:.3}};
  const add=(prop,id,name,kind,palette,roi,model={})=>list.push({id,prop,name,kind,palette,roi,model,detect:FLOORS[kind]||{floor:.2}});
- add('upper','upper','Upper floor strip','strip','multi',{lines:[[[128,150],[245,72],[385,128]],[[385,128],[655,128]],[[655,125],[790,52],[925,122]],[[250,66],[785,55]]],width:10},{icicles:[1,1,1,0],lineZ:[-.9,-.9,-.9,-5.4]});
- add('lower','lower','Lower floor strip','strip','multi',{lines:[[[85,265],[690,265]],[[150,232],[690,232]],[[690,272],[905,272]]],width:10},{icicles:[1,0,1],lineZ:[.15,-.95,.15]});
+// Each floor has bulbs along its edges and icicle lights hanging below them;
+ // the icicles carry most of the colour (all blue at 1:48), so the regions
+ // also cover a band about 20 px under each icicled eave.
+ const below=(lines,dy)=>lines.map(line=>line.map(([x,y])=>[x,y+dy]));
+ const UPPER=[[[128,150],[245,72],[385,128]],[[385,128],[655,128]],[[655,125],[790,52],[925,122]],[[250,66],[785,55]]];
+ const LOWER=[[[85,265],[690,265]],[[150,232],[690,232]],[[690,272],[905,272]]];
+ add('upper','upper','Upper floor strip','strip','multi',{lines:[...UPPER,...below(UPPER.slice(0,3),20)],width:12},{lines:UPPER,icicles:[1,1,1,0],lineZ:[-.9,-.9,-.9,-5.4]});
+ add('lower','lower','Lower floor strip','strip','multi',{lines:[...LOWER,...below(LOWER.slice(0,1),22)],width:12},{lines:LOWER,icicles:[1,0,1],lineZ:[.15,-.95,.15]});
  add('windows','windows','Window strips','strip','multi',{lines:[[[157,185],[157,228]],[[358,185],[358,228]],[[686,180],[686,240]],[[893,180],[893,240]],[[95,320],[95,430]],[[462,320],[462,390]],[[680,320],[680,380]],[[905,320],[905,430]]],width:8},{lineZ:[-.9,-.9,-.9,-.9,.15,.15,.15,.15],lines:[[[157,150],[157,240]],[[358,132],[358,240]],[[686,150],[686,250]],[[893,135],[893,250]],[[95,275],[95,440]],[[462,300],[462,392]],[[680,285],[680,382]],[[905,282],[905,440]]]});
  // Whole-house flashes lift the window regions to ~20% though no window strip is lit.
  list.at(-1).detect={floor:.25};
