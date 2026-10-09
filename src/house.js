@@ -18,14 +18,23 @@ export const HOUSE = {
     {x:6.03,z:1.55},{x:7.45,z:1.55},{x:6.03,z:3.2},{x:7.45,z:3.2},
   ]},
 };
-// Standing props keep to the paving between the planting tiles: two arch rows
-// in the clear bands behind and in front of the second tile row, stars ahead
-// of the first row, front poles along the facade and back poles in the gaps.
+// Props modelled on the filmed original house. Facade props hang on the front
+// wall; the wireframe tree stands in the cross-shaped gap between the four
+// planting tiles, the mini trees in the band between the facade and the first
+// tile row, and the candy canes along the street edge of the garden.
 export const PROP_LAYOUT = {
-  arches:{centers:[6.17,7.97,6.17,7.97],radius:.5,z:[2.375,2.375,3.78,3.78]},
-  stars:{centers:[6.25,7.85],z:.95},
-  poles:[[5.8,.6],[6.35,.6],[6.9,.6],[7.45,.6],[8,.6],
-    [6.74,1.55],[6.74,3.2],[7.07,2.375],[8.18,1.55],[8.18,3.2]],
+  // Front edge of the eave trims (main house and garage), just under the gutter.
+  eaves:{main:{from:3.05,to:8.55,y:5.42},garage:{from:-.05,to:3.15,y:2.74},z:.09},
+  // HAPPY HOLIDAYS in the band between the upper windows and the eave.
+  letters:{text:'HAPPY HOLIDAYS',from:3.4,to:8.2,y:5.16,height:.34,z:.07},
+  // Upstairs, so the tree in front of the kitchen window hides neither: the
+  // peace sign in the left window and a circle in the right one, both clear of
+  // the sills; a smaller circle hangs on the front door.
+  wreaths:[{x:6.8,y:4.15,radius:.42,z:.26},{x:4.7,y:1.72,radius:.22,z:.25}],
+  peace:{x:4.45,y:4.15,radius:.5,z:.26},
+  tree:{x:6.74,z:2.375,radius:.42,height:2.5,strips:16,star:{radius:.2,gap:.06}},
+  canes:{xs:[5.8,6.3,6.8,7.3,7.8,8.3],z:3.78,height:.6},
+  minitrees:{xs:[5.9,6.38,6.86,7.34,7.82,8.3],z:.75,height:1,radius:.17},
   // Cable corridors run street-ward through the gap between the tile columns
   // and the strip right of them, then along the clear band to each prop.
   corridors:[6.74,8.18],

@@ -9,7 +9,7 @@
 <meta property="og:type" content="website"><meta property="og:site_name" content="Winterlight"><meta property="og:locale" content="en_GB">
 <meta property="og:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta property="og:description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade, play the show and inspect every light."><meta property="og:url" content="https://winterlight.alexander-df0.workers.dev/">
 <meta property="og:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="3D model of a house with coloured Christmas lights on its windows, door, poles, arches and stars">
+<meta property="og:image:alt" content="3D model of a house with a wireframe Christmas tree, a peace sign, Christmas circles and HAPPY HOLIDAYS letters lit up">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta name="twitter:description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade, play the show and inspect every light."><meta name="twitter:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Winterlight","url":"https://winterlight.alexander-df0.workers.dev/","description":"An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade, play the show and inspect every light.","image":"https://winterlight.alexander-df0.workers.dev/og-image.jpg","inLanguage":"en"}</script>
 </head>
@@ -19,16 +19,16 @@
   <main>
     <section class="stage" aria-label="Interactive 3D light show">
       <div id="viewport"></div>
-      <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> THE FACADE EDITION</div><h1>A little winter magic.</h1><p>Ground-floor outlines. Ten poles. One musical clock.</p></div>
+      <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> THE ORIGINAL-INSPIRED EDITION</div><h1>A little winter magic.</h1><p>A wireframe tree, a peace sign and HAPPY HOLIDAYS.</p></div>
       <div class="scene-controls"><button id="front" class="small-button">Street view</button><button id="orbit" class="small-button">Garden view</button><button id="overhead" class="small-button">Plan view</button></div>
-      <div class="scene-footer"><span>Drag to orbit · Scroll to zoom · Click a light to inspect</span><span class="scale-tag">Concept dimensions · ground-floor facade lights</span></div>
+      <div class="scene-footer"><span>Drag to orbit · Scroll to zoom · Click a light to inspect</span><span class="scale-tag">Concept dimensions · facade and garden props</span></div>
       <div id="scene-error" hidden></div>
     </section>
     <aside>
       <div class="tabs"><button class="tab active" id="show-tab">The show</button><button class="tab" id="parts-tab">Parts review <span>6</span></button></div>
       <div id="show-panel">
         <div class="eyebrow muted">YOUR DISPLAY</div><h2>Small scale.<br>Big atmosphere.</h2>
-        <div class="stats"><div><strong>954</strong><span>RGB addresses</span></div><div><strong>19</strong><span>light props</span></div><div><strong>3</strong><span>power banks</span></div></div>
+        <div class="stats"><div><strong>1,095</strong><span>RGB addresses</span></div><div><strong>10</strong><span>light props</span></div><div><strong>3</strong><span>power banks</span></div></div>
         <div class="field-title">Soundtrack</div>
         <div class="source-card"><span class="music-icon">♫</span><div><strong id="track-name">Winterlight demo</strong><small id="track-info">Original synthetic test score · 3:05</small></div><span class="chip" id="source-chip">DEMO</span></div>
         <p id="source-note" class="note">The demo is an original test score, not Wizards in Winter. Load your recording for audio-driven accents.</p>
@@ -36,21 +36,21 @@
         <button id="demo-button" class="text-button" hidden>Return to original demo</button>
         <div id="youtube-container" hidden><div id="youtube-player"></div><p class="note">Video-clock choreography is approximate. Embedding depends on YouTube availability.</p></div>
         <div class="frame-source">
-          <div class="field-title">Wizards in Winter</div><label class="range-label" for="wizards-timing">Light timings</label><select id="wizards-timing" class="timing-select" aria-label="Light timings"><option value="notes">MIDI instrument timings</option><option value="filmed">Original timings (filmed show)</option></select><button class="small-button wizards-play" id="wizards-play">Play Wizards show ♫</button><audio id="hosted-audio" preload="metadata" src="/media/wizards-in-winter.m4a"></audio><p id="hosted-audit" class="note" hidden></p><div class="field-title">Local video comparison</div><button class="small-button" id="extracted-show">Use extracted Wizards show</button>
+          <div class="field-title">Wizards in Winter</div><label class="range-label" for="wizards-timing">Light timings</label><select id="wizards-timing" class="timing-select" aria-label="Light timings"><option value="lit" selected>No timings yet · all props lit</option><option value="notes" disabled>MIDI instrument timings (old props)</option><option value="filmed" disabled>Original timings (old props)</option></select><button class="small-button wizards-play" id="wizards-play">Play Wizards show ♫</button><audio id="hosted-audio" preload="metadata" src="/media/wizards-in-winter.m4a"></audio><p id="hosted-audit" class="note" hidden></p><div class="field-title">Local video comparison</div><button class="small-button" id="extracted-show" disabled title="Made for the old props">Extracted Wizards show (old props)</button>
           <div class="source-buttons"><label class="small-button upload">Load video<input id="source-video-file" type="file" accept="video/*"></label><label class="small-button upload">Load timing<input id="timing-file" type="file" accept=".wltiming"></label></div>
           <div id="source-video-container" hidden><video id="source-video" playsinline preload="auto"></video><p id="frame-audit" class="note">A matching source video and timing file are required.</p></div>
           <p class="note">Reuses stored RGB frames and original timestamps. Exact source recording required; the demo and audio analysis are not a substitute.</p>
         </div>
         <div class="settings"><label class="range-label" for="brightness">Light intensity <span id="brightness-value">60%</span></label><input id="brightness" type="range" min="5" max="100" value="60">
-          <label class="switch-row"><span>Show cable routes <small>19 data outputs + 27 isolated power feeds</small></span><input id="wires" type="checkbox"></label>
+          <label class="switch-row"><span>Show cable routes <small>10 data outputs + 27 isolated power feeds</small></span><input id="wires" type="checkbox"></label>
           <label class="switch-row"><span>Full-white power test <small>Overrides the show; includes brightness cap</small></span><input id="white-test" type="checkbox"></label>
         </div>
-        <div class="power-card"><div><span>Estimated pixel load</span><strong id="power-total">— W</strong></div><div id="bank-bars"></div><small>RGB duty estimate · excludes controllers / losses.<br>Design maximum: 686.9 W with specified strip.<br>Excludes controllers, losses and thermal derating.</small></div>
+        <div class="power-card"><div><span>Estimated pixel load</span><strong id="power-total">— W</strong></div><div id="bank-bars"></div><small>RGB duty estimate · excludes controllers / losses.<br>Design maximum: 788.4 W at 0.72 W per address.<br>Excludes controllers, losses and thermal derating.</small></div>
         <div class="inspector" id="inspector"><span class="eyebrow muted">PROP INSPECTOR</span><p>Click a light to inspect its port, channels and power feeds.</p></div>
         <label class="range-label" for="prop-select">Inspect a prop</label><select id="prop-select" aria-label="Inspect a prop"><option value="">Choose a prop…</option></select>
         <button id="export" class="small-button export">Export 40 fps show frames ↓</button><p id="export-note" class="note">Exports RGB channel data and cues. Browser simulation; does not send to real controllers.</p>
       </div>
-      <div id="parts-panel" hidden><div class="eyebrow muted">BEFORE YOU BUY</div><h2>The missing pieces.</h2><p class="note">The concept holds up. The original shopping list still needs these six decisions closed.</p><div id="review-list"></div><a class="small-button export" href="/outputs/parts-critical-review.md" target="_blank">Read the full review ↗</a><a class="text-button" href="/outputs/revised-bom.csv" download>Download complete parts checklist ↓</a></div>
+      <div id="parts-panel" hidden><div class="eyebrow muted">BEFORE YOU BUY</div><h2>The missing pieces.</h2><p class="note">The new props are modelled, not bought. These six things still need settling.</p><div id="review-list"></div><a class="small-button export" href="/outputs/parts-critical-review.md" target="_blank">Old facade review ↗</a><a class="text-button" href="/outputs/revised-bom.csv" download>Old facade parts checklist ↓</a></div>
     </aside>
   </main>
   <footer class="transport"><button id="play" class="play-button" aria-label="Play show">▶</button><button id="restart" class="restart-button" aria-label="Restart show">↺</button><div class="timeline-wrap"><div class="timeline-top"><strong id="cue-name">Opening · warm call & response</strong><span><b id="time">0:00</b> / <span id="duration">3:05</span></span></div><input id="timeline" type="range" aria-label="Show position" min="0" max="185" step="0.025" value="0"><div class="timeline-labels"><span>OPENING</span><span>CHASE</span><span>EXPAND</span><span>FINALE</span></div></div><label class="volume">♫<input id="volume" type="range" aria-label="Volume" min="0" max="100" value="35"></label></footer>

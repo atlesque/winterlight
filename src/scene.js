@@ -5,8 +5,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { BANK_COLORS } from './show.js';
-import { HOUSE, PROP_LAYOUT, BANK_POSITIONS } from './house.js';
-import {BANKS,powerSections,cableRoute} from './props.js';
+import { HOUSE, BANK_POSITIONS } from './house.js';
+import {BANKS,powerSections,cableRoute,propFrames} from './props.js';
 
 export function createScene(host,pixels,onSelect,{preview=false}={}) {
   const scene=new THREE.Scene();scene.background=new THREE.Color('#131f2e');scene.fog=new THREE.FogExp2('#131f2e',.018);
@@ -20,7 +20,8 @@ export function createScene(host,pixels,onSelect,{preview=false}={}) {
   const brick=new THREE.MeshStandardMaterial({map:brickTexture(),roughness:.92});
   function box(w,h,d,x,y,z,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
   function cylinder(r,h,x,y,z,mat){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),mat);m.position.set(x,y,z);m.castShadow=true;scene.add(m);return m;}
-  function tube(points,r=.018,mat=mats.frame){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(12,points.length*2),r,6,false),mat);scene.add(mesh);return mesh;}
+  // Frames are polylines: straight runs between their points, so letter and star corners stay sharp.
+  function tube(points,r=.018,mat=mats.frame){const curve=new THREE.CurvePath(),v=points.map(p=>new THREE.Vector3(...p));for(let i=1;i<v.length;i++)curve.add(new THREE.LineCurve3(v[i-1],v[i]));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(12,(v.length-1)*6),r,6,false),mat);scene.add(mesh);return mesh;}
   box(60,.15,50,0,-.13,5,mats.snow);
   const roofMat=new THREE.MeshStandardMaterial({color:'#55535a',roughness:.94});
   function roof(x,width,depth,eaves,ridge){
@@ -81,12 +82,11 @@ export function createScene(host,pixels,onSelect,{preview=false}={}) {
   const mailboxFront=mailbox.z+mailbox.depth/2;
   box(.39,.085,.014,mailbox.x,.84,mailboxFront+.008,mats.metal);
   box(.34,.035,.018,mailbox.x,.845,mailboxFront+.018,mats.dark);
-  for(const prop of [...new Set(pixels.map(p=>p.prop))]) {
-    const positions=pixels.filter(p=>p.prop===prop).map(p=>p.position);
-    if(prop.id.startsWith('Arch'))tube(positions.slice(0,50));
-    if(prop.id.startsWith('Star')){tube([...positions.slice(0,50),positions[0]],.012);tube([...positions.slice(50),positions[50]],.012);cylinder(.018,.62,positions[0][0],.31,PROP_LAYOUT.stars.z,mats.frame);box(.45,.07,.32,positions[0][0],.06,PROP_LAYOUT.stars.z,mats.frame);}
-    if(prop.id.startsWith('Pole')){const [x,,z]=positions[0];cylinder(.022,.95,x,.5,z,mats.trim);box(.22,.045,.22,x,.045,z,mats.frame);}
-    if(prop.id.startsWith('Strip'))tube(prop.closed?[...positions,positions[0]]:positions,.012,mats.trim);
+  // Wire frames behind each prop's bulbs; the tree also gets a weighted base.
+  const frameMats={frame:mats.frame,leaf:new THREE.MeshStandardMaterial({color:'#1f3a26',roughness:.8}),cane:new THREE.MeshStandardMaterial({color:'#d9d4cc',roughness:.6})};
+  for(const prop of [...new Set(pixels.map(p=>p.prop))]){
+    for(const {points,closed,radius,mat} of propFrames(prop))tube(closed?[...points,points[0]]:points,radius,frameMats[mat]);
+    if(prop.id==='Tree'){const [x,,z]=propFrames(prop)[0].points[0];cylinder(.12,.06,x,.03,z,mats.frame);}
   }
   const wires=new THREE.Group();scene.add(wires);wires.visible=false;
   const bankPositions=BANK_POSITIONS;

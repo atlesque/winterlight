@@ -1,8 +1,8 @@
 # Winterlight
 
-A Christmas light show for an 8.50 m Belgian brick-house facade, adapted to *Wizards in Winter*. The approved layout has **four arches, two stars, ten standing poles, two ground-floor window outlines and a U-shaped door outline**. The former screen and four bars are removed; roof, upstairs and garage remain unlit.
+A Christmas light show for an 8.50 m Belgian brick-house facade, adapted to *Wizards in Winter*. The props are modelled on the [original filmed house](original.html): a **2.5 m wireframe tree with its star** between the four planting tiles, **HAPPY HOLIDAYS letters** under the eave, a **peace sign** and a **Christmas circle** in the upper windows, a smaller circle on the front door, **yellow and blue eave strips** (with icicles on the garage), **six candy canes** along the street edge and **six mini trees** in front of the kitchen window. Entrance and garage access stay clear.
 
-The 800 individual bullet pixels and 154 grouped strip addresses total **954 RGB addresses / 2,862 channels**. All 19 props have individual data outputs. Three existing controller/power banks serve 368 / 340 / 246 addresses through 27 isolated power feeds. Ground-floor frame mounting is now authorized; entrance and garage paving access stay clear.
+The ten props hold **1,095 RGB addresses / 3,285 channels**, each prop on its own data output. Three controller/power banks serve 410 / 387 / 298 addresses (295 / 279 / 215 W at 0.72 W per address) through 27 isolated power feeds of at most 50 addresses. The channel map is `outputs/pixel-map.csv`; the old facade layout's map (four arches, two stars, ten poles and three outlines) is kept in `outputs/legacy-facade/pixel-map.csv` because the extracted show and controller-bank files below were made for it.
 
 ## Run and view
 
@@ -25,7 +25,7 @@ Reuse existing compatible pixels first. A new build needs 18 × 50-node strings 
 
 ## Wizards timing
 
-The **Light timings** dropdown picks what drives the Wizards show. **MIDI instrument timings** (the default) drive the lights from instrument note cues (`outputs/wizards-note-cues.json`) on the hosted audio clock. Each MIDI instrument owns a prop group: piano the front five poles, lead the back five poles, guitar the four arches, bass the two window outlines, strings/synths the two stars and drums the door's left side, lintel and right side. Notes are dealt round robin across the group, skipping props that are still lit, so phrases travel along the group. The cues are compiled from the local instrument MIDI by `tools/transcription/build_light_cues.py`; no pitches are stored and the MIDI itself is not committed. **Original timings (filmed show)** keeps the source-frame playback described below. Light intensity defaults to 60%.
+The **Light timings** dropdown picks what drives the Wizards show. The new props have no timings yet, so **No timings yet · all props lit** (the default) plays the hosted soundtrack with every prop lit in its own bulb colours. **MIDI instrument timings** and **Original timings (filmed show)** were made for the old props and are disabled until they are mapped onto the new ones: the note cues (`outputs/wizards-note-cues.json`, compiled by `tools/transcription/build_light_cues.py`) name the old poles, arches, outlines and stars, and the source-frame playback described below uses the old channel map. Light intensity defaults to 60%.
 
 The revised `outputs/wizards-ground-level.wltiming` stores **5,569 native source frames**, with every original PTS and the complete 185.875737 s audio timeline preserved. Filmed icicle samples are spatially reassigned to the window and door outlines; columns from the filmed central sign supply pole accents. Retained arches and stars keep their samples. No temporal resampling, beat regeneration or colour averaging is used. Camera colours/shapes are adaptations, not original controller data.
 
