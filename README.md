@@ -13,7 +13,7 @@ npm run dev
 
 Open the reported local URL. The main page loads the matching extracted soundtrack and revised stored Wizards artifact; press **Play**. Drag to orbit, choose street/garden/plan views, inspect props and enable cable routes. `/props-preview.html` remains a static colour/placement view of the same approved geometry.
 
-The hosted site is [Winterlight](https://winterlight.alexander-df0.workers.dev). Deploy through `npm run deploy`; `npm run deploy:check` builds and checks packaging without publishing. It uses Cloudflare Workers Static Assets with no server handler or storage binding.
+The hosted site is [Winterlight](https://winterlight.alexander-df0.workers.dev). Deploy through `npm run deploy`; `npm run deploy:check` builds and checks packaging without publishing. It uses Cloudflare Workers Static Assets with no server handler or storage binding. Pushes to `main` deploy automatically through Workers Builds, and other branches get a Preview URL through `wrangler preview` using the empty `previews` block in `wrangler.jsonc`.
 
 ## Wiring and procurement
 
