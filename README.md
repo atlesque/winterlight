@@ -25,6 +25,8 @@ Reuse existing compatible pixels first. A new build needs 18 × 50-node strings 
 
 ## Wizards timing
 
+**Play Wizards show** now drives the lights from instrument note cues (`outputs/wizards-note-cues.json`) on the hosted audio clock: piano on the ten poles (low to high across them), guitar on the arches (filling from the feet, lead on the inner row), bass on the window outlines (colour follows pitch), kick/snare/toms on the door outline and strings plus cymbals on the stars. The cues are compiled from the local instrument MIDI by `tools/transcription/build_light_cues.py`; pitches are reduced to prop slots and the MIDI itself is not committed. **Filmed-show version** keeps the source-frame playback described below.
+
 The revised `outputs/wizards-ground-level.wltiming` stores **5,569 native source frames**, with every original PTS and the complete 185.875737 s audio timeline preserved. Filmed icicle samples are spatially reassigned to the window and door outlines; columns from the filmed central sign supply pole accents. Retained arches and stars keep their samples. No temporal resampling, beat regeneration or colour averaging is used. Camera colours/shapes are adaptations, not original controller data.
 
 Hosted audio drives frame selection. **Load video** and **Use extracted Wizards show** can pair the exact original local MP4 with this artifact for presented-video-frame comparisons. Local `.wltiming` files must match the current channel-map hash and source identity. Source playback disables brightness/full-white overrides to preserve stored bytes. The final frame holds through the 56.770 ms audio tail and blacks out at end.
