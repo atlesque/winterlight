@@ -1,11 +1,11 @@
 {
   "status": "artifact-integrity-verified",
   "frames": 5569,
-  "channels": 3150,
+  "channels": 2862,
   "durationUs": 185875737,
   "sourceSha256": "32bac17909d2b27a5d065470c52666c2f7f9d727cd721b60d14c93a0b1f27c42",
-  "rgbSha256": "bc57779db713d47254ef5793ada4c559cb2c9fd02afac3852c00c0fb3d7d7da5",
-  "timingSha256": "a0b2b466d5c68c6345bb71585ac79233f6c68be405dd1c74697bc1f0cd826c84",
+  "rgbSha256": "80479fc9bd85b05cb6256faea227c08e602220c73bb80059d9eb3ca76b15d12d",
+  "timingSha256": "5f44bdd8fb7d9aad36c490a925fb7681dd97787b25cd8151a94c5558e91287f8",
   "timestampMismatches": 0,
   "limitations": [
     "Does not establish fidelity of light states to source images",

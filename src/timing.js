@@ -1,8 +1,9 @@
+import {CHANNEL_COUNT} from './props.js';
 // The source PTS table and RGB bytes are authoritative. Neither playback nor
 // hardware export may regenerate effects or substitute nominal-FPS timestamps.
 const MAGIC = 'WLT2';
 const encoder = new TextEncoder();
-export function validateTiming(meta, timestamps, rgb, channels = 3150) {
+export function validateTiming(meta, timestamps, rgb, channels = CHANNEL_COUNT) {
   if (meta.format !== 'Winterlight source frames v2') throw new Error('Unsupported timing format');
   if (meta.channels !== channels || !Number.isInteger(meta.frameCount) || meta.frameCount < 1) throw new Error('Invalid frame/channel count');
   if (!/^[a-f0-9]{64}$/.test(meta.sourceSha256 || '')) throw new Error('Missing source-video SHA-256');
@@ -24,7 +25,7 @@ export function encodeTiming(meta, timestamps, rgb) {
   for(let i=0;i<timestamps.length;i++) view.setBigUint64(8+header.length+i*8,BigInt(timestamps[i]),true);
   out.set(rgb,8+header.length+timestamps.length*8);return out;
 }
-export function decodeTiming(input, channels=3150) {
+export function decodeTiming(input, channels=CHANNEL_COUNT) {
   const bytes=input instanceof Uint8Array?input:new Uint8Array(input);
   if(bytes.length<8||new TextDecoder().decode(bytes.subarray(0,4))!==MAGIC) throw new Error('Choose a WLT2 .wltiming file');
   const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),headerLength=view.getUint32(4,true);

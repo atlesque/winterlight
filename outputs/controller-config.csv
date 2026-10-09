@@ -1,0 +1,20 @@
+bank,model,port,protocol,RGB_addresses,global_channel_start,global_channel_end,controller_local_channel_start_1_based,controller_local_channel_end_1_based,DDP_receiver_offset_zero_based,colour_order_to_commission
+A,Arch1,1,WS2811 / 800 kHz,100,1,300,1,300,0,RGB; verify on hardware
+A,Arch2,2,WS2811 / 800 kHz,100,301,600,301,600,0,RGB; verify on hardware
+A,Star1,3,WS2811 / 800 kHz,100,601,900,601,900,0,RGB; verify on hardware
+A,Pole1,4,WS2811 / 800 kHz,20,901,960,901,960,0,RGB; verify on hardware
+A,Pole2,5,WS2811 / 800 kHz,20,961,1020,961,1020,0,RGB; verify on hardware
+A,StripWC,6,WS2811 / 800 kHz,28,1021,1104,1021,1104,0,RGB; verify on hardware
+B,Arch3,1,WS2811 / 800 kHz,100,1105,1404,1,300,0,RGB; verify on hardware
+B,Arch4,2,WS2811 / 800 kHz,100,1405,1704,301,600,0,RGB; verify on hardware
+B,Star2,3,WS2811 / 800 kHz,100,1705,2004,601,900,0,RGB; verify on hardware
+B,Pole3,4,WS2811 / 800 kHz,20,2005,2064,901,960,0,RGB; verify on hardware
+B,Pole4,5,WS2811 / 800 kHz,20,2065,2124,961,1020,0,RGB; verify on hardware
+C,Pole5,1,WS2811 / 800 kHz,20,2125,2184,1,60,0,RGB; verify on hardware
+C,Pole6,2,WS2811 / 800 kHz,20,2185,2244,61,120,0,RGB; verify on hardware
+C,Pole7,3,WS2811 / 800 kHz,20,2245,2304,121,180,0,RGB; verify on hardware
+C,Pole8,4,WS2811 / 800 kHz,20,2305,2364,181,240,0,RGB; verify on hardware
+C,Pole9,5,WS2811 / 800 kHz,20,2365,2424,241,300,0,RGB; verify on hardware
+C,Pole10,6,WS2811 / 800 kHz,20,2425,2484,301,360,0,RGB; verify on hardware
+C,StripKitchen,7,WS2811 / 800 kHz,64,2485,2676,361,552,0,RGB; verify on hardware
+C,StripDoor,8,WS2811 / 800 kHz,62,2677,2862,553,738,0,RGB; verify on hardware

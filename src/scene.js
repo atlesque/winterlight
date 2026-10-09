@@ -6,8 +6,9 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { BANK_COLORS } from './show.js';
 import { HOUSE, PROP_LAYOUT, BANK_POSITIONS } from './house.js';
+import {BANKS,powerSections,cableRoute} from './props.js';
 
-export function createScene(host,pixels,onSelect) {
+export function createScene(host,pixels,onSelect,{preview=false}={}) {
   const scene=new THREE.Scene();scene.background=new THREE.Color('#131f2e');scene.fog=new THREE.FogExp2('#131f2e',.018);
   const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;host.appendChild(renderer.domElement);
   const camera=new THREE.PerspectiveCamera(43,1,.1,100);camera.position.set(14,9,20);
@@ -61,26 +62,26 @@ export function createScene(host,pixels,onSelect) {
     const positions=pixels.filter(p=>p.prop===prop).map(p=>p.position);
     if(prop.id.startsWith('Arch'))tube(positions.slice(0,50));
     if(prop.id.startsWith('Star')){tube([...positions.slice(0,50),positions[0]],.012);tube([...positions.slice(50),positions[50]],.012);cylinder(.018,.62,positions[0][0],.31,PROP_LAYOUT.stars.z,mats.frame);box(.45,.07,.32,positions[0][0],.06,PROP_LAYOUT.stars.z,mats.frame);}
-    if(prop.id.startsWith('Bar')){cylinder(.023,1.1,positions[0][0],.6,PROP_LAYOUT.bars.z,mats.frame);box(.26,.07,.3,positions[0][0],.06,PROP_LAYOUT.bars.z,mats.frame);}
-    if(prop.id.startsWith('Matrix')){box(1.3,.57,.045,PROP_LAYOUT.matrix.x,.805,PROP_LAYOUT.matrix.z-.025,mats.frame);for(const x of [PROP_LAYOUT.matrix.x-.5,PROP_LAYOUT.matrix.x+.5])cylinder(.02,.65,x,.325,PROP_LAYOUT.matrix.z,mats.frame);}
+    if(prop.id.startsWith('Pole')){const [x,,z]=positions[0];cylinder(.022,.95,x,.5,z,mats.trim);box(.22,.045,.22,x,.045,z,mats.frame);}
+    if(prop.id.startsWith('Strip'))tube(prop.closed?[...positions,positions[0]]:positions,.012,mats.trim);
   }
   const wires=new THREE.Group();scene.add(wires);wires.visible=false;
   const bankPositions=BANK_POSITIONS;
   const labels=[];
   function label(text,pos){const el=document.createElement('span');el.className='scene-label';el.textContent=text;host.appendChild(el);labels.push({el,pos:new THREE.Vector3(...pos)});}
-  for(const [bank,pos] of Object.entries(bankPositions)){
+  for(const [bank,pos] of preview?[]:Object.entries(bankPositions)){
     const cabinet=box(.28,.35,.21,...pos,mats.metal);wires.add(cabinet);
-    label(`${bank} · 350px / 252W max`,[pos[0],.66,pos[2]]);
+    label(`${bank} · ${BANKS[bank].count} addresses / ${BANKS[bank].watts.toFixed(1)}W max`,[pos[0],.66,pos[2]]);
   }
   let sectionCount=0;
-  for(const prop of [...new Set(pixels.map(p=>p.prop))]) {
+  for(const prop of preview?[]:[...new Set(pixels.map(p=>p.prop))]) {
     const pp=pixels.filter(p=>p.prop===prop), source=bankPositions[prop.bank];
-    for(let i=0;i<pp.length;i+=50){const dest=pp[i].position;const path=[new THREE.Vector3(...source),new THREE.Vector3(source[0],.145,.65),new THREE.Vector3(dest[0],.145,.65),new THREE.Vector3(dest[0],.145,dest[2]),new THREE.Vector3(...dest)];
+    for(const {start} of powerSections(prop)){const dest=pp[start].position;const path=cableRoute(source,prop,dest).map(p=>new THREE.Vector3(...p));
       const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(path),new THREE.LineBasicMaterial({color:BANK_COLORS[prop.bank],transparent:true,opacity:.85}));wires.add(line);
       const marker=new THREE.Mesh(new THREE.SphereGeometry(.038,8,6),new THREE.MeshBasicMaterial({color:BANK_COLORS[prop.bank]}));marker.position.copy(path.at(-1));wires.add(marker);sectionCount++;
     }
     const d=pp[0].position;
-    const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(source[0],.3,source[2]),new THREE.Vector3(d[0],.155,.83),new THREE.Vector3(d[0],.155,d[2]),new THREE.Vector3(...d)]),new THREE.LineDashedMaterial({color:'#e9eef5',dashSize:.065,gapSize:.045,transparent:true,opacity:.65}));line.computeLineDistances();wires.add(line);
+    const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(cableRoute([source[0],.3,source[2]],prop,d).map(p=>new THREE.Vector3(...p))),new THREE.LineDashedMaterial({color:'#e9eef5',dashSize:.065,gapSize:.045,transparent:true,opacity:.65}));line.computeLineDistances();wires.add(line);
   }
   const core=new THREE.InstancedMesh(new THREE.SphereGeometry(.013,6,4),new THREE.MeshBasicMaterial({toneMapped:false}),pixels.length);core.instanceMatrix.setUsage(THREE.StaticDrawUsage);const dummy=new THREE.Object3D();
   for(const p of pixels){dummy.position.set(...p.position);dummy.updateMatrix();core.setMatrixAt(p.index,dummy.matrix);core.setColorAt(p.index,new THREE.Color('#111111'));}scene.add(core);
@@ -96,7 +97,7 @@ export function createScene(host,pixels,onSelect) {
   const color=new THREE.Color();
   return {sectionCount,core,scene,
     setWires(value){wires.visible=value;},
-    view(name){const views={front:[[4.25,4.5,23],[4.25,3,0]],orbit:[[14,9,20],[4.25,2.8,-1.5]],overhead:[[4.25,22,6],[4.25,0,-3]]};camera.position.set(...views[name][0]);controls.target.set(...views[name][1]);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();},
+    view(name){const views={front:[[4.25,4.5,14],[4.25,3,0]],orbit:[[12,7,13],[4.25,2.8,-1.5]],overhead:[[4.25,22,6],[4.25,0,-3]]};camera.position.set(...views[name][0]);controls.target.set(...views[name][1]);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();},
     draw(colors){let sum=0;for(const p of pixels){const i=p.index*3;color.setRGB(colors[i]*2.2,colors[i+1]*2.2,colors[i+2]*2.2);core.setColorAt(p.index,color);colorArray[i]=colors[i];colorArray[i+1]=colors[i+1];colorArray[i+2]=colors[i+2];sum+=colors[i]+colors[i+1]+colors[i+2];}core.instanceColor.needsUpdate=true;geometry.attributes.color.needsUpdate=true;bounce.intensity=sum/pixels.length*1.7;controls.update();for(const {el,pos} of labels){const projected=pos.clone().project(camera);el.style.display=wires.visible&&projected.z<1?'block':'none';el.style.left=`${(projected.x*.5+.5)*host.clientWidth}px`;el.style.top=`${(-projected.y*.5+.5)*host.clientHeight}px`;}composer.render();},
     snapshot(){return renderer.domElement.toDataURL('image/png');}
   };

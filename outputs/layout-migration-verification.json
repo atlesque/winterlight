@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-09",
+  "parentTimingSha256": "a0b2b466d5c68c6345bb71585ac79233f6c68be405dd1c74697bc1f0cd826c84",
+  "currentTimingSha256": "5f44bdd8fb7d9aad36c490a925fb7681dd97787b25cd8151a94c5558e91287f8",
+  "frames": 5569,
+  "currentChannels": 2862,
+  "comparedMappedRGBBytes": 15938478,
+  "mappedRGBByteMismatches": 0,
+  "timestampMismatches": 0,
+  "nativePtsChanged": false,
+  "durationChanged": false
+}

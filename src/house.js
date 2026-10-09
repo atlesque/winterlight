@@ -14,8 +14,6 @@ export const HOUSE = {
 };
 export const PROP_LAYOUT = {
   arches:{centers:[6.3,7.7,6.3,7.7],radius:.5,z:[2.85,2.85,3.6,3.6]},
-  bars:{centers:[5.85,6.55,7.4,8.2],z:2.2},
   stars:{centers:[6.25,7.85],z:1.15},
-  matrix:{x:7.05,z:1.65},
 };
 export const BANK_POSITIONS = {A:[5.9,.24,.34],B:[8.2,.24,.34],C:[7.05,.24,.34]};

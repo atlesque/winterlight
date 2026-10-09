@@ -1,38 +1,39 @@
 {
-  "parentTimingSha256": "a0b2b466d5c68c6345bb71585ac79233f6c68be405dd1c74697bc1f0cd826c84",
+  "parentTimingSha256": "5f44bdd8fb7d9aad36c490a925fb7681dd97787b25cd8151a94c5558e91287f8",
   "sourceSha256": "32bac17909d2b27a5d065470c52666c2f7f9d727cd721b60d14c93a0b1f27c42",
+  "channelMapSha256": "d700815960e968d2e8299d6d7c642a928754eb2159bb75edfcd4498531ac97c1",
   "durationUs": 185875737,
   "banks": [
     {
       "bank": "A",
       "file": "bank-A.wltiming",
-      "channels": 1050,
+      "channels": 1104,
       "frames": 5569,
       "globalChannelStart": 1,
-      "globalChannelEnd": 1050,
-      "sha256": "837909146c252f99555b11e1a8644797fb59c73080e4b1f925aa9b709d4d236e",
+      "globalChannelEnd": 1104,
+      "sha256": "e0f898e4f507a50affeadbc8083923444a1fb1d3264870552acb7f84cce14024",
       "timestampChanges": 0,
       "rgbByteChanges": 0
     },
     {
       "bank": "B",
       "file": "bank-B.wltiming",
-      "channels": 1050,
+      "channels": 1020,
       "frames": 5569,
-      "globalChannelStart": 1051,
-      "globalChannelEnd": 2100,
-      "sha256": "afceb4c01210aa7a52e0e72d38f51dca85945a3d9fecca4f0e86643a617a7185",
+      "globalChannelStart": 1105,
+      "globalChannelEnd": 2124,
+      "sha256": "c86a3a1332b0ba1d93fd64a1bfe4c33730e845bdbefe9e68204d6c8074f1b35b",
       "timestampChanges": 0,
       "rgbByteChanges": 0
     },
     {
       "bank": "C",
       "file": "bank-C.wltiming",
-      "channels": 1050,
+      "channels": 738,
       "frames": 5569,
-      "globalChannelStart": 2101,
-      "globalChannelEnd": 3150,
-      "sha256": "8ce64df7878c11c2cbf990d99213ceb0ec92ebabc9e846705cc26a5d9ea1d37f",
+      "globalChannelStart": 2125,
+      "globalChannelEnd": 2862,
+      "sha256": "3735413161578d57c7fd691d1290f9065467661c3a54234709221128f694374a",
       "timestampChanges": 0,
       "rgbByteChanges": 0
     }
