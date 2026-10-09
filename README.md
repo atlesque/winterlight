@@ -35,6 +35,34 @@ Bank partitions contain A=1,104, B=1,020 and C=738 channels/frame. Native timest
 
 **Return to original demo** enables a synthetic test score and full-white checks; **Load audio** analyses a local recording for adapted energy/onset effects. The demo's 40 fps `.wlshow` export is separate from native-frame Wizards playback. It has magic `WLS1`, a little-endian JSON-header length, metadata and frame-major RGB (2,862 channels/frame), with no audio.
 
+## Original house
+
+`/original.html` rebuilds the house from the filmed show as its own 3D scene, separate from the facade model above, so the original show can be reverse-engineered prop by prop. Its props and how they are addressed:
+
+| Prop | Channels |
+|---|---|
+| Upper and lower floor strips (yellow/blue) | one per floor |
+| Window strips (yellow/blue) | one group |
+| HAPPY HOLIDAYS letters (red, green, yellow) | one per letter (13) |
+| Christmas circles | left, right |
+| Candy canes | one per cane (8) |
+| Mini trees | one per tree (10) |
+| Ground strip, 30 cm high (yellow/blue) | one |
+| Peace sign | one |
+| Wireframe tree | one per vertical strip (16) + star |
+
+All 55 channels are described once in `src/original/layout.js`, in the pixel coordinates of a reference still of the final all-on frame (a 2× crop of the video). The 3D model and the detector both read that file. Counts of canes, mini trees and tree strips are estimates from the still.
+
+Because the original video is filmed from a fixed camera, `tools/original/detect.py` samples each channel's region on every decoded frame, learns that channel's own off and on brightness over the whole video, and decides on/off per frame with hysteresis. Multicolour strips are also classified as yellow, blue or both. There is no smoothing or resampling, so cue changes land on exact video frames (29.97 fps). The page plays them against the hosted soundtrack, which was extracted from the same video.
+
+```bash
+# Check the regions against a frame of the video, then detect a range.
+python3 -I tools/original/detect.py source.mp4 --overlay work/original/overlay.png --at 180
+python3 -I tools/original/detect.py source.mp4 --end 20 --out outputs/original-house-cues.json --levels work/original/levels.csv
+```
+
+Seen from the camera, tree strips at angle θ and π−θ overlap, so each front/back pair shares one detection line and one state.
+
 ## Current deliverables
 
 - [Approved build guide](outputs/christmas-show-project.md) and [printable HTML](outputs/christmas-show-project.html)
