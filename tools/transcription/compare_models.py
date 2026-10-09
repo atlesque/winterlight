@@ -12,6 +12,7 @@ bundled ICASSP 2022 ONNX model. Outputs must stay in the ignored work directory.
 """
 import argparse
 from pathlib import Path
+from runtime import require_desktop, reference_audio
 
 
 def stem_path(root, stem):
@@ -30,11 +31,7 @@ def prepare_run(separator_root, run_root, stems):
     for stem in stems:
         source = stem_path(separator_root, stem).resolve()
         link = run_root / 'stems' / f'{stem}.wav'
-        if link.exists() or link.is_symlink():
-            if link.resolve() != source:
-                raise FileExistsError(f'{link} already references another source')
-        else:
-            link.symlink_to(source)
+        reference_audio(source, link)
 
 
 def basicpitch(run_root, stems):
@@ -50,25 +47,25 @@ def basicpitch(run_root, stems):
         print(f'{stem}: {len(notes)} notes', flush=True)
 
 
-def bytedance(run_root, checkpoint):
+def bytedance(run_root, checkpoint, device='cpu'):
     import librosa
     import numpy as np
     # The published 0.0.6 package still uses removed NumPy aliases.
     np.float = float
     np.int = int
     from piano_transcription_inference import PianoTranscription
-    model = PianoTranscription(checkpoint_path=str(checkpoint), device='cpu')
+    model = PianoTranscription(checkpoint_path=str(checkpoint), device=device)
     audio, _ = librosa.load(str(run_root / 'stems/piano.wav'), sr=16000, mono=True)
     model.transcribe(audio, str(run_root / 'midi/piano.mid'))
 
 
-def adtof(run_root):
+def adtof(run_root, device='cpu'):
     from adtof_pytorch import get_default_weights_path, transcribe_to_midi
     weights = get_default_weights_path()
     if not weights or not Path(weights).is_file():
         raise FileNotFoundError('ADTOF weights missing; refusing untrained inference')
     transcribe_to_midi(run_root / 'stems/drums.wav', run_root / 'midi/drums.mid',
-                       device='cpu', weights=weights)
+                       device=device, weights=weights)
 
 
 def main():
@@ -78,6 +75,7 @@ def main():
     parser.add_argument('--run-root', type=Path, required=True)
     parser.add_argument('--checkpoint', type=Path)
     parser.add_argument('--stems', nargs='+', default=['bass', 'guitar', 'piano', 'other', 'lead'])
+    parser.add_argument('--device', choices=('cpu', 'cuda'), default='cuda')
     parser.add_argument('--threads', type=int, default=4)
     args = parser.parse_args()
     if args.threads < 1:
@@ -88,6 +86,7 @@ def main():
     work_root = Path(__file__).resolve().parents[2] / 'work/transcription'
     if not args.run_root.resolve().is_relative_to(work_root.resolve()):
         parser.error('--run-root must be inside ignored work/transcription')
+    require_desktop()
     import torch
     torch.set_num_threads(args.threads)
     stems = args.stems if args.model == 'basicpitch' else ['piano' if args.model == 'bytedance' else 'drums']
@@ -95,9 +94,9 @@ def main():
     if args.model == 'basicpitch':
         basicpitch(args.run_root, stems)
     elif args.model == 'bytedance':
-        bytedance(args.run_root, args.checkpoint)
+        bytedance(args.run_root, args.checkpoint, args.device)
     else:
-        adtof(args.run_root)
+        adtof(args.run_root, args.device)
 
 
 if __name__ == '__main__':

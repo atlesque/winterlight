@@ -1,12 +1,17 @@
 # Plan: per-instrument transcription of *Wizards in Winter*
 
-**Goal:** produce note-level MIDI for each instrument in the hosted track (`public/media/wizards-in-winter.m4a`) so every prop group can later be driven as its own instrument. This plan is for an agent with normal internet access (model downloads). It does **not** change the visualization; that comes after the results are compared.
+**Goal:** produce note-level MIDI for each instrument in the hosted track (`public/media/wizards-in-winter.m4a`) so every prop group can later be driven as its own instrument. Run this plan on Alex-desktop over SSH. Reuse the already migrated checkpoints; do not download new model weights without explicit user authorization. It does **not** change the visualization; that comes after the results are compared.
+
+## Execution location
+
+All model inference runs on Alex-desktop. The laptop launches jobs and reviews results. See [desktop workflow](transcription-desktop.md) for setup, existing checkpoint locations and commands. Historical commands in the results note describe the original run; use the SSH launcher for new work.
 
 ## Rules for the run
 
 - Work only from the repo's own audio file. Do not download MIDI, tabs or scores of the song from the internet.
 - Never commit stems, MIDI, rendered audio or note CSVs: they are derived from a commercial recording. Write them under `work/transcription/` (gitignored). Commit only code, this plan and a metrics-only results note.
 - Do not edit `src/` or the `.wltiming` artifact.
+- Run model inference only on Alex-desktop over SSH. Reuse existing checkpoints; new model downloads need explicit user authorization.
 - Record exact model names, versions/checkpoints and commands for every run.
 
 ## Baseline (already done, 9 Oct 2026)

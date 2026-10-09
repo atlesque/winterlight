@@ -7,6 +7,7 @@ Outputs are derived media and must remain in the gitignored work directory.
 import argparse
 import json
 from pathlib import Path
+from runtime import require_desktop, reference_audio
 
 
 def stem_name(path):
@@ -18,8 +19,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--device", choices=("cpu", "cuda", "mps"), default="cpu",
-                        help="mps is an experimental direct-model path; mt3-infer's public API only supports CPU/CUDA")
+    parser.add_argument("--device", choices=("cpu", "cuda"), default="cuda")
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--overwrite", action="store_true")
@@ -30,18 +30,14 @@ def main():
         parser.error("Derived outputs must stay under work/transcription")
     if args.threads < 1 or args.batch_size < 1:
         parser.error("--threads and --batch-size must be positive")
+    require_desktop()
     import librosa
     import torch
     import pretty_midi
     from mt3_infer import load_model
 
     torch.set_num_threads(args.threads)
-    model = load_model("yourmt3", device="cpu" if args.device == "mps" else args.device)
-    if args.device == "mps":
-        if not torch.backends.mps.is_available():
-            parser.error("MPS unavailable")
-        model.model.to("mps")
-        model.device_str = "mps"
+    model = load_model("yourmt3", device=args.device, auto_download=False)
 
     @torch.inference_mode()
     def forward_with_progress(features):
@@ -69,11 +65,7 @@ def main():
         name = stem_name(source)
         destination = args.output / "midi" / f"{name}.mid"
         reference = args.output / "stems" / f"{name}.wav"
-        if reference.exists() or reference.is_symlink():
-            if reference.resolve() != source.resolve():
-                raise FileExistsError(f"{reference} references a different audio source")
-        else:
-            reference.symlink_to(source.resolve())
+        reference_audio(source, reference)
         if destination.exists() and not args.overwrite:
             midi = pretty_midi.PrettyMIDI(str(destination))
         else:

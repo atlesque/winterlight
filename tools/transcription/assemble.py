@@ -1,7 +1,7 @@
 """Assemble selected transcriptions without quantizing their audio timestamps.
 
 Example (use the isolated transcription environment):
-  python -I tools/transcription/assemble.py work/transcription/song.wav \
+  python tools/transcription/assemble.py work/transcription/song.wav \
     --source piano=work/transcription/piano/midi/piano.mid \
     --source drums=work/transcription/drums/midi/drums.mid
 
@@ -9,6 +9,7 @@ Outputs are local, derived media; keep the output directory out of Git.
 Octave spikes are reported for listening review, never guessed away in chords.
 """
 
+from runtime import reference_audio
 import argparse
 import copy
 import json
@@ -168,12 +169,10 @@ def assemble(audio, sources, output):
         subset.save(destination)
         reference = sources[name].parent.parent / 'stems' / f'{name}.wav'
         link = output.parent / 'stems' / f'{name}.wav'
-        if reference.exists() and link.resolve() != reference.resolve():
-            if link.is_symlink():
+        if reference.exists():
+            if link.is_symlink() and link.resolve() != reference.resolve():
                 link.unlink()
-            elif link.exists():
-                raise FileExistsError(f'Refusing to replace existing reference: {link}')
-            link.symlink_to(reference.resolve())
+            reference_audio(reference, link)
     output.with_suffix(".assembly.json").write_text(json.dumps(report, indent=2) + "\n")
     return report
 

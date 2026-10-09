@@ -15,9 +15,27 @@ import soundfile as sf
 from assemble import assemble, clean_notes, clean_drum_notes, tempo_events, seconds_to_tick
 from evaluate import drum_onsets, evaluate, light_match, stem_metrics
 from run_yourmt3 import stem_name
+from runtime import require_desktop, reference_audio
 
 
 class PipelineTests(unittest.TestCase):
+    def test_model_inference_rejects_laptop(self):
+        with patch('runtime.socket.gethostname', return_value='Laptop'):
+            with self.assertRaisesRegex(RuntimeError, 'laptop inference is disabled'):
+                require_desktop()
+
+    def test_audio_reference_can_be_reused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, other, reference = root / 'source.wav', root / 'other.wav', root / 'stems/source.wav'
+            source.write_bytes(b'source')
+            other.write_bytes(b'other')
+            reference_audio(source, reference)
+            reference_audio(source, reference)
+            self.assertEqual(reference.read_bytes(), b'source')
+            with self.assertRaises(FileExistsError):
+                reference_audio(other, reference)
+
     def test_separator_names_share_reference_names(self):
         self.assertEqual(stem_name('song_bass.wav'), 'bass')
         self.assertEqual(stem_name('song_vocals.wav'), 'lead')
