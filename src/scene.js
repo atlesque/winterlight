@@ -50,6 +50,23 @@ export function createScene(host,pixels,onSelect,{preview=false}={}) {
   box(.025,.18,.04,door.x+.4,1.1,.23,mats.metal);
   // One level forecourt across the full frontage; access zones only guide prop placement.
   box(HOUSE.width,.035,HOUSE.forecourtDepth,HOUSE.width/2,.005,HOUSE.forecourtDepth/2,mats.path);
+  // Planting tiles: dark mulch flush with the paving, a slim variegated shrub and boxwood balls.
+  const mulch=new THREE.MeshStandardMaterial({color:'#2e2620',roughness:1});
+  const leafMats=[new THREE.MeshStandardMaterial({color:'#5d7a4a',roughness:.85,flatShading:true}),new THREE.MeshStandardMaterial({color:'#7f9666',roughness:.85,flatShading:true}),new THREE.MeshStandardMaterial({color:'#d3d6b4',roughness:.85,flatShading:true})];
+  const boxwood=new THREE.MeshStandardMaterial({color:'#2f4a2b',roughness:.9,flatShading:true});
+  const leafGeo=new THREE.IcosahedronGeometry(1,0), ballGeo=new THREE.IcosahedronGeometry(1,1);
+  function blob(geo,r,x,y,z,mat){const m=new THREE.Mesh(geo,mat);m.scale.setScalar(r);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+  HOUSE.planters.tiles.forEach((tile,t)=>{
+    const size=HOUSE.planters.size;
+    box(size,.024,size,tile.x,.025,tile.z,mulch);
+    let seed=t*977+31;const rand=()=>((seed=(seed*16807)%2147483647)/2147483647);
+    cylinder(.015,tile.height*.6,tile.x,tile.height*.3,tile.z,mats.frame);
+    for(let k=0;k<26;k++){
+      const f=k/25, spread=.13*(1-.55*f)+.03, a=rand()*Math.PI*2, r=spread*Math.sqrt(rand());
+      blob(leafGeo,.06+.045*(1-f)*rand()+.025,tile.x+Math.cos(a)*r,.2+f*(tile.height-.27),tile.z+Math.sin(a)*r,leafMats[Math.floor(rand()*3)]);
+    }
+    for(const [dx,dz] of [[-.25,.21],[.23,.24],[-.22,-.2],[.25,-.19]]){const r=.1+.03*rand();blob(ballGeo,r,tile.x+dx,.03+r*.85,tile.z+dz,boxwood);}
+  });
   const mailbox=HOUSE.mailbox;
   const concrete=new THREE.MeshStandardMaterial({color:'#97968e',roughness:1});
   box(mailbox.width,mailbox.height,mailbox.depth,mailbox.x,mailbox.height/2+.023,mailbox.z,concrete);

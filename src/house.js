@@ -11,6 +11,13 @@ export const HOUSE = {
   // Concrete mailbox at the street edge, between the two clear access corridors.
   mailbox:{x:3.7,z:3.975,width:.56,depth:.45,height:1.05},
   garden:{minX:5.65,maxX:8.5,minZ:.25,maxZ:3.9},
+  // Four square cut-outs in the slate paving, read from the street photo:
+  // a 2x2 grid right of the door, each with one tall variegated shrub and
+  // small boxwood balls at its base. Sizes/heights are photo estimates.
+  planters:{size:.8,tiles:[
+    {x:6.03,z:1.55,height:1.1},{x:7.45,z:1.55,height:1},
+    {x:6.03,z:3.2,height:.9},{x:7.45,z:3.2,height:.85},
+  ]},
 };
 export const PROP_LAYOUT = {
   arches:{centers:[6.3,7.7,6.3,7.7],radius:.5,z:[2.85,2.85,3.6,3.6]},
