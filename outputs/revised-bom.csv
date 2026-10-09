@@ -1,30 +1,33 @@
 item,quantity,status,specification_or_action
-12V WS2811 50-node strings,23,order,21 installed plus 2 spare; matching sealed pinout
-Baldrick8 12V RSP320 assembled kit,3,order,Confirm assembled thermal and ingress performance
-Controller output pigtails,24,included,Do not double-count kit components
-DC distribution block,3,extra,At least 7 protected branches and 21A continuous after derating; prefer verified 30A bus
-DC fuse holders,21,extra,Correct DC voltage and interruption rating
-Branch fuses,31,extra,21 installed plus 10 spare; initial 4A subject to actual protection assessment
-Upstream/controller supply protection,3,confirm,Qualified assembler to verify trunk and controller wiring protection
-50-node power feed harness,21,extra,Measure lengths and select rated conductor size
-Sealed feed connector pairs,21,extra,Pinout and current ratings verified; T alone does not isolate positive
-Positive-isolated data inter-section link,10,extra,Continue data and same-bank reference ground only
-First-pixel data/ground route,11,extra,Qualify cable length or documented differential solution
-Unused controller output caps,13,extra,Correct gender and connector type
-Prop terminal caps,11,extra,Additional injection end caps as applicable
-Extra glands/seals/strain relief,1 set,extra,Count after harness and enclosure design
-Coro arch100 plus support,4,confirm,Two curves of 50 nodes; verify actual supplied geometry
-Custom100-node star plus stand,2,custom,Two outlines of 50; total stand height at most 1.2m
-1m bar plus base,4,custom,50 pixels with rear loom space
-25x10 matrix plus base,1,custom,250 nodes; 5 independently supplied sections
-Rated DC power cable,measure,extra,Voltage drop and ampacity from actual routes
-Mounting/ballast/anchors,11 props,extra,Site wind and buried services assessment
-FPP host with PSU and storage,1 set,extra,Supported image and reliable storage
-Ethernet switch,1,extra,At least5ports and indoor power supply
-Ethernet cable,4 routes,extra,Outdoor-rated where exposed
-USB DAC speaker audio cable,1 set,extra,Wired audio to avoid variable Bluetooth delay
-Mains circuit isolation and protection,1 system,site review,Electrician verification; any new circuit work priced separately
-Ferrules labels seal kits spare fuses,1 set,extra,Document all banks ports and section polarity
-Electrical commissioning tools,1 set,confirm,Safe current voltage and thermal inspection
-Lawful matching music recording,1,missing,Local MP3/WAV for real audio-driven simulation and final sequencing
-Public playback/music permissions,as applicable,confirm,Not bundled with a recording or sequence purchase
+12V WS2811 50-node strings,18,reuse / order if needed,16 installed (800 pixels) plus 2 spare; matching sealed pinout; max 0.72W/node
+12V grouped WS2811 RGB strip; 5m rolls,4,new specification,20m ordered; 15.4m fitted (154 addresses) plus 4.6m spare; 30 LEDs/m; 3 LEDs/address; <=7.2W/m; weather-suitable sealed ends
+Baldrick8 12V RSP320 assembled kit,3,retain,Existing three-controller architecture; verify thermal and ingress performance
+Controller output pigtails,24,included,19 used; do not double-count kit components
+DC distribution block,3,revise,A:9 B:8 C:10 protected branches; use >=10-way rated distribution and >=30A bus after derating
+DC fuse holders,27,revise,DC interruption and voltage ratings verified for actual circuit
+4A DC branch fuses,18,provisional,12 installed plus 6 spare; 50-node bullet sections; actual wire/connector/fuse assessment required
+1.5A DC branch fuses,15,provisional,10 installed plus 5 spare; 20-node poles; actual protection assessment required
+2.5A DC branch fuses,8,provisional,5 installed plus 3 spare; strip sections up to 32 groups; actual protection assessment required
+Upstream/controller supply protection,3,confirm,Verify trunk and controller wiring protection separately
+Power feed harness,27,revise,See power-feeds.csv; measure real routes and calculate conductor size / voltage drop
+Sealed feed connector pairs,27,revise,Verified current/pinout; adapt strip pads to matching sealed harnesses
+Positive-isolated inter-section data link,8,revise,6 arch/star boundaries + 2 long-strip boundaries; pass data and same-bank GND only
+First-address data/GND route,19,revise,One per prop; facade route over door lintel; qualify longest data run / supported differential solution
+Unused controller output caps,5,revise,24 outputs minus 19 used
+Prop terminal caps,19,revise,Additional injection seals as applicable
+Coro 100-node arch plus support,4,retain,Two 50-node curves; match actual frame geometry
+Custom 100-node star plus stand,2,retain,Two 50-node outlines; no substituted 150-node retail star
+0.9m pole upright plus diffuser,10,new / reuse pixels,20 bullet pixels per pole; rear loom space and sealed detachable harness
+Weighted pole base,10,new,"Wind/site-specific ballast; 0.22m square footprint shown, actual base must fit garden"
+Facade channel / removable mounting,15.4m plus corners,new,Mount on ground-floor opening frames; no threshold strip; profile and weather exposure to confirm
+Extra glands/seals/strain relief,1 set,revise,Count after harness and enclosure design
+Rated DC power/data cable,measure,revise,power-feeds.csv contains schematic lengths only; calculate voltage drop and ampacity
+FPP host with PSU and storage,1 set,retain,Supported image and reliable storage; WLT2 needs verified adapter for FSEQ playback
+Ethernet switch,1,retain,At least 5 ports
+Ethernet cable,4 routes,retain,Outdoor-rated where exposed
+USB DAC speaker audio cable,1 set,retain,Use supplied matching soundtrack and wired audio
+Mains circuit isolation/protection,1 system,site review,Electrician verification; circuit work priced separately
+Ferrules labels seal kits spare fuses,1 set,revise,Label bank port model section and polarity
+Electrical commissioning tools,1 set,confirm,Current voltage and thermal inspection
+Public playback/music permissions,as applicable,confirm,Separate from possession of the recording
+Former 25x10 screen and four bar frames,0,removed,No longer part of active layout or purchase list

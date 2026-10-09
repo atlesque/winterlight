@@ -2,9 +2,11 @@
 
 Checked 8 October 2026. No purchase or supplier contact made. Prices are observed merchant prices, not delivered Belgian quotes; recheck variant, Belgian VAT, delivery charges and stock at checkout. Netherlands and Germany sources avoid a UK import as the main route.
 
-## Recommended buying route
+## Current buying route — revised 9 October 2026
 
-Use a Netherlands specialist for the controller assemblies and props, and a documented German pixel supplier for pixels and matching injection accessories. For a 1,050-pixel build, do **not** assign 500–550 conventional 12 V pixels to one 320 W PSU. Use three power banks of 350 pixels, or four banks where avoiding power breaks inside props is simpler.
+Use the [approved BOM](revised-bom.csv) for quantities: 18 × 50-node bullet strings if buying anew, four 5 m rolls of grouped strip, ten pole bases/diffusers, ground-floor frame channels and three retained controller assemblies. Reuse available pixels first. Banks now contain 368 / 340 / 246 RGB addresses, not equal 350-node allocations.
+
+The merchant offers below are **historical observations from 8 October**, not rechecked live prices/stock. They are retained as sourcing leads; the old full-project budget is superseded. A matching facade-strip supplier/delivered quote remains unconfirmed. Required strip is 12 V RGB WS2811, 30 LEDs/m, three LEDs/address, <=7.2 W/m; verify an actual sample/specification before ordering. Higher-power variants require a new load calculation.
 
 | Item | Verified merchant offer | Availability / caveat |
 |---|---|---|
@@ -17,15 +19,15 @@ Use a Netherlands specialist for the controller assemblies and props, and a docu
 | Coro arch blanks | [Propixeler arches](https://www.propixeler.nl/product-categorie/coro/bogen), Arch 100 €25 incl. VAT | Four €100. Pixels and independent ground support are extra. Confirm actual dimensions, 100-hole model, lead time and xLights model with supplier; individual page not readable. |
 | Ready star alternative | [Starflair](https://www.propixeler.nl/product/starflair), €25 incl. VAT | **150 pixels**, 60 × 60 × 1 cm, white/black. Two require 300 pixels, increasing this design to 1,150. Do not silently substitute into a 100-pixel star plan. |
 | Larger star alternative | [Propixeler star category](https://www.propixeler.nl/product-categorie/coro/ster), Star 200 €30 incl. VAT | Two would require 400 pixels instead of 200. Appropriate only after updating pixel/power counts. |
-| 100-pixel stars / 250-pixel matrix | Custom DIY holes in UV-stable coro or custom cut by local sign fabricator | Estimates: €30–€60 for two star blanks; €30–€60 matrix blank. These are estimates, not verified stock products. Purchase no generic mains LED star as a pixel substitute. |
+| 100-pixel stars | Retain/custom DIY UV-stable coro | Historical estimate €30–€60 for two blanks; screen removed from current order. |
 | Injection T adapters | [Pixel Imperium xConnect T 3:2:3](https://pixel-imperium.de/xConnect-T-connector-Power-Injection-323), €3.49 incl. German VAT | Available immediately; IP65, 0.75 mm², max 10 A published. At 21% unchanged net, approx €3.55. Confirm pinout and feed voltage. |
 | End caps | [xConnect end cap](https://pixel-imperium.de/end_cap-xconnect_for_3_pin_connector-plug), €0.29 incl. German VAT | Available immediately; cap every unused end. Approx €0.30 at 21% unchanged net. |
-| Pixel mounting strip | [Black 12 mm mounting strip](https://pixel-imperium.de/Mounting-strip-for-12mm-LED-Pixel-black), €2.59 per approximately 2.42 m; 50 m roll €39.99 linked on pixel page | Available immediately. For freestanding bars, fasten to rigid PVC/aluminium uprights, not to house walls. Verify hole pitch matches planned physical geometry. |
+| Pixel mounting strip | [Black 12 mm mounting strip](https://pixel-imperium.de/Mounting-strip-for-12mm-LED-Pixel-black), €2.59 per approximately 2.42 m; 50 m roll €39.99 linked on pixel page | Available immediately. For the new poles, fasten to rigid uprights with rear loom clearance; facade uses separate grouped strip and frame profiles. Verify hole pitch matches planned physical geometry. |
 | Extensions / pigtails | [Pixel Imperium pixel page accessories](https://pixel-imperium.de/ws2811-pixel-string-12mm-12v-ip68) | Three-pin extensions available but price on request; pigtails €2.59 **out of stock**. Kit already contains pigtails; budget separately for extensions/injection leads. |
 
 ## Electrical evidence and procurement limits
 
-Pixel Imperium publishes **36 W / 3 A maximum per 50 pixels** and 72 W / 6 A per 100 pixels. Thus use 0.72 W / 60 mA per pixel for this resistor-pixel design. 1,050 pixels are 756 W / 63 A at full white before controller overhead. The merchant recommends about 20% PSU reserve and warns that JST-SM is not watertight. Pixel bodies are IP68, but mated xConnect connectors are IP65; sealed pixel rating does not waterproof connectors or cuts.
+Pixel Imperium publishes **36 W / 3 A maximum per 50 pixels** and 72 W / 6 A per 100 pixels. Thus use 0.72 W / 60 mA per pixel for this resistor-pixel design. The current 800 bullet pixels are 576 W / 48 A. The specified 154 strip groups add at most 110.88 W / 9.24 A; total 686.88 W / 57.24 A before controller overhead. The merchant recommends about 20% PSU reserve and warns that JST-SM is not watertight. Pixel bodies are IP68, but mated xConnect connectors are IP65; sealed pixel rating does not waterproof connectors or cuts.
 
 [Meanwell official RSP320 datasheet](https://www.meanwell.com/Upload/PDF/RSP-320/RSP-320-SPEC.PDF): RSP-320-12 is 12 V, 26.7 A, 320.4 W; 20–90% RH **non-condensing**, -30 to +70 °C with derating curve. Maintain suitable ventilation/thermal capacity and manage condensation inside enclosure. 350 pixels = 252 W, leaving 68.4 W for overhead and reserve; 400 pixels = 288 W, only about 10% headroom. A 500-pixel bank needs 360 W and overloads this supply at full white. Brightness caps are operational controls, not substitutes for correct fuse and PSU sizing.
 
@@ -35,11 +37,9 @@ The assembled kit merchant claims outdoor use, but publishes no complete enclosu
 
 [QuinLED Dig-Octa Brainboard official NL store](https://nl.quinled.shop/Huis-en-kantoor/Quinled-LED-verlichting/Dig-Octa/QUINLED/QuinLED-Dig-Octa-Brainboard-32-8L-QLD-DOBB-p_41968.html) is €39.99 incl. VAT, eight level-shifted outputs, ESP32, built-in Ethernet. On check: warehouse **out of stock**, estimated 2–3 weeks. This is only the brainboard; fused powerboard, PSU, enclosure and harness are additional. It is a good WLED choice when the user wants WLED's local effects as well as external show streaming, but the assembled Baldrick route is easier to specify for this project. Do not price the bare brainboard as a complete outdoor controller.
 
-## Working 1,050-pixel budget (estimates marked)
+## Revised cost comparison
 
-Buy 23 × 50-pixel strings = 1,150 pixels, leaving 100 spares: about €280 at indicative Belgian VAT for the German offer, or €276 at the Dutch observed price. Three assembled 320 W controller boxes: €660. Four arch blanks: €100. Two DIY 100-pixel stars, matrix blank and bar frames: **estimated €100–€200**. Injection connectors/caps/extension leads, DC cable, fused distribution changes, cable covers and stakes: **estimated €180–€350**. FPP player, storage, PSU and wired network/audio accessories: **estimated €120–€220**. Safety/electrician allowance and final transport: **estimated €150–€300**. Total planning envelope: **about €1,590–€2,110**, excluding music rights fees, labour to sequence/build and any replacement garden landscaping.
-
-If using off-the-shelf 150-pixel Starflair stars, revise count to 1,150 and bank loading before order. For 350/350/350 banks on the exact 1,050 design, assign A = two 100-pixel arches + one 100-pixel star + one 50-pixel bar; B = same; C = 250-pixel matrix + two 50-pixel bars. Use dedicated fused feeds sized for each 50-pixel power section, with data routed across sections and common DC return where required. Keep independently supplied positive rails isolated.
+Five fewer 50-node strings and the removed matrix structure are potential new-build savings. If the original 1,050 pixels already exist, reuse 800 and retain 250 spare; no new bullet purchase is necessary when compatible. Three controller kits remain. The new BOM adds 20 m of strip, ten pole bases/diffusers, profiles/corners and six extra feed connections. Net delivered saving and final project total are unquoted. The prior whole-project envelopes are retired; do not add historic kit allowances to a quote that already includes them.
 
 [Pixel Imperium shipping policy](https://pixel-imperium.de/shipment) lists all EU member states and destination-country VAT for EU deliveries. Standard EU delivery observed: up to 3 kg €24.90, 5 kg €27.90, 10 kg €34.90, 20 kg €47.90. Final packed weight determines cost; this verifies Belgium as within the published shipping region without claiming an exact quote.
 
@@ -47,7 +47,7 @@ If using off-the-shelf 150-pixel Starflair stars, revise count to 1,150 and bank
 
 1. Measure frontage and exact available ground areas before committing to four arch sizes.
 2. Confirm Belgian delivery, VAT and all connector variants with merchants.
-3. Confirm selected pixels' exact full-white current, cable spacing and connector pinout.
+3. Confirm bullet and strip full-white current, grouped strip density, RGB order, cable spacing and connector pinout.
 4. Confirm controller input-bank ratings, fuse values, enclosure ingress rating and thermal/condensation guidance.
-5. Obtain custom 100-pixel star / 250-pixel matrix cut quote, or update counts for readily available alternatives.
+5. Obtain custom 100-pixel star, ten pole base/diffuser and 15.4 m facade-profile quotes; the matrix is removed.
 6. Order a sample string/controller first; test colour order, data stability and full-white current before bulk buying.

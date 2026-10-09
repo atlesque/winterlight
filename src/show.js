@@ -1,4 +1,5 @@
-import { PROP_LAYOUT } from './house.js';
+import {PROPS,propPositions} from './props.js';
+export {propPositions} from './props.js';
 export const REFERENCE_DURATION = 185;
 export const FPS = 40;
 export const BANK_COLORS = { A: '#edab63', B: '#85b8fb', C: '#9bd6bd' };
@@ -15,35 +16,8 @@ export const clamp = (x, a=0, b=1) => Math.min(b, Math.max(a, x));
 export function parseMap(csv) {
   return csv.trim().split(/\r?\n/).slice(1).map(line => {
     const [id,n,start,end,bank,port,sections,local] = line.split(',');
-    return { id, count:+n, channelStart:+start, channelEnd:+end, bank, port:+port, sections:+sections, localStart:+local };
+    return { ...PROPS.find(p=>p.id===id), id, count:+n, channelStart:+start, channelEnd:+end, bank, port:+port, sections:+sections, localStart:+local };
   });
-}
-export function propPositions(prop) {
-  const points=[];
-  if (prop.id.startsWith('Arch')) {
-    const k=+prop.id.slice(4)-1, cx=PROP_LAYOUT.arches.centers[k];
-    for(let i=0;i<100;i++) {
-      const row=Math.floor(i/50), u=(row ? 49-i%50 : i%50)/49, theta=Math.PI*(1-u);
-      points.push([cx+Math.cos(theta)*(PROP_LAYOUT.arches.radius-row*.032), .10+Math.sin(theta)*(PROP_LAYOUT.arches.radius-row*.032), PROP_LAYOUT.arches.z[k]]);
-    }
-  } else if(prop.id.startsWith('Bar')) {
-    const x=PROP_LAYOUT.bars.centers[+prop.id.slice(3)-1];
-    for(let i=0;i<50;i++) points.push([x,.13+i/49,PROP_LAYOUT.bars.z]);
-  } else if(prop.id.startsWith('Star')) {
-    const cx=PROP_LAYOUT.stars.centers[prop.id==='Star1'?0:1];
-    for(let i=0;i<100;i++) {
-      const ring=Math.floor(i/50), edge=Math.floor((i%50)/5), f=(i%5)/5, r=.37-ring*.09;
-      const vertex=j=>{const a=Math.PI/2+j*Math.PI/5, rad=j%2?r*.43:r;return [Math.cos(a)*rad,Math.sin(a)*rad]};
-      const a=vertex(edge),b=vertex((edge+1)%10);
-      points.push([cx+a[0]+(b[0]-a[0])*f,.79+a[1]+(b[1]-a[1])*f,PROP_LAYOUT.stars.z]);
-    }
-  } else {
-    for(let i=0;i<250;i++) {
-      const row=Math.floor(i/25), col=row%2?24-i%25:i%25;
-      points.push([PROP_LAYOUT.matrix.x+(col-12)*.05,.58+row*.05,PROP_LAYOUT.matrix.z]);
-    }
-  }
-  return points;
 }
 export function makeLayout(props) {
   const pixels=[];
@@ -63,7 +37,7 @@ export function renderFrame(pixels,time,duration,brightness=.3,analysis=null,whi
   const energy=feature ? feature.energy : .45+.25*Math.sin(time*.65);
   const fade=clamp((duration-time)/(duration*.025));
   for(const pixel of pixels) {
-    const {prop,local}=pixel, u=local/prop.count, arch=prop.id.startsWith('Arch'), star=prop.id.startsWith('Star'), matrix=prop.id.startsWith('Matrix');
+    const {prop,local}=pixel, u=local/prop.count, arch=prop.id.startsWith('Arch'), star=prop.id.startsWith('Star'), pole=prop.id.startsWith('Pole'),strip=prop.id.startsWith('Strip');
     const group=Number(prop.id.match(/\d+$/)?.[0]||1), bank=['A','B','C'].indexOf(prop.bank);
     let col=palette[0], value=.05;
     if(section===0) value=(Math.floor(time/.8)%2===bank%2? .17+.83*pulse:.025)*(star?.5:1);
@@ -72,7 +46,8 @@ export function renderFrame(pixels,time,duration,brightness=.3,analysis=null,whi
     if(section===3) {col=[.4,.65,1];value=.06+.35*Math.pow(.5+.5*Math.sin(time*1.8+local*2.37+group),7);}
     if(section===4) {col=palette[Math.floor(time/1.6+bank)%5];value=.12+.55*energy+.6*pulse;if(arch)value*=.3+.7*(.5+.5*Math.sin(u*13-time*6));}
     if(section>=5) {col=palette[arch?1:0];value=.32+.45*energy+.4*pulse;}
-    if(matrix&&!white) {const row=Math.floor(local/25),x=row%2?24-local%25:local%25;const head=Math.floor(time*8)%25;value*=section>=5?(((x-12)**2+(row-4)**2<15)?.95:.12):(Math.abs(x-head)<2?1:.12);}
+    if(pole&&!white&&section!==0&&section!==3){const head=(time*.7+group*.08)%1;value*=.25+.75*Math.exp(-Math.pow((u-head)*5,2));}
+    if(strip&&!white&&section===1)value=Math.max(value,.12+.35*pulse);
     if(time>=duration) value=0;
     const gain=white?brightness:clamp(value)*brightness*fade;
     for(let c=0;c<3;c++) out[pixel.index*3+c]=white?brightness:clamp(col[c]*gain);
@@ -81,7 +56,7 @@ export function renderFrame(pixels,time,duration,brightness=.3,analysis=null,whi
 }
 export function estimatePower(pixels,colors) {
   const watts={A:0,B:0,C:0};
-  for(const p of pixels) watts[p.prop.bank]+=(colors[p.index*3]+colors[p.index*3+1]+colors[p.index*3+2])*.24;
+  for(const p of pixels) watts[p.prop.bank]+=(colors[p.index*3]+colors[p.index*3+1]+colors[p.index*3+2])*(p.prop.wattsPerAddress/3);
   return {watts,total:Object.values(watts).reduce((a,b)=>a+b,0)};
 }
 export function analyzeSamples(samples,sampleRate) {

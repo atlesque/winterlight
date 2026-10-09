@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Winterlight · New props preview</title></head>
+<body>
+<header><a class="brand" href="/">✳ <span>Winterlight<small>FACADE PROPOSAL</small></span></a><span class="header-note">Approved facade layout</span><a class="guide-link" href="/">Current show ↗</a></header>
+<main>
+  <section class="stage" aria-label="Interactive new props preview">
+    <div id="viewport"></div>
+    <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> THE FACADE EDITION</div><h1>A little more winter magic.</h1><p>Ground-floor outlines + ten standing light poles.</p></div>
+    <div class="scene-controls"><button id="front" class="small-button">Street view</button><button id="orbit" class="small-button">Garden view</button><button id="overhead" class="small-button">Plan view</button></div>
+    <div class="scene-footer"><span>Drag to orbit · Scroll to zoom · Click a light to inspect</span><span class="scale-tag">Concept dimensions · ground-floor mounting</span></div>
+    <div id="scene-error" hidden></div>
+  </section>
+  <aside style="padding-top:28px">
+    <div class="eyebrow muted">APPROVED LAYOUT</div><h2>A brighter facade.<br>A simpler display.</h2>
+    <div class="stats"><div><strong>10</strong><span>standing poles</span></div><div><strong>3</strong><span>strip outlines</span></div><div><strong>15.4 m</strong><span>facade strip</span></div></div>
+    <article class="review"><span>01</span><div><h3>Light the easy-to-reach openings</h3><p>Outline the kitchen and small WC windows on the ground floor. Run a U-shaped strip around the door, keeping the threshold clear. Upstairs stays unlit.</p></div></article>
+    <article class="review"><span>02</span><div><h3>Ten slim poles, two staggered rows</h3><p>Replace the screen and four short bars with ten poles, each about 0.9 m tall. Keep four arches and two stars. All standing props remain to the right of the entrance.</p></div></article>
+    <article class="review"><span>03</span><div><h3>Cost-conscious strip option</h3><p>Provisional 12 V RGB strip: 30 LEDs/m, three LEDs per addressable group. About 154 facade groups + 200 pole pixels + 600 retained pixels = 954 addresses, versus 1,050 today (9% fewer). This is not a wattage or price saving estimate. Controllers, cable runs, diffusers and mounts still need costing.</p></div></article>
+    <label class="range-label" for="look">Preview colours</label><select id="look"><option value="warm">Warm outlines · icy blue poles</option><option value="colour">Colour groups</option><option value="white">All white</option></select>
+    <div class="inspector" id="inspector"><span class="eyebrow muted">PROP INSPECTOR</span><p>Click a light to see the proposed prop.</p></div>
+    <label class="range-label" for="prop-select">Inspect a prop</label><select id="prop-select"><option value="">Choose a prop…</option></select>
+    <p class="note">Static view of the approved layout. The main show now includes its wiring and adapted Wizards in Winter sequence. Strip lengths and pole spacing still need site measurements.</p>
+  </aside>
+</main>
+<footer class="transport"><span class="note">PROPOSED LAYOUT · Ground-floor window frames and door lintel · Clear garage and entrance access</span></footer>
+<script type="module" src="/src/props-preview.js"></script>
+</body></html>

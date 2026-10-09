@@ -1,56 +1,55 @@
-# Wizards in Winter — source-frame adaptation
+# Wizards in Winter — approved facade adaptation
 
-This show uses the locally supplied official music-video recording, not the old synthetic demo or beat-reactive generator. Every decoded source frame has one stored 3,150-channel RGB frame. Playback uses the video element's presented-frame timestamp; that same element supplies the original audio, pause and seek clock.
+Updated 9 October 2026. The soundtrack and native source timeline remain unchanged; the approved layout replaces four bars and the screen with ten poles and three ground-floor frame outlines. The current artifact contains **5,569 frames × 2,862 RGB channels**.
 
-## Run it
+## Playback
 
-1. Start the simulator with `npm run dev` and open its local URL.
-2. Choose **Load video** and select the original MP4 supplied in this chat.
-3. Choose **Use extracted Wizards show**, then **Play**.
-4. The audit reports covered frames, skipped frames, unmatched timestamps, late callbacks and maximum timestamp lookup error. Brightness and full-white controls are disabled to preserve the stored RGB values.
+Run `npm run dev` and open its reported URL. The main page prepares the supplied extracted soundtrack and current stored sequence. Press Play. The same audio media timeline handles play, pause, seek and native-frame lookup. For local video comparison, load the exact original MP4 and choose **Use extracted Wizards show**. Its SHA-256 must match the artifact. The source recording stays local; uploaded audio/video is not transmitted.
 
-The recording stays local and is excluded from the public repository. A differently encoded copy or edited version will fail its identity check. Reload the same original file after refreshing the page. Use the local `.wltiming` upload for other validated artifacts.
+Brightness/full-white overrides are disabled while stored Wizards frames are active. Return to the original demo for those tests. Demo/onset effects and their 40 fps .wlshow export are separate adaptations, not native-frame Wizards playback.
 
-## Exact timing; adapted shapes and colours
+## Timing and spatial mapping
 
-The source has 5,569 frames at 30000/1001 fps and native time base1/30000. Both audio and video begin at0. The video ends at185.818967s; audio continues until185.875737s. The final RGB frame is held through that56.770ms tail, then playback blacks out. WLT2 retains the original integer native PTS ticks as well as their nearest-microsecond browser lookup representation. No nominal40fps resampling, musical beat estimation, temporal interpolation or smoothing is used.
+The recording has 5,569 frames, 30000/1001 fps and time base 1/30000. Media starts at zero; video ends at 185.818967 s, audio at 185.875737 s. The final light frame holds through the 56.770 ms tail and blacks out at the audio end. Every native PTS tick and its rounded-microsecond lookup value is retained.
 
-| Filmed effect | Freestanding target |
+| Filmed source role | Approved target |
 |---|---|
-| Red candy canes | Arch1 |
+| Candy canes | Arch1 |
 | Left mini-tree cluster | Arch2 |
 | Right mini-tree cluster | Arch3 |
-| Large tree fan | Arch4, with no physical tree added |
-| Left / right green wreaths | Star1 / Star2 |
-| Four sections of roof icicles | Four low bars, with no roof or wall mounting |
-| Central HAPPY HOLIDAYS lettering | Serpentine25x10 matrix |
+| Large tree fan | Arch4; no physical tree added |
+| Left/right wreaths | Star1 / Star2 |
+| First and second roof-icicle sections | Kitchen-window outline (64 groups) |
+| Third roof-icicle section | Small WC-window outline (28 groups) |
+| Last roof-icicle section | Door sides/lintel (62 groups) |
+| Central sign | Ten pole columns, 20 nodes bottom-to-top each |
 
-The 11 target props and all3,150 channel assignments follow `pixel-map.csv`. This preserves the approved ground-level layout and removal zones. The original ground-blue strip, peace wheel and wreath bows do not have dedicated target props. A geometrically identical clone would contradict the installation constraints.
+The spatial migration selects nearest existing source samples. Kitchen combines the former two first roof sampling curves; WC and door use the remaining curves. Pole samples use columns 2, 4, 7, 9, 12, 14, 17, 19, 22 and 24 from the former 25-column sign sampling, respecting its serpentine lower-to-upper row order. Ten camera rows map onto twenty pole nodes by repeating each row twice. This transfers colour accents, not readable sign lettering. Retained arches/stars copy their original samples exactly.
 
-Sampling coordinates for every target node and all processing parameters are in `source-mapping.json` and embedded in the WLT2 header. Extraction decodes every frame to960x540 RGB, selects the brightest actual RGB triplet in a5x5 neighbourhood, subtracts each sample's fifth-percentile baseline across the complete recording, rejects residual signals below35/255, applies1.6 contrast gain and stores a30% brightness cap. Camera sampling is an explicit visual approximation: lens bloom, exposure, occlusion, compression and thresholding affect the result. It cannot recover the original controller commands, electrical intensities or dim lights below the noise threshold. The matrix maps image-top to physical-top, respecting serpentine channel order.
+No temporal resampling, smoothing, colour averaging or generated beat sequence is added. All RGB triplets come from the former reviewed source artifact. The original extraction used a 960×540 image, brightest actual RGB triplet within 5×5 neighbourhoods, fifth-percentile baseline subtraction, residual threshold 35/255, gain 1.6 and 30% encoded brightness cap. Camera exposure, bloom, occlusion and compression remain limitations; this cannot recover original controller commands or below-threshold light.
+
+`source-mapping.json` and the WLT2 header record every current source coordinate, legacy sample index, parent hash and zero temporal changes. The new channel-map hash is checked before playback, so a legacy 3,150-channel artifact cannot silently run on the revised map.
 
 ## Reproduce and verify
 
-Use a Python environment with numpy, plus FFmpeg and ffprobe:
+Reproduce this migration from the exact archived legacy files:
 
 ```bash
-python3 tools/extract-source.py source.mp4 work/source.rgb work/source-mapping.json
-node tools/pack-source-frames.mjs source.mp4 work/source.rgb outputs/wizards-ground-level.wltiming work/source-mapping.json
+node tools/remap-source-props.mjs legacy.wltiming legacy-pixel-map.csv legacy-source-mapping.json outputs/wizards-ground-level.wltiming
 node tools/verify-source-frames.mjs source.mp4 outputs/wizards-ground-level.wltiming outputs/source-integrity-report.json
 node tools/export-banks.mjs outputs/wizards-ground-level.wltiming outputs/controller-banks
+node tools/frame-worksheet.mjs
 npm test
 ```
 
-The verifier independently probes every source timestamp, checks source/channel-map/RGB hashes and verifies frame count, native PTS, playback PTS, video end and complete audio duration. It establishes artifact integrity, not original-controller fidelity or acoustic alignment. The complete data are immutable in playback.
+For fresh extraction, `tools/extract-source.py` reads current reviewed sample coordinates from `outputs/source-mapping.json`; run it with numpy and FFmpeg, then package through `tools/pack-source-frames.mjs`. Re-extraction uses the recorded rounded camera coordinates and may produce different RGB from the exact legacy migration; review and regenerate hashes rather than expecting an unchanged payload checksum. The timestamp verifier independently probes the exact original MP4 with ffprobe and compares every native PTS, lookup timestamp, final frame duration, source identity, current map and RGB checksum.
 
-## Reuse in the physical project
+## Controller reuse
 
-The canonical artifact is `wizards-ground-level.wltiming`. The three bank partitions in `controller-banks/` retain every original timestamp and exactly the corresponding1,050 channels/frame. Their manifest proves zero changed timestamps and zero changed RGB bytes on all5,569 frames. They contain no music. They are WLT2, not FSEQ files and not controller firmware.
+The three bank partitions retain every original timestamp and exactly their corresponding current RGB bytes: A=1,104 channels, B=1,020, C=738. Recombination tests cover all 5,569 frames. Source/global channel starts are A=1, B=1105, C=2125; every receiver uses local offset zero. No bank file contains audio.
 
-A hardware player must use these stored frames and native timestamps against the same audio timeline, preserve the channel order, and black out at the media end. It must also account for measured audio-device, network and controller scan delays. No actual controller has been connected or commanded. Do not regenerate the show with WLED audio-reactive effects or silently convert to the old40fps approximate export. A fixed-interval FPP/xLights conversion needs an explicit quantization/error report before claiming source-frame timing preservation.
+WLT2 is a custom artifact, not FSEQ, firmware or a validated real-controller playback format. Fixed-rate xLights/FPP conversion needs an explicit timing-quantization report, and real output needs measured network/controller/audio-device latency. Exact stored timestamps do not establish acoustic/optical simultaneity. No controller is connected or commanded by this project.
 
-Browser callback timing is audited rather than guaranteed. A callback can arrive one display refresh late; separate video and Three.js surfaces are not a certified simultaneous optical output. Exact stored data and timestamp selection do not establish physical photon/acoustic alignment. Installations still need commissioning measurements and the safety checks in the project guide.
+## Evidence
 
-## Full-duration playback evidence
-
-The final corrected artifact completed all5,569frames: zero skipped source frames, zero missed callbacks, zero unmatched PTS and0µs maximum timestamp lookup error. One late callback occurred at the initial paused frame; the count remained one throughout playback. Video/music played through185.875737s and ended in blackout. A subsequent175s seek presented frame5244 at174.974800s with0µs lookup error. Browser error logs were empty. `source-playback-audit.json` records the final artifact and source hashes; `source-frame-summary.csv` gives every timestamp, per-prop peak and estimated bank load for review. These data substantiate software frame selection and full coverage, not certified optical/acoustic simultaneity.
+`source-integrity-report.json` describes current source/map/RGB integrity verification. `source-playback-audit.json` identifies the tested artifact and whether its run used hosted audio or source video. `source-frame-summary.csv` lists all current per-prop peaks and bank duty estimates. The previous source-video full-run audit is preserved only as historical evidence in the private migration backup and must not be attributed to the new artifact.

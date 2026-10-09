@@ -1,9 +1,20 @@
-cue,audio_start_seconds_to_verify,audio_end_seconds_to_verify,proposed_effect,evidence_status
-Opening,,,Warm bars alternate,Proposed; exact timing not measured
-Answer phrase,,,Left then right arches,Proposed; exact timing not measured
-Ensemble accent,,,Warm stars and arches hit,Proposed; exact timing not measured
-Fast notes,,,Blue-white arch chase,Proposed; exact timing not measured
-Sustained phrase,,,Bars rise and stars expand,Proposed; exact timing not measured
-Build,,,Mirror groups and add restrained red-green,Proposed; exact timing not measured
-Final passage,,,Warm low props plus blue arches,Proposed; exact timing not measured
-End,,,Fade to black,Proposed; exact timing not measured
+model,source_role,timing_basis,RGB_addresses
+Arch1,"Red candy canes",Every native source PTS in source-frame-summary.csv,100
+Arch2,"Left cluster of mini trees",Every native source PTS in source-frame-summary.csv,100
+Star1,"Left green wreath",Every native source PTS in source-frame-summary.csv,100
+Pole1,"Central filmed lettering, column 2; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+Pole2,"Central filmed lettering, column 4; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+StripWC,"Filmed roof icicles transferred to small ground-floor window",Every native source PTS in source-frame-summary.csv,28
+Arch3,"Right cluster of mini trees",Every native source PTS in source-frame-summary.csv,100
+Arch4,"Large tree fan transferred to a low arch",Every native source PTS in source-frame-summary.csv,100
+Star2,"Right green wreath",Every native source PTS in source-frame-summary.csv,100
+Pole3,"Central filmed lettering, column 7; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+Pole4,"Central filmed lettering, column 9; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+Pole5,"Central filmed lettering, column 12; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+Pole6,"Central filmed lettering, column 14; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+Pole7,"Central filmed lettering, column 17; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+Pole8,"Central filmed lettering, column 19; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+Pole9,"Central filmed lettering, column 22; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+Pole10,"Central filmed lettering, column 24; vertical colour accents without displaying text",Every native source PTS in source-frame-summary.csv,20
+StripKitchen,"Filmed roof icicles transferred to kitchen window",Every native source PTS in source-frame-summary.csv,64
+StripDoor,"Filmed roof icicles transferred to door frame",Every native source PTS in source-frame-summary.csv,62
