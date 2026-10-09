@@ -35,7 +35,10 @@ const CANES=[412,428,468,488,510,526,548,600];
 // Eleven trees about 24 px apart in front of the right ground-floor window,
 // placed from frames where alternate trees are lit (0:19.9) and all are (0:29.4).
 const MINITREES=[617,653,677,701,725,749,773,797,821,845,880];
-export const TREE={apex:[985,135],base:[997,455],halfWidth:97,star:[980,118],starRadius:20,strips:16,depth:1.5};
+// Measured on a frame with every tree strip lit (frame 4,423 at 2:27.5): the star's
+// centre sits about 29 px above the point the strips meet, with a small gap
+// between its lower points and the first strip bulbs.
+export const TREE={apex:[983,142],base:[992,452],halfWidth:105,star:[981,113],starRadius:21,strips:16,depth:1.5};
 
 function build(){
  const list=[];
