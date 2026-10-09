@@ -5,12 +5,13 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { BANK_COLORS } from './show.js';
+import { HOUSE, PROP_LAYOUT, BANK_POSITIONS } from './house.js';
 
 export function createScene(host,pixels,onSelect) {
   const scene=new THREE.Scene();scene.background=new THREE.Color('#131f2e');scene.fog=new THREE.FogExp2('#131f2e',.018);
   const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;host.appendChild(renderer.domElement);
-  const camera=new THREE.PerspectiveCamera(43,1,.1,100);camera.position.set(11,7.2,19);
-  const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(1.25,2.1,1.4);controls.enableDamping=true;controls.minDistance=5;controls.maxDistance=35;controls.maxPolarAngle=Math.PI/2-.035;controls.update();
+  const camera=new THREE.PerspectiveCamera(43,1,.1,100);camera.position.set(14,9,20);
+  const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(4.25,2.8,-1.5);controls.enableDamping=true;controls.minDistance=5;controls.maxDistance=35;controls.maxPolarAngle=Math.PI/2-.035;controls.update();
   scene.add(new THREE.HemisphereLight('#b6cff7','#3b3230',.6));
   const moon=new THREE.DirectionalLight('#a6bff2',.65);moon.position.set(-8,15,7);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);moon.shadow.camera.left=-16;moon.shadow.camera.right=16;moon.shadow.camera.top=12;moon.shadow.camera.bottom=-12;scene.add(moon);
   const mats={snow:new THREE.MeshStandardMaterial({color:'#d7e1e8',roughness:.85}),dark:new THREE.MeshStandardMaterial({color:'#22252b',roughness:.62}),metal:new THREE.MeshStandardMaterial({color:'#5b626e',metalness:.3,roughness:.65}),trim:new THREE.MeshStandardMaterial({color:'#bac5ca',roughness:.7}),path:new THREE.MeshStandardMaterial({color:'#505b62',roughness:.7}),soil:new THREE.MeshStandardMaterial({color:'#4b514d',roughness:1}),frame:new THREE.MeshStandardMaterial({color:'#1b222a',roughness:.8})};
@@ -20,28 +21,51 @@ export function createScene(host,pixels,onSelect) {
   function cylinder(r,h,x,y,z,mat){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),mat);m.position.set(x,y,z);m.castShadow=true;scene.add(m);return m;}
   function tube(points,r=.018,mat=mats.frame){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(12,points.length*2),r,6,false),mat);scene.add(mesh);return mesh;}
   box(60,.15,50,0,-.13,5,mats.snow);
-  box(11,6.15,3.7,3.2,3.075,-1.95,brick);box(11.35,.18,4.05,3.2,6.23,-1.95,mats.trim);box(11.38,.09,4.08,3.2,6.35,-1.95,mats.snow);
-  box(6.3,2.8,4.1,-5.35,1.4,-2.1,brick);box(6.65,.2,4.4,-5.35,2.9,-2.1,mats.trim);box(6.67,.06,4.42,-5.35,3.03,-2.1,mats.snow);
-  // Garages and the upper facade deliberately carry no light props.
-  for(const x of [-6.95,-3.65]){box(2.85,2.28,.09,x,1.17,.01,mats.dark);for(let j=0;j<12;j++)box(2.79,.018,.025,x,.12+j*.19,.071,mats.metal);}
+  const roofMat=new THREE.MeshStandardMaterial({color:'#55535a',roughness:.94});
+  function roof(x,width,depth,eaves,ridge){
+    const cross=new THREE.Shape();cross.moveTo(0,eaves);cross.lineTo(-depth/2,ridge);cross.lineTo(-depth,eaves);cross.closePath();
+    const mesh=new THREE.Mesh(new THREE.ExtrudeGeometry(cross,{depth:width,bevelEnabled:false}),roofMat);
+    // Shape coordinates become world z/y; extrusion runs across the frontage.
+    mesh.rotation.y=-Math.PI/2;mesh.position.x=x+width;mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);
+  }
+  const mainWidth=HOUSE.width-HOUSE.garageWidth;
+  box(mainWidth,HOUSE.eaves,HOUSE.depth,HOUSE.garageWidth+mainWidth/2,HOUSE.eaves/2,-HOUSE.depth/2,brick);
+  roof(HOUSE.garageWidth,mainWidth,HOUSE.depth,HOUSE.eaves,HOUSE.ridge);
+  box(HOUSE.garageWidth,HOUSE.garageHeight,HOUSE.garageDepth,HOUSE.garageWidth/2,HOUSE.garageHeight/2,-HOUSE.garageDepth/2,brick);
+  roof(0,HOUSE.garageWidth,HOUSE.garageDepth,HOUSE.garageHeight,4.25);
+  for(const [x,w,h,d] of [[HOUSE.garageWidth+mainWidth/2,mainWidth,HOUSE.eaves,HOUSE.depth],[HOUSE.garageWidth/2,HOUSE.garageWidth,HOUSE.garageHeight,HOUSE.garageDepth]]){
+    box(w+.12,.16,d+.14,x,h,-d/2,mats.trim);
+  }
+  const garage=HOUSE.garage;
+  box(garage.width,garage.height,.09,garage.x,garage.height/2,.01,mats.dark);
+  for(let j=0;j<12;j++)box(garage.width-.06,.018,.025,garage.x,.12+j*.18,.071,mats.metal);
   const glass=new THREE.MeshStandardMaterial({color:'#4c4032',emissive:'#e6aa58',emissiveIntensity:.24,roughness:.4,metalness:.15});
-  function window(x,y,w=1.6,h=1.8){box(w+.17,h+.17,.15,x,y,.025,mats.dark);box(w,h,.07,x,y,.12,glass);box(.05,h,.08,x,y,.175,mats.dark);box(w+.25,.08,.26,x,y-h/2-.07,.12,mats.trim);}
-  for(const x of [0,3.6,7.05])window(x,4.45);window(3.5,1.55,1.7,1.75);window(7.1,1.55,1.7,1.75);window(-1.25,1.45,.4,1.6);
-  box(1.17,2.4,.12,.4,1.2,.04,mats.trim);box(1,2.25,.14,.4,1.18,.14,mats.dark);for(const y of [.52,1.16,1.8])box(.22,.31,.025,.4,y,.223,glass);box(.025,.18,.04,.78,1.1,.23,mats.metal);
-  box(1.8,.035,8,.45,.005,4.05,mats.path);for(let z=.4;z<8;z+=.65)box(1.8,.009,.018,.45,.03,z,mats.metal);
-  box(6.8,.028,8,-5.1,.003,4.2,mats.path);
-  box(6.25,.12,3.6,5.35,.05,2.13,mats.soil);box(6.28,.03,.12,5.35,.13,3.96,mats.trim);
-  const shrubs=new THREE.MeshStandardMaterial({color:'#354d41',roughness:1});
-  for(const [x,z,r] of [[2.35,.65,.35],[4.3,.57,.42],[6.1,.5,.32],[8.4,.75,.44],[8.45,2.8,.31]]){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),shrubs);m.position.set(x,r*.75,z);scene.add(m);const top=new THREE.Mesh(new THREE.SphereGeometry(r*.8,12,8,0,Math.PI*2,0,Math.PI*.45),mats.snow);top.position.set(x,r*.75+.12,z);scene.add(top);}
+  function window(x,y,w,h){box(w+.17,h+.17,.15,x,y,.025,mats.dark);box(w,h,.07,x,y,.12,glass);if(w>.5)box(.05,h,.08,x,y,.175,mats.dark);box(w+.25,.08,.26,x,y-h/2-.07,.12,mats.trim);}
+  for(const opening of HOUSE.windows)window(opening.x,opening.y,opening.width,opening.height);
+  const door=HOUSE.door;
+  box(door.width+.16,door.height+.12,.12,door.x,door.height/2,.04,mats.trim);
+  box(door.width,door.height,.14,door.x,door.height/2,.14,mats.dark);
+  for(const y of [.55,1.6])box(door.width-.25,.8,.025,door.x,y,.223,glass);
+  box(.025,.18,.04,door.x+.4,1.1,.23,mats.metal);
+  // One level forecourt across the full frontage; access zones only guide prop placement.
+  box(HOUSE.width,.035,HOUSE.forecourtDepth,HOUSE.width/2,.005,HOUSE.forecourtDepth/2,mats.path);
+  const mailbox=HOUSE.mailbox;
+  const concrete=new THREE.MeshStandardMaterial({color:'#97968e',roughness:1});
+  box(mailbox.width,mailbox.height,mailbox.depth,mailbox.x,mailbox.height/2+.023,mailbox.z,concrete);
+  box(mailbox.width+.04,.045,mailbox.depth+.02,mailbox.x,mailbox.height+.025,mailbox.z,concrete);
+  // Street-facing letter slot and small metal surround.
+  const mailboxFront=mailbox.z+mailbox.depth/2;
+  box(.39,.085,.014,mailbox.x,.84,mailboxFront+.008,mats.metal);
+  box(.34,.035,.018,mailbox.x,.845,mailboxFront+.018,mats.dark);
   for(const prop of [...new Set(pixels.map(p=>p.prop))]) {
     const positions=pixels.filter(p=>p.prop===prop).map(p=>p.position);
     if(prop.id.startsWith('Arch'))tube(positions.slice(0,50));
-    if(prop.id.startsWith('Star')){tube([...positions.slice(0,50),positions[0]],.012);tube([...positions.slice(50),positions[50]],.012);cylinder(.018,.62,positions[0][0],.31,1.25,mats.frame);box(.45,.07,.32,positions[0][0],.06,1.25,mats.frame);}
-    if(prop.id.startsWith('Bar')){cylinder(.023,1.1,positions[0][0],.6,1.92,mats.frame);box(.26,.07,.3,positions[0][0],.06,1.92,mats.frame);}
-    if(prop.id.startsWith('Matrix')){box(1.3,.57,.045,5.2,.805,1.175,mats.frame);for(const x of [4.7,5.7])cylinder(.02,.65,x,.325,1.2,mats.frame);}
+    if(prop.id.startsWith('Star')){tube([...positions.slice(0,50),positions[0]],.012);tube([...positions.slice(50),positions[50]],.012);cylinder(.018,.62,positions[0][0],.31,PROP_LAYOUT.stars.z,mats.frame);box(.45,.07,.32,positions[0][0],.06,PROP_LAYOUT.stars.z,mats.frame);}
+    if(prop.id.startsWith('Bar')){cylinder(.023,1.1,positions[0][0],.6,PROP_LAYOUT.bars.z,mats.frame);box(.26,.07,.3,positions[0][0],.06,PROP_LAYOUT.bars.z,mats.frame);}
+    if(prop.id.startsWith('Matrix')){box(1.3,.57,.045,PROP_LAYOUT.matrix.x,.805,PROP_LAYOUT.matrix.z-.025,mats.frame);for(const x of [PROP_LAYOUT.matrix.x-.5,PROP_LAYOUT.matrix.x+.5])cylinder(.02,.65,x,.325,PROP_LAYOUT.matrix.z,mats.frame);}
   }
   const wires=new THREE.Group();scene.add(wires);wires.visible=false;
-  const bankPositions={A:[2.55,.24,.34],B:[7.75,.24,.34],C:[5.2,.24,.34]};
+  const bankPositions=BANK_POSITIONS;
   const labels=[];
   function label(text,pos){const el=document.createElement('span');el.className='scene-label';el.textContent=text;host.appendChild(el);labels.push({el,pos:new THREE.Vector3(...pos)});}
   for(const [bank,pos] of Object.entries(bankPositions)){
@@ -64,7 +88,7 @@ export function createScene(host,pixels,onSelect) {
   const glowMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true,uniforms:{ratio:{value:renderer.getPixelRatio()}},vertexShader:'varying vec3 vColor; uniform float ratio; void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=min(48.0,290.0*ratio/-mv.z);gl_Position=projectionMatrix*mv;}',fragmentShader:'varying vec3 vColor; void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;float a=exp(-r*r*7.0)*.58;gl_FragColor=vec4(vColor*1.8,a);}'});
   const glows=new THREE.Points(geometry,glowMat);scene.add(glows);
   const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));composer.addPass(new UnrealBloomPass(new THREE.Vector2(800,600),.35,.45,.82));composer.addPass(new OutputPass());
-  const bounce=new THREE.PointLight('#85aaff',0,8,2);bounce.position.set(5.3,.45,2.6);scene.add(bounce);
+  const bounce=new THREE.PointLight('#85aaff',0,8,2);bounce.position.set(7,.45,2.6);scene.add(bounce);
   const ray=new THREE.Raycaster();let down;
   renderer.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const rect=renderer.domElement.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const hit=ray.intersectObject(core)[0];if(hit)onSelect(pixels[hit.instanceId].prop);});
   let aspectFit=1;
@@ -72,7 +96,7 @@ export function createScene(host,pixels,onSelect) {
   const color=new THREE.Color();
   return {sectionCount,core,scene,
     setWires(value){wires.visible=value;},
-    view(name){const views={front:[[2.5,4.1,21],[1.2,2.2,1]],orbit:[[11,7.2,19],[1.25,2.1,1.4]],overhead:[[3,16,9],[2,0,1.8]]};camera.position.set(...views[name][0]);controls.target.set(...views[name][1]);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();},
+    view(name){const views={front:[[4.25,4.5,23],[4.25,3,0]],orbit:[[14,9,20],[4.25,2.8,-1.5]],overhead:[[4.25,22,6],[4.25,0,-3]]};camera.position.set(...views[name][0]);controls.target.set(...views[name][1]);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();},
     draw(colors){let sum=0;for(const p of pixels){const i=p.index*3;color.setRGB(colors[i]*2.2,colors[i+1]*2.2,colors[i+2]*2.2);core.setColorAt(p.index,color);colorArray[i]=colors[i];colorArray[i+1]=colors[i+1];colorArray[i+2]=colors[i+2];sum+=colors[i]+colors[i+1]+colors[i+2];}core.instanceColor.needsUpdate=true;geometry.attributes.color.needsUpdate=true;bounce.intensity=sum/pixels.length*1.7;controls.update();for(const {el,pos} of labels){const projected=pos.clone().project(camera);el.style.display=wires.visible&&projected.z<1?'block':'none';el.style.left=`${(projected.x*.5+.5)*host.clientWidth}px`;el.style.top=`${(-projected.y*.5+.5)*host.clientHeight}px`;}composer.render();},
     snapshot(){return renderer.domElement.toDataURL('image/png');}
   };

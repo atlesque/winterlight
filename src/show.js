@@ -1,3 +1,4 @@
+import { PROP_LAYOUT } from './house.js';
 export const REFERENCE_DURATION = 185;
 export const FPS = 40;
 export const BANK_COLORS = { A: '#edab63', B: '#85b8fb', C: '#9bd6bd' };
@@ -20,26 +21,26 @@ export function parseMap(csv) {
 export function propPositions(prop) {
   const points=[];
   if (prop.id.startsWith('Arch')) {
-    const k=+prop.id.slice(4)-1, cx=3.15+k*1.33;
+    const k=+prop.id.slice(4)-1, cx=PROP_LAYOUT.arches.centers[k];
     for(let i=0;i<100;i++) {
       const row=Math.floor(i/50), u=(row ? 49-i%50 : i%50)/49, theta=Math.PI*(1-u);
-      points.push([cx+Math.cos(theta)*(.5-row*.032), .10+Math.sin(theta)*(.5-row*.032), 3.35]);
+      points.push([cx+Math.cos(theta)*(PROP_LAYOUT.arches.radius-row*.032), .10+Math.sin(theta)*(PROP_LAYOUT.arches.radius-row*.032), PROP_LAYOUT.arches.z[k]]);
     }
   } else if(prop.id.startsWith('Bar')) {
-    const x=[2.55,4.25,6.4,8.05][+prop.id.slice(3)-1];
-    for(let i=0;i<50;i++) points.push([x,.13+i/49,1.92]);
+    const x=PROP_LAYOUT.bars.centers[+prop.id.slice(3)-1];
+    for(let i=0;i<50;i++) points.push([x,.13+i/49,PROP_LAYOUT.bars.z]);
   } else if(prop.id.startsWith('Star')) {
-    const cx=prop.id==='Star1'?3.35:7.1;
+    const cx=PROP_LAYOUT.stars.centers[prop.id==='Star1'?0:1];
     for(let i=0;i<100;i++) {
       const ring=Math.floor(i/50), edge=Math.floor((i%50)/5), f=(i%5)/5, r=.37-ring*.09;
       const vertex=j=>{const a=Math.PI/2+j*Math.PI/5, rad=j%2?r*.43:r;return [Math.cos(a)*rad,Math.sin(a)*rad]};
       const a=vertex(edge),b=vertex((edge+1)%10);
-      points.push([cx+a[0]+(b[0]-a[0])*f,.79+a[1]+(b[1]-a[1])*f,1.25]);
+      points.push([cx+a[0]+(b[0]-a[0])*f,.79+a[1]+(b[1]-a[1])*f,PROP_LAYOUT.stars.z]);
     }
   } else {
     for(let i=0;i<250;i++) {
       const row=Math.floor(i/25), col=row%2?24-i%25:i%25;
-      points.push([5.2+(col-12)*.05,.58+row*.05,1.2]);
+      points.push([PROP_LAYOUT.matrix.x+(col-12)*.05,.58+row*.05,PROP_LAYOUT.matrix.z]);
     }
   }
   return points;
