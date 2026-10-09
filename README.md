@@ -63,7 +63,11 @@ python3 -I tools/original/detect.py source.mp4 --end 30 --out outputs/original-h
 
 Light spills between neighbouring props, so each channel has a floor below which it counts as off: 10% for the floor strips, 25% for the canes and circles, 50% for the letters (they catch up to ~46% spill from the icicles above) and 45% for the ground strip (snow lit by the icicles and mini trees). The mini trees stand closer together than their glow is wide, so each is watched along its centre line by mean brightness with a 45% floor. The window-strip regions stop short of the icicles, and the peace sign is watched only along its upper half, above the mini-tree tops, for the same reason. `outputs/original-house-cues.json` currently covers 0:00–0:30 (900 frames).
 
-The side panel plays the official YouTube video muted alongside the model. The soundtrack stays the clock you control; the video follows it, the lights read the video's own clock while it plays so they match the picture, and if the video buffers the soundtrack and lights wait for it. `VIDEO_OFFSET` in `src/original/youtube-sync.js` is 0 because the hosted soundtrack was extracted from that same video.
+The side panel plays the original video with its own sound, and while it plays the lights follow the frame on screen (`src/original/video-clock.js`). The site hosts a 720p copy at `public/media/wizards-in-winter-video.mp4` (about 13 MB, every source frame and timestamp kept). If it is ever missing, the page asks for a local MP4 once and keeps it in that browser, and without any video the hosted soundtrack drives the lights. The hosted copy was made with:
+
+```bash
+ffmpeg -i source.mp4 -map 0:v:0 -map 0:a:0 -vf scale=1280:720:flags=lanczos -c:v libx264 -preset slow -crf 27 -pix_fmt yuv420p -fps_mode passthrough -c:a aac -b:a 96k -movflags +faststart public/media/wizards-in-winter-video.mp4
+```
 
 Seen from the camera, tree strips at angle θ and π−θ overlap, so each front/back pair shares one detection line and one state.
 

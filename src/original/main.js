@@ -3,9 +3,9 @@ import './style.css';
 import {CHANNELS,PROPS,COLORS,MULTI} from './layout.js';
 import {prepareOriginalCues} from './cues.js';
 import {createOriginalScene} from './scene.js';
-import {syncYouTube} from './youtube-sync.js';
+import {createShowClock,HOSTED_VIDEO,matchesSource,rememberVideo,recallVideo,forgetVideo} from './video-clock.js';
 
-const $=id=>document.getElementById(id),audio=$('audio');
+const $=id=>document.getElementById(id),audio=$('audio'),video=$('video');
 const format=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
 const SOUNDTRACK_SECONDS=185.875737;
 let scene=null,cues=null,brightness=.6,allOn=false;
@@ -35,21 +35,39 @@ async function load(){
  $('play').disabled=false;
 }
 load();
-// The official video plays muted beside the model, locked to the soundtrack clock.
-const video=syncYouTube($('yt-player'),audio,message=>{$('video-status').textContent=message;});
+// The original video plays in the side panel with its own sound; once it is
+// there it becomes the clock, otherwise the soundtrack is.
+const clock=createShowClock(audio,video);
+const videoStatus=text=>{$('video-status').textContent=text;};
+let videoUrl=null;
+function showVideo(source,name,picked){
+ if(videoUrl)URL.revokeObjectURL(videoUrl);videoUrl=typeof source==='string'?null:URL.createObjectURL(source);
+ video.src=videoUrl||source;videoStatus('Loading the original video…');
+ video.onloadedmetadata=()=>{video.onerror=null;$('video-empty').hidden=true;$('video-change').hidden=!picked;clock.useVideo();
+  videoStatus(matchesSource(video.duration)?`${name} · the lights follow the frame on screen`:`${name} is ${format(video.duration)} long, not the 3:05 original, so its frames won't line up with the lights.`);};
+ video.onerror=()=>{video.onloadedmetadata=null;clock.useAudio();if(picked)forgetVideo();askForVideo('That file could not be played. ');};
+}
+function askForVideo(prefix=''){$('video-empty').hidden=false;$('video-change').hidden=true;videoStatus(`${prefix}Until a video is loaded, the lights follow the soundtrack.`);}
+$('video-file').onchange=e=>{const file=e.target.files[0];if(!file)return;rememberVideo(file);showVideo(file,file.name,true);e.target.value='';};
+$('video-change').onclick=()=>$('video-file').click();
+(async()=>{
+ try{const r=await fetch(HOSTED_VIDEO,{method:'HEAD'});if(r.ok&&(r.headers.get('content-type')||'').startsWith('video/')){showVideo(HOSTED_VIDEO,'Original video',false);return;}}catch{}
+ const saved=await recallVideo();if(saved)showVideo(saved,saved.name||'Original video',true);else askForVideo();
+})();
 
-$('play').onclick=async()=>{try{if(!audio.paused)audio.pause();else{if(audio.ended)audio.currentTime=0;await audio.play();}}catch(error){$('cue-note').textContent=`Audio could not start: ${error.message}`;}};
-$('restart').onclick=()=>{audio.currentTime=cues?.start||0;};
-$('timeline').oninput=e=>{audio.currentTime=+e.target.value;};
-$('volume').oninput=e=>audio.volume=+e.target.value/100;audio.volume=.35;
+const media=()=>clock.media;
+$('play').onclick=async()=>{const m=media();try{if(!m.paused)m.pause();else{if(m.ended)m.currentTime=0;await m.play();}}catch(error){$('cue-note').textContent=`Playback could not start: ${error.message}`;}};
+$('restart').onclick=()=>{media().currentTime=cues?.start||0;};
+$('timeline').oninput=e=>{media().currentTime=+e.target.value;};
+$('volume').oninput=e=>{audio.volume=video.volume=+e.target.value/100;};audio.volume=video.volume=.35;
 $('brightness').oninput=e=>{brightness=+e.target.value/100;$('brightness-value').textContent=`${e.target.value}%`;scene?.setBrightness();};
 $('all-on').onchange=e=>{allOn=e.target.checked;};
-audio.addEventListener('play',()=>$('play').textContent='❚❚');audio.addEventListener('pause',()=>$('play').textContent='▶');
+for(const m of [audio,video]){m.addEventListener('play',()=>{if(m===media())$('play').textContent='❚❚';});m.addEventListener('pause',()=>{if(m===media())$('play').textContent='▶';});}
 
 let lastUI=0;
 function animate(now){
  requestAnimationFrame(animate);
- const t=video.time(),d=Number.isFinite(audio.duration)?audio.duration:SOUNDTRACK_SECONDS;
+ const t=clock.time(),d=Number.isFinite(media().duration)?media().duration:SOUNDTRACK_SECONDS;
  const values=allOn?ALL_ON:cues?cues.stateAt(t,states,levels):states.fill(0),level=allOn?FULL:levels;
  scene?.draw(values,level,brightness);board(values,level);
  if(now-lastUI>80){lastUI=now;$('time').textContent=format(t);$('duration').textContent=format(d);$('timeline').max=d;if(document.activeElement!==$('timeline'))$('timeline').value=t;
@@ -58,4 +76,4 @@ function animate(now){
 requestAnimationFrame(animate);
 
 // Read-only diagnostics for browser checks.
-window.winterlightOriginal={get status(){return {time:video.time(),audioTime:audio.currentTime,frame:cues?.frameAt(video.time()),channels:CHANNELS.length,bulbs:scene?.bulbCount,lit:[...states].filter(Boolean).length,cues:!!cues,videoReady:video.ready,videoDrift:video.drift};}};
+window.winterlightOriginal={get status(){const t=clock.time();return {time:t,clock:clock.usingVideo?'video':'soundtrack',videoTime:video.currentTime,frame:cues?.frameAt(t),channels:CHANNELS.length,bulbs:scene?.bulbCount,lit:[...states].filter(Boolean).length,cues:!!cues};}};

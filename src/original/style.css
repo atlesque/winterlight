@@ -4,6 +4,10 @@
 .lamp{min-width:18px;height:18px;padding:0 4px;border-radius:4px;background:#1c2833;border:1px solid #ffffff10;font-size:9px;color:#5f7385;display:inline-flex;align-items:center;justify-content:center}
 .lamp.on{color:#16110a;border-color:transparent;box-shadow:0 0 8px var(--glow)}
 .lamp.wide{min-width:60px}
-.video-panel{margin-top:14px;aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:#05070c;border:1px solid #ffffff0a}
-.video-panel iframe{width:100%;height:100%;border:0;display:block}
+.video-panel{position:relative;margin-top:14px;aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:#05070c;border:1px solid #ffffff0a}
+.video-panel video{width:100%;height:100%;display:block;object-fit:contain}
+.video-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:16px;text-align:center}
+.video-empty label{cursor:pointer}.video-empty input{display:none}
+.video-empty small{font-size:9px;line-height:1.5;color:#7c91a5;max-width:220px}
+.text-button.inline{display:inline;padding:0}
 .video-status{margin:6px 0 0}
