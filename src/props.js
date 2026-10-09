@@ -1,27 +1,22 @@
+import {CHANNELS,COLORS} from './original/layout.js';
 import {HOUSE,PROP_LAYOUT} from './house.js';
-// Props modelled on the filmed original house (see src/original/layout.js):
-// a wireframe tree under its star, a peace sign, two Christmas circles,
-// HAPPY HOLIDAYS letters, candy canes, mini trees and yellow/blue eave strips.
-// Each prop's geometry yields its pixel positions, its natural bulb colours
-// and the wire frames the scene draws behind the bulbs.
-export const BULB={yellow:[1,.72,.3],blue:[.2,.38,1],red:[1,.12,.08],green:[.12,.9,.35],white:[1,.92,.85],warm:[1,.78,.45]};
-const LETTER_COLORS=[BULB.red,BULB.green,BULB.yellow];
-
-function samplePath(vertices,count,closed){
-  const lengths=vertices.slice(1).map((b,i)=>Math.hypot(...b.map((n,j)=>n-vertices[i][j])));
-  const total=lengths.reduce((a,b)=>a+b,0);
-  return Array.from({length:count},(_,i)=>{
-    let distance=i*total/(closed?count:count-1),edge=0;
-    while(edge<lengths.length-1&&distance>lengths[edge])distance-=lengths[edge++];
-    return vertices[edge].map((n,j)=>n+(vertices[edge+1][j]-n)*distance/lengths[edge]);
-  });
-}
-const pathLength=vertices=>vertices.slice(1).reduce((n,b,i)=>n+Math.hypot(...b.map((v,j)=>v-vertices[i][j])),0);
+// Our house carries the original filmed house's props one for one: every
+// channel in src/original/layout.js has a counterpart here with the same id,
+// colours and addressing, so the original's detected timing drives both.
+// This file only says where each channel's bulbs sit on our house.
 const lerp=(a,b,t)=>a.map((v,j)=>v+(b[j]-v)*t);
+const dist=(a,b)=>Math.hypot(...a.map((v,j)=>v-b[j]));
+// Evenly spaced points along a polyline, ends included (a closed one skips the repeat).
+function along(points,step,closed=false){
+  const pts=closed?[...points,points[0]]:points,out=[];
+  for(let i=0;i<pts.length-1;i++){const n=Math.max(1,Math.round(dist(pts[i],pts[i+1])/step));for(let k=0;k<n;k++)out.push(lerp(pts[i],pts[i+1],k/n));}
+  if(!closed)out.push(pts.at(-1));
+  return out;
+}
 const circle=(cx,cy,z,r,n)=>Array.from({length:n},(_,k)=>{const a=Math.PI/2+2*Math.PI*k/n;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r,z];});
 
 // Stroke font in a unit box (x right, y up) for the letters of HAPPY HOLIDAYS.
-const GLYPHS={
+export const GLYPHS={
   H:[[[0,0],[0,1]],[[1,0],[1,1]],[[0,.5],[1,.5]]],
   A:[[[0,0],[.5,1],[1,0]],[[.25,.5],[.75,.5]]],
   P:[[[0,0],[0,1],[.75,1],[1,.85],[1,.65],[.75,.5],[0,.5]]],
@@ -32,120 +27,86 @@ const GLYPHS={
   D:[[[0,0],[0,1],[.6,1],[1,.7],[1,.3],[.6,0],[0,0]]],
   S:[[[1,.85],[.8,1],[.2,1],[0,.85],[0,.62],[.2,.5],[.8,.5],[1,.38],[1,.15],[.8,0],[.2,0],[0,.15]]],
 };
-const LETTER_SPACING=.045;
 
+// A bulb: position, base colour, multicolour tone (1 yellow, 2 blue, 0 single
+// colour) and relative size. Frames are the wires the scene draws behind them.
+const bulb=(pos,color,tone=0,size=1)=>({pos,color,tone,size});
+const multi=(pos,i,size)=>bulb(pos,i%2?COLORS.blue:COLORS.yellow,i%2?2:1,size);
+// A multicolour run with icicle drops under every other bulb, alternating length.
+function multiRun(path,step,icicles){
+  const bulbs=[];
+  along(path,step).forEach((p,k)=>{bulbs.push(multi(p,k));if(icicles&&k%2===0)for(let d=1;d<=(k%4?2:3);d++)bulbs.push(multi([p[0],p[1]-d*.08,p[2]+.02],k+d,.6));});
+  return bulbs;
+}
+// Outline just outside an opening; a door or garage leaves the ground side open.
+function outline(o,z,open=false){
+  const w=o.width/2+.12,bottom=open?.05:o.y-o.height/2-.1,top=open?o.height+.1:o.y+o.height/2+.1;
+  return open?[[o.x-w,bottom,z],[o.x-w,top,z],[o.x+w,top,z],[o.x+w,bottom,z]]:[[o.x-w,bottom,z],[o.x-w,top,z],[o.x+w,top,z],[o.x+w,bottom,z],[o.x-w,bottom,z]];
+}
+
+const STRIP=.1,L=PROP_LAYOUT;
 const geometry={
-  // Sixteen strips from a ring on the ground to the apex; the star sits above it.
-  tree(){
-    const {x,z,radius:R,height,strips}=PROP_LAYOUT.tree,apex=[x,height,z],positions=[],frames=[{points:[[x,0,z],apex],radius:.02,mat:'frame'},{points:circle(x,z,0,R,strips).map(([a,b])=>[a,.02,b]),closed:true,radius:.008,mat:'frame'}];
-    for(let k=0;k<strips;k++){
-      const theta=2*Math.PI*k/strips,base=[x+Math.sin(theta)*R,.03,z+Math.cos(theta)*R];
-      for(let j=0;j<20;j++)positions.push(lerp(base,apex,j/20));
-      frames.push({points:[base,apex],radius:.006,mat:'frame'});
-    }
-    return {positions,colors:positions.map(()=>BULB.yellow),frames};
+  upper(){const {from,to,y}=L.eaves.main;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],STRIP,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},
+  lower(){const {from,to,y}=L.eaves.garage;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],STRIP,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},
+  // The small left window, the door frame, the kitchen window and the garage door.
+  windows(){
+    const z=L.outlines.z,paths=[outline(HOUSE.windows[3],z),outline({...HOUSE.door,y:0},z,true),outline(HOUSE.windows[2],z),outline({...HOUSE.garage,y:0},z,true)];
+    return {bulbs:paths.flatMap(p=>multiRun(p,STRIP,false)),frames:paths};
   },
-  star(){
-    const {x,z,height,star:{radius:R,gap}}=PROP_LAYOUT.tree,cy=height+gap+R*.81;
-    const outline=Array.from({length:10},(_,k)=>{const a=Math.PI/2+k*Math.PI/5,r=k%2?R*.42:R;return [x+Math.cos(a)*r,cy+Math.sin(a)*r,z];});
-    const positions=[];for(let e=0;e<10;e++)for(let f=0;f<4;f++)positions.push(lerp(outline[e],outline[(e+1)%10],f/4));
-    return {positions,colors:positions.map(()=>BULB.yellow),frames:[{points:outline,closed:true,radius:.01,mat:'frame'},{points:[[x,height,z],[x,cy,z]],radius:.012,mat:'frame'}]};
+  fence(){const path=L.fence.path;return {bulbs:multiRun(path,STRIP,false),frames:[path.map(p=>[p[0],p[1]-.01,p[2]])],posts:path};},
+  letter(channel,index){
+    const {from,to,y,height,z}=L.letters,slot=(to-from)/L.letters.text.length,width=height*.7;
+    // The channel's own place in HAPPY HOLIDAYS, so the gap between the words stays.
+    const at=[...L.letters.text].reduce((list,ch,i)=>ch===' '?list:[...list,i],[])[index],cx=from+slot*(at+.5),bulbs=[],frames=[];
+    for(const stroke of GLYPHS[channel.model.char]){
+      const points=stroke.map(([u,v])=>[cx+(u-.5)*width,y+(v-.5)*height,z]);
+      for(const p of along(points,.045))bulbs.push(bulb(p,COLORS[channel.palette]));
+      frames.push(points.map(p=>[p[0],p[1],z-.01]));
+    }
+    return {bulbs,frames};
+  },
+  // Two rings of green with a red bow at the bottom, as on the original.
+  wreath(channel){
+    const {x,y,radius:r,z}=L.wreaths[channel.id],bulbs=[...circle(x,y,z,r,24),...circle(x,y,z,r*.6,14)].map(p=>bulb(p,COLORS.green));
+    for(const [dx,dy] of [[-.06,0],[-.1,.03],[-.1,-.03],[.06,0],[.1,.03],[.1,-.03]])bulbs.push(bulb([x+dx*r/.3,y-r+dy*r/.3,z+.02],COLORS.red,0,.9));
+    return {bulbs,frames:[[...circle(x,y,z-.01,r,24),circle(x,y,z-.01,r,24)[0]],[...circle(x,y,z-.01,r*.6,14),circle(x,y,z-.01,r*.6,14)[0]]]};
   },
   peace(){
-    const {x,y,radius:r,z}=PROP_LAYOUT.peace,c=[x,y,z],spoke=a=>[x+Math.cos(a)*r,y+Math.sin(a)*r,z];
-    const top=[x,y+r,z],bottom=[x,y-r,z],left=spoke(Math.PI*1.25),right=spoke(Math.PI*1.75);
-    const positions=[...circle(x,y,z,r,36),...Array.from({length:10},(_,i)=>lerp(top,bottom,(i+.5)/10)),...[left,right].flatMap(end=>Array.from({length:5},(_,i)=>lerp(c,end,(i+.5)/5)))];
-    return {positions,colors:positions.map(()=>BULB.yellow),frames:[{points:circle(x,y,z-.01,r,36),closed:true,radius:.012,mat:'frame'},...[[top,bottom],[c,left],[c,right]].map(points=>({points:points.map(p=>[p[0],p[1],z-.01]),radius:.012,mat:'frame'}))]};
+    const {x,y,radius:r,z}=L.peace,c=[x,y,z],spoke=a=>[x+Math.cos(a)*r,y+Math.sin(a)*r,z];
+    const strokes=[[[x,y+r,z],[x,y-r,z]],[c,spoke(Math.PI*1.25)],[c,spoke(Math.PI*1.75)]];
+    const bulbs=[...circle(x,y,z,r,26),...strokes.flatMap(s=>along(s,.06))].map(p=>bulb(p,COLORS.yellow));
+    return {bulbs,frames:[[...circle(x,y,z-.01,r,26),circle(x,y,z-.01,r,26)[0]],...strokes.map(s=>s.map(p=>[p[0],p[1],z-.01]))]};
   },
-  // Two rings of green bulbs with a red bow at the bottom, as on the original.
-  wreath(index){
-    const {x,y,radius:r,z}=PROP_LAYOUT.wreaths[index];
-    const bow=[[-.06,0],[-.1,.03],[-.1,-.03],[.06,0],[.1,.03],[.1,-.03]].map(([dx,dy])=>[x+dx*r/.3,y-r+dy*r/.3,z+.02]);
-    const positions=[...circle(x,y,z,r,28),...circle(x,y,z,r*.62,16),...bow];
-    return {positions,colors:positions.map((_,i)=>i<44?BULB.green:BULB.red),frames:[{points:circle(x,y,z-.01,r,28),closed:true,radius:.012,mat:'leaf'},{points:circle(x,y,z-.01,r*.62,16),closed:true,radius:.012,mat:'leaf'}]};
+  cane(channel,index){
+    const {xs,z,height:h,hook:w}=L.canes,x=xs[index],hook=index%2?-1:1,path=[[x,.03,z],[x,h*.78,z]];
+    for(let k=1;k<=6;k++){const a=Math.PI*k/6;path.push([x+hook*(w/2-Math.cos(a)*w/2),h*.78+Math.sin(a)*w*.6,z]);}
+    return {bulbs:along(path,.05).map(p=>bulb(p,COLORS.red,0,.8)),frames:[path],cane:true};
   },
-  letters(){
-    const {text,from,to,y,height,z}=PROP_LAYOUT.letters,slot=(to-from)/text.length,width=height*.7,positions=[],colors=[],frames=[];let n=0;
-    [...text].forEach((ch,i)=>{if(ch===' ')return;const color=LETTER_COLORS[n++%3],cx=from+slot*(i+.5);
-      for(const stroke of GLYPHS[ch]){
-        const points=stroke.map(([u,v])=>[cx+(u-.5)*width,y+(v-.5)*height,z]),closed=stroke.length>2&&stroke[0].every((v,j)=>v===stroke.at(-1)[j]);
-        const count=Math.max(2,Math.round(pathLength(points)/LETTER_SPACING)+(closed?0:1));
-        for(const p of samplePath(points,count,closed)){positions.push(p);colors.push(color);}
-        frames.push({points:points.map(p=>[p[0],p[1],z-.01]),radius:.007,mat:'frame'});
-      }});
-    return {positions,colors,frames};
+  minitree(channel,index){
+    const {xs,z,height,radius:r}=L.minitrees,x=xs[index],top=[x,height,z],bulbs=[],frames=[];
+    for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,.03,z+Math.sin(a)*r];bulbs.push(...along([base,top],.1).map(p=>bulb(p,COLORS.red,0,.75)));frames.push([base,top]);}
+    return {bulbs,frames};
   },
-  // Red and white canes along the street edge of the garden, hooks alternating.
-  canes(){
-    const {xs,z,height:h}=PROP_LAYOUT.canes,positions=[],colors=[],frames=[];
-    xs.forEach((x,i)=>{const hook=i%2?-1:1,path=[[x,.03,z],[x,h*.78,z]];
-      for(let k=1;k<=6;k++){const a=Math.PI*k/6;path.push([x+hook*(.09-Math.cos(a)*.09),h*.78+Math.sin(a)*.11,z]);}
-      samplePath(path,14,false).forEach((p,k)=>{positions.push(p);colors.push(k%2?BULB.white:BULB.red);});
-      frames.push({points:path,radius:.014,mat:'cane'});});
-    return {positions,colors,frames};
+  // Strip at angle θ around the cone, from the ground ring to the apex under the star.
+  treeStrip(channel){
+    const {x,z,radius:R,height}=L.tree,theta=channel.model.theta,base=[x+Math.sin(theta)*R,.03,z+Math.cos(theta)*R],apex=[x,height,z];
+    return {bulbs:along([base,apex],.12).slice(0,-1).map(p=>bulb(p,COLORS.yellow,0,.85)),frames:[[base,apex]]};
   },
-  minitrees(){
-    const {xs,z,height,radius:r}=PROP_LAYOUT.minitrees,positions=[],frames=[];
-    for(const x of xs){const top=[x,height,z];
-      for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,.03,z+Math.sin(a)*r];for(let j=0;j<3;j++)positions.push(lerp(base,top,j/3));frames.push({points:[base,top],radius:.006,mat:'frame'});}}
-    return {positions,colors:positions.map(()=>BULB.red),frames};
-  },
-  // Alternating yellow and blue bulbs along an eave; the garage one has icicles.
-  eave(name,icicles){
-    const {from,to,y}=PROP_LAYOUT.eaves[name],z=PROP_LAYOUT.eaves.z,count=Math.round((to-from)*10),positions=[],colors=[];
-    for(let k=0;k<count;k++){const p=[from+(to-from)*k/(count-1),y,z];positions.push(p);colors.push(k%2?BULB.blue:BULB.yellow);
-      if(icicles&&k%2===0)for(let d=1;d<=(k%4?2:3);d++){positions.push([p[0],y-d*.09,z+.02]);colors.push((k+d)%2?BULB.blue:BULB.yellow);}}
-    return {positions,colors,frames:[{points:[[from,y,z-.02],[to,y,z-.02]],radius:.01,mat:'frame'}]};
+  star(){
+    const {x,z,height,star:{radius:R,gap}}=L.tree,cy=height+gap+R*.81;
+    const outline=Array.from({length:11},(_,k)=>{const a=Math.PI/2+k*Math.PI/5,r=k%2?R*.42:R;return [x+Math.cos(a)*r,cy+Math.sin(a)*r,z];});
+    return {bulbs:along(outline,.05,false).slice(0,-1).map(p=>bulb(p,COLORS.yellow,0,1.1)),frames:[outline,[[x,height,z],[x,cy-R*.81,z]]]};
   },
 };
 
-const facade=(id,name,bank,port,build,detail)=>({id,name,bank,port,build,detail,mount:'facade'});
-const standing=(id,name,bank,port,build,detail)=>({id,name,bank,port,build,detail,mount:'garden'});
-const definitions=[
-  standing('Tree','Wireframe tree','A',1,()=>geometry.tree(),'2.5 m cone of sixteen warm-yellow strips between the planting tiles, in front of the kitchen window. Strictly on or off, like the original.'),
-  standing('TreeStar','Tree star','A',2,()=>geometry.star(),'Star above the tree top with a small gap; the strips meet directly under it.'),
-  facade('Wreath1','Upper Christmas circle','A',3,()=>geometry.wreath(0),'Green double ring with a red bow in front of the upper right window.'),
-  facade('Letters','HAPPY HOLIDAYS letters','B',1,()=>geometry.letters(),'Thirteen letters under the eave, red, green and yellow in turn; each letter is its own address range.'),
-  facade('EaveMain','Main eave strip','B',2,()=>geometry.eave('main',false),'Alternating yellow and blue bulbs along the main gutter.'),
-  facade('EaveGarage','Garage eave strip','B',3,()=>geometry.eave('garage',true),'Alternating yellow and blue bulbs with icicle drops along the garage gutter.'),
-  facade('Peace','Peace sign','C',1,()=>geometry.peace(),'One-metre yellow peace sign in front of the upper left window.'),
-  facade('Wreath2','Door Christmas circle','C',2,()=>geometry.wreath(1),'Smaller green ring with a red bow on the front door.'),
-  standing('Canes','Candy canes','C',3,()=>geometry.canes(),'Six red-and-white canes along the street edge of the garden.'),
-  standing('MiniTrees','Mini trees','C',4,()=>geometry.minitrees(),'Six red one-metre mini trees in the band between the facade and the planting tiles.'),
-];
-const BUILT=new Map(definitions.map(d=>[d.id,d.build()]));
-let channel=1;const local={A:0,B:0,C:0};
-// Procurement maximum: 12 V WS2811 pixels at <=0.72 W per address.
-export const PROPS=definitions.map(({build,...p})=>{
-  const count=BUILT.get(p.id).positions.length;
-  const prop={...p,count,wattsPerAddress:.72,sections:Math.ceil(count/50),channelStart:channel,channelEnd:channel+count*3-1,localStart:local[p.bank]};
-  channel+=count*3;local[p.bank]+=count;return prop;
+function build(channel,index){
+  const kind=channel.kind==='strip'?channel.id:channel.kind;
+  if(!geometry[kind])throw new Error(`No place on our house for ${channel.id}`);
+  return geometry[kind](channel,index);
+}
+// Each channel's bulbs and frames, in the original's channel order.
+export const OWN_CHANNELS=CHANNELS.map(channel=>{
+  const index=CHANNELS.filter(c=>c.kind===channel.kind).indexOf(channel);
+  return {...channel,...build(channel,index)};
 });
-export const PIXEL_COUNT=PROPS.reduce((n,p)=>n+p.count,0);
-export const CHANNEL_COUNT=PIXEL_COUNT*3;
-export const FEED_COUNT=PROPS.reduce((n,p)=>n+p.sections,0);
-export const BANKS=Object.fromEntries(['A','B','C'].map(bank=>{
-  const props=PROPS.filter(p=>p.bank===bank);
-  return [bank,{count:local[bank],channels:local[bank]*3,channelStart:props[0].channelStart,channelEnd:props.at(-1).channelEnd,watts:props.reduce((n,p)=>n+p.count*p.wattsPerAddress,0),sections:props.reduce((n,p)=>n+p.sections,0),ports:props.length}];
-}));
-export function powerSections(prop){
-  return Array.from({length:prop.sections},(_,i)=>({start:Math.floor(i*prop.count/prop.sections),end:Math.floor((i+1)*prop.count/prop.sections)}));
-}
-function built(prop){
-  const model=BUILT.get(prop.id);if(!model)throw new Error(`Unknown prop ${prop.id}`);
-  if(prop.count!==model.positions.length)throw new Error(`Pixel count differs for ${prop.id}`);
-  return model;
-}
-export const propPositions=prop=>built(prop).positions;
-// Each pixel's own bulb colour when the prop is fully lit.
-export const propColors=prop=>built(prop).colors;
-export const propFrames=prop=>built(prop).frames;
-// Facade runs rise in the right garden and cross above the door lintel; garden
-// runs past the planting tiles keep to the corridors between them.
-export function cableRoute(source,prop,dest){
-  if(prop.mount==='facade'){const riser=Math.max(2.55,dest[1]);return [source,[source[0],.145,.65],[source[0],.145,.25],[source[0],riser,.25],[dest[0],riser,.25],dest];}
-  const tiles=HOUSE.planters.tiles,edge=Math.min(...tiles.map(t=>t.z))-HOUSE.planters.size/2;
-  if(dest[2]<=edge)return [source,[source[0],.145,.65],[dest[0],.145,.65],[dest[0],.145,dest[2]],dest];
-  const lane=PROP_LAYOUT.corridors.reduce((a,b)=>Math.abs(b-dest[0])<Math.abs(a-dest[0])?b:a);
-  return [source,[source[0],.145,.65],[lane,.145,.65],[lane,.145,dest[2]],[dest[0],.145,dest[2]],dest];
-}
+export const BULB_COUNT=OWN_CHANNELS.reduce((n,c)=>n+c.bulbs.length,0);

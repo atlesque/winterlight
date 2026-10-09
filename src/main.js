@@ -1,112 +1,117 @@
 import './style.css';
-import mapCSV from '../outputs/pixel-map.csv?raw';
-import {parseMap,makeLayout,renderFrame,estimatePower,cueAt,CUES,FPS,BANK_COLORS} from './show.js';
-import {CHANNEL_COUNT,BANKS,propColors} from './props.js';
-import {AudioClock} from './audio.js';
+import './original/style.css';
+// Our house runs the original house's show: the same channels, the same
+// detected cue file and the same video clock as /original.html, drawn on our
+// own house with each prop placed by src/props.js.
+import {CHANNELS,PROPS,COLORS,MULTI} from './original/layout.js';
+import {prepareOriginalCues} from './original/cues.js';
+import {createShowClock,HOSTED_VIDEO,matchesSource,rememberVideo,recallVideo,forgetVideo} from './original/video-clock.js';
 import {createScene} from './scene.js';
-import {decodeTiming,copyFrame,sha256,verifyRgbIntegrity} from './timing.js';
-import {SourceVideoClock} from './video-clock.js';
-import {HostedAudioClock} from './hosted-clock.js';
-import {prepareCues,renderNotes} from './note-show.js';
 
-const $=id=>document.getElementById(id), props=parseMap(mapCSV),pixels=makeLayout(props),audio=new AudioClock();
-let mode='demo',youtube=null,ytReady=false,ytError=null,brightness=.6,white=false,colors=new Float32Array(CHANNEL_COUNT),scene,selected=null,latestTime=0,exporting=false;
-let sourceSequence=null,sourceFrame=-1,noteCues=null;
-const hostedAudio=document.getElementById('hosted-audio'),SOUNDTRACK_SECONDS=185.875737;
-const sourceClock=new SourceVideoClock($('source-video'),(index,metadata,audit)=>{
-  sourceFrame=index;if(mode!=='timing'||!sourceSequence)return;copyFrame(sourceSequence,index,colors);scene?.draw(colors);
-  $('frame-audit').dataset.audit=JSON.stringify({...audit,frame:index,mediaTime:metadata.mediaTime,ended:sourceClock.video.ended});
-  text('frame-audit',`${index<0?"Black / end":"Frame "+(index+1)} / ${sourceSequence.meta.frameCount} · source PTS ${(metadata.mediaTime).toFixed(6)}s · covered ${audit?.uniqueFrames||0} · skipped ${audit?.skippedSourceFrames||0} · unmatched ${audit?.unmatchedPTS||0} · late callbacks ${audit?.lateCallbacks||0} · max PTS error ${audit?.maxTimestampErrorUs||0}µs`);
-},message=>{if(mode==='timing'){notice(message);$('play').disabled=!sourceClock.ready;}});
-$('source-video').volume=.35;
-const hostedClock=new HostedAudioClock($('hosted-audio'),(index,audit)=>{if(mode!=='soundtrack'||!sourceSequence)return;sourceFrame=index;copyFrame(sourceSequence,index,colors);text('hosted-audit',`${index<0?"Black / end":"Stored frame "+(index+1)} / ${sourceSequence.meta.frameCount} · audio clock · skipped ${audit.skippedSourceFrames}`);$('hosted-audit').dataset.audit=JSON.stringify({...audit,frame:index,mediaTime:hostedClock.time});});
-$('hosted-audio').volume=.35;
-const mapHash=sha256(new TextEncoder().encode(mapCSV));
-function leaveSource(){sourceClock.pause();hostedClock.pause();hostedAudio.pause();$('brightness').disabled=false;$('white-test').disabled=false;}
+const $=id=>document.getElementById(id),audio=$('audio'),video=$('video');
 const format=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
-const text=(id,value)=>$(id).textContent=value;
-// The hosted soundtrack drives both the note show and the lit-props view.
-const hosted=()=>mode==='notes'||mode==='lit';
-function duration(){return hosted()?(Number.isFinite(hostedAudio.duration)?hostedAudio.duration:SOUNDTRACK_SECONDS):mode==='soundtrack'?hostedClock.duration:mode==='timing'?sourceClock.duration||185:mode==='youtube'?youtube?.getDuration?.()||185:audio.duration;}
-function time(){return hosted()?hostedAudio.currentTime:mode==='soundtrack'?hostedClock.time:mode==='timing'?sourceClock.time:mode==='youtube'?youtube?.getCurrentTime?.()||0:audio.time;}
-function playing(){return hosted()?!hostedAudio.paused&&!hostedAudio.ended:mode==='soundtrack'?hostedClock.playing:mode==='timing'?sourceClock.playing:mode==='youtube'?youtube?.getPlayerState?.()===1:audio.playing;}
-function notice(value){text('source-note',value);}
-function select(prop){selected=prop;$('prop-select').value=prop.id;$('inspector').innerHTML=`<span class="eyebrow muted">PROP INSPECTOR</span><h3>${prop.name||prop.id}</h3><p>${prop.detail||''}</p><div class="prop-details"><span>${prop.count} pixels · Bank ${prop.bank} / Port ${prop.port}</span><span>RGB channels ${prop.channelStart}–${prop.channelEnd}</span><span>${prop.sections} isolated power feeds · maximum 50 addresses/feed</span><span>Full white: ${(prop.count*prop.wattsPerAddress).toFixed(2)} W / ${(prop.count*prop.wattsPerAddress/12).toFixed(2)} A</span></div>`;}
-// Every pixel in its prop's own bulb colour, for the props that have no timings yet.
-const litColors=new Float32Array(CHANNEL_COUNT);for(const p of pixels)litColors.set(propColors(p.prop)[p.local],p.index*3);
-function renderLit(){for(let i=0;i<colors.length;i++)colors[i]=litColors[i]*brightness;}
-$('prop-select').innerHTML+=props.map(p=>`<option value="${p.id}">${p.name||p.id} · ${p.count} addresses</option>`).join('');
-$('prop-select').onchange=e=>{const prop=props.find(p=>p.id===e.target.value);if(prop)select(prop);};
-try{scene=createScene($('viewport'),pixels,select);scene.view('front');}catch(error){$('scene-error').hidden=false;text('scene-error','The 3D scene needs WebGL. Enable hardware acceleration or try a WebGL-capable browser.');console.error(error);}
-$('bank-bars').innerHTML=['A','B','C'].map(bank=>`<div class="bank-row"><span style="color:${BANK_COLORS[bank]}">${bank}</span><div class="bank-track"><i id="bank-${bank}" style="background:${BANK_COLORS[bank]}"></i></div><b id="watts-${bank}">0 W</b></div>`).join('');
-const reviews=[
- ['01','Build the wireframe tree','Sixteen strips of 20 pixels from a ring on the ground to a 2.5 m centre pole, standing in the gap between the four planting tiles, with a 40-pixel star just above the top. Wind bracing and ground anchors still need choosing.'],
- ['02','Mount the letters under the eave','HAPPY HOLIDAYS as thirteen stroke letters of about 20 pixels each, on a rail between the upper windows and the gutter. Needs ladder access and a weatherproof backing.'],
- ['03','Hang the circles and the peace sign','A one-metre peace sign in the upper left window, a green circle with a red bow in the upper right one and a smaller circle on the front door. Upstairs they stay clear of the tree.'],
- ['04','Stake the garden props','Six candy canes along the street edge of the garden and six mini trees between the facade and the planting tiles, all on stakes in the paving gaps.'],
- ['05','Size the three banks','1,095 addresses: A carries the tree, star and upstairs circle (295 W), B the letters and eave strips (279 W), C the peace sign, door circle, canes and mini trees (215 W), over 27 feeds of at most 50 addresses.'],
- ['06','Time the new props','The MIDI and filmed timings were made for the old poles, arches and outlines. Neither is mapped onto the new props yet, so for now every prop stays lit.'],
-];
-$('review-list').innerHTML=reviews.map(([n,title,body])=>`<article class="review"><span>${n}</span><div><h3>${title}</h3><p>${body}</p></div></article>`).join('');
-for(const [tab,panel] of [['show','show'],['parts','parts']]) $(tab+'-tab').onclick=()=>{for(const key of ['show','parts']){$(key+'-panel').hidden=key!==panel;$(key+'-tab').classList.toggle('active',key===panel);}};
-for(const id of ['front','orbit','overhead'])$(id).onclick=()=>scene?.view(id);
-$('wires').onchange=e=>scene?.setWires(e.target.checked);
-$('brightness').oninput=e=>{brightness=+e.target.value/100;text('brightness-value',`${e.target.value}%`);};
-$('white-test').onchange=e=>white=e.target.checked;
-$('volume').oninput=e=>{audio.setVolume(+e.target.value/100);$('source-video').volume=+e.target.value/100;$('hosted-audio').volume=+e.target.value/100;if(ytReady)youtube.setVolume(+e.target.value);};
-$('play').onclick=async()=>{try{if(hosted()){if(playing())hostedAudio.pause();else{if(hostedAudio.ended)hostedAudio.currentTime=0;await hostedAudio.play();}}else if(mode==='soundtrack'){playing()?hostedClock.pause():await hostedClock.play();}else if(mode==='timing'){playing()?sourceClock.pause():await sourceClock.play();}else if(mode==='youtube'){if(!ytReady){notice('Wait for the video player or choose a local audio file.');return;}playing()?youtube.pauseVideo():youtube.playVideo();}else{if(playing())audio.pause();else await audio.play();}}catch(e){notice(`Audio could not start: ${e.message}`);}};
-function seek(t){if(hosted()){hostedAudio.currentTime=Math.max(0,Math.min(t,duration()));}else if(mode==='soundtrack'){hostedClock.seek(t);}else if(mode==='timing'){sourceClock.seek(t);}else if(mode==='youtube'){if(ytReady)youtube.seekTo(t,true);}else audio.seek(t);}
-$('restart').onclick=()=>seek(0);$('timeline').oninput=e=>seek(+e.target.value);
-function setTrack(name,info,chip,note){text('track-name',name);text('track-info',info);text('source-chip',chip);notice(note);$('source-video-container').hidden=mode!=='timing';$('hosted-audit').hidden=mode!=='soundtrack';$('play').disabled=(mode==='youtube'&&!!ytError)||(mode==='timing'&&!sourceClock.ready)||(mode==='soundtrack'&&!hostedClock.ready)||(mode==='notes'&&!noteCues);$('demo-button').hidden=mode==='demo';$('youtube-container').hidden=mode!=='youtube';$('export').disabled=mode==='youtube'||mode==='timing'||mode==='soundtrack'||hosted();text('export-note',mode==='lit'?'No timings are assigned to these props yet; every prop shows its own bulb colours.':mode==='notes'?'The note-cue file is the reusable sequence; lights are rendered from it during playback.':(mode==='timing'||mode==='soundtrack')?'The loaded .wltiming file is the authoritative reusable sequence; it is not regenerated here.':mode==='youtube'?'YouTube cannot be exported here. Load a local recording or use the original demo.':'Exports RGB channel data and cues. Browser simulation; does not send to real controllers.');}
-let loadGeneration=0;
-$('audio-file').onchange=async e=>{const file=e.target.files[0];if(!file)return;const generation=++loadGeneration;leaveSource();audio.pause();if(ytReady)youtube.pauseVideo();notice('Decoding the recording and finding musical accents…');$('play').disabled=true;
- try{await audio.load(file,()=>generation===loadGeneration);if(generation!==loadGeneration)return;mode='local';setTrack(file.name,`${format(audio.duration)} · ${audio.analysis.length} analysed frames`,'LOCAL','This recording stays in your browser. Accents follow detected audio energy; phrase choreography is an adaptation, not the original sequence.');}catch(error){notice(`Could not decode this file. Choose a browser-supported MP3 or WAV. ${error.message}`);}finally{$('play').disabled=false;}
-};
-$('demo-button').onclick=async()=>{++loadGeneration;leaveSource();audio.pause();if(ytReady)youtube.pauseVideo();mode='demo';await audio.demo();setTrack('Winterlight demo','Original synthetic test score · 3:05','DEMO','The demo is an original test score, not Wizards in Winter. Load your recording for audio-driven accents.');};
-$('youtube-button').onclick=()=>{++loadGeneration;leaveSource();audio.pause();mode='youtube';setTrack('Wizards in Winter','Trans-Siberian Orchestra · official reference','VIDEO','Lights follow the video’s playback position. Cues are an authored approximation; audio analysis is unavailable for embedded video.');
- if(ytError){notice(`YouTube playback is unavailable here (code ${ytError}). Load your own lawful MP3/WAV or use the original demo.`);return;}if(ytReady)return;
- const create=()=>{if(youtube)return;youtube=new window.YT.Player('youtube-player',{videoId:'pWBjl-jPcVM',width:'100%',height:185,playerVars:{playsinline:1,origin:location.origin},events:{onReady:()=>{ytReady=true;youtube.setVolume(+$('volume').value);},onError:e=>{ytError=e.data;$('play').disabled=mode==='youtube';notice(`YouTube playback is unavailable here (code ${e.data}). Load your own lawful MP3/WAV or use the original demo.`);}}});};
- if(window.YT?.Player)create();else{window.onYouTubeIframeAPIReady=create;if(!document.querySelector('#yt-api')){const script=document.createElement('script');script.id='yt-api';script.src='https://www.youtube.com/iframe_api';script.onerror=()=>notice('Could not reach YouTube. Local audio and the original demo work independently.');document.head.appendChild(script);}}
-};
-$('export').onclick=async()=>{if(mode==='youtube'||mode==='timing'||mode==='soundtrack'||hosted()||exporting)return;exporting=true;$('export').disabled=true;const wasPlaying=audio.playing,priorMode=mode;audio.pause();try{if(!audio.buffer)await audio.demo();const exportDuration=audio.duration,exportAnalysis=audio.analysis,exportBrightness=brightness,exportMode=mode;const frames=Math.ceil(exportDuration*FPS),data=new Uint8Array(frames*CHANNEL_COUNT),scratch=new Float32Array(CHANNEL_COUNT);for(let f=0;f<frames;f++){renderFrame(pixels,f/FPS,exportDuration,exportBrightness,exportAnalysis,false,scratch);for(let c=0;c<CHANNEL_COUNT;c++)data[f*CHANNEL_COUNT+c]=Math.round(scratch[c]*255);if(f%400===0){text('export-note',`Rendering frames… ${Math.round(f/frames*100)}%`);await new Promise(resolve=>setTimeout(resolve,0));}}
- const meta={format:'Winterlight RGB v1',fps:FPS,channels:CHANNEL_COUNT,frames,duration:exportDuration,source:exportMode,brightness:exportBrightness,whiteTest:false,cueStatus:'Adapted phrase cues; detected audio accents',props,cues:CUES.map(c=>({...c,time:c.at*exportDuration}))};const header=new TextEncoder().encode(JSON.stringify(meta)),prefix=new Uint8Array(8);prefix.set([87,76,83,49]);new DataView(prefix.buffer).setUint32(4,header.length,true);const url=URL.createObjectURL(new Blob([prefix,header,data],{type:'application/octet-stream'})),a=document.createElement('a');a.href=url;a.download='winterlight-show.wlshow';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);text('export-note',`Exported ${frames.toLocaleString()} frames / ${(data.length/1e6).toFixed(1)} MB. Custom RGB format; not an FSEQ file. No audio is bundled.`);
- }catch(e){text('export-note',`Export failed: ${e.message}`);}finally{exporting=false;$('export').disabled=mode==='youtube'||mode==='timing'||mode==='soundtrack'||hosted();if(wasPlaying&&mode===priorMode)audio.play();}
-};
+const SOUNDTRACK_SECONDS=185.875737;
+let scene=null,cues=null,brightness=.6,allOn=false;
+const states=new Uint8Array(CHANNELS.length),levels=new Uint8Array(CHANNELS.length),ALL_ON=new Uint8Array(CHANNELS.map(c=>c.palette==='multi'?3:1)),FULL=new Uint8Array(CHANNELS.length).fill(100);
+try{scene=createScene($('viewport'));scene.view('video');}catch(error){$('scene-error').hidden=false;$('scene-error').textContent='The 3D scene needs WebGL. Enable hardware acceleration or try a WebGL-capable browser.';console.error(error);}
+// Overlay mode: our house's lights over the original video. Our house is not
+// the filmed one, so the props sit where they are on our facade, not on the video's.
+const stage=document.querySelector('.stage'),overlayCanvas=$('overlay-video'),overlayContext=overlayCanvas.getContext('2d');
+let overlayOn=false;
+function setView(name){
+ overlayOn=name==='overlay';stage.classList.toggle('overlay',overlayOn);overlayCanvas.hidden=!overlayOn;$('overlay-controls').hidden=!overlayOn;
+ $('view-overlay').setAttribute('aria-pressed',overlayOn);scene?.view(name);
+}
+for(const name of ['video','orbit','yard','overlay'])$('view-'+name).onclick=()=>setView(name==='overlay'&&overlayOn?'video':name);
+$('overlay-mix').oninput=e=>stage.style.setProperty('--model-mix',+e.target.value/100);
+$('overlay-diff').onchange=e=>stage.classList.toggle('difference',e.target.checked);
+// Draws the frame the video is showing, fitted to the stage the same way the overlay camera is.
+function paintOverlay(){
+ const dpr=Math.min(devicePixelRatio,2),w=Math.round(stage.clientWidth*dpr),h=Math.round(stage.clientHeight*dpr);
+ if(overlayCanvas.width!==w||overlayCanvas.height!==h){overlayCanvas.width=w;overlayCanvas.height=h;}
+ overlayContext.fillStyle='#000';overlayContext.fillRect(0,0,w,h);
+ const ready=clock.usingVideo&&video.readyState>=2&&video.videoWidth;
+ $('overlay-note').textContent=ready?'Our lights over the original video. Our props sit where they are on our house, so they will not line up with the filmed ones.':'Load the original video in the sidebar to compare it with the model.';
+ if(!ready)return;
+ const k=Math.min(w/video.videoWidth,h/video.videoHeight),vw=video.videoWidth*k,vh=video.videoHeight*k;
+ overlayContext.drawImage(video,(w-vw)/2,(h-vh)/2,vw,vh);
+}
+
+// One lamp per channel, grouped by prop, so the detected states can be read alongside the model.
+const lamps=[];
+$('board').innerHTML=PROPS.map(p=>`<div class="board-group"><small>${p.name} · ${p.addressing}</small><div>${CHANNELS.map((c,i)=>c.prop===p.id?`<span class="lamp${c.kind==='strip'?' wide':''}" data-i="${i}" title="${c.name}">${c.kind==='letter'?c.model.char:c.kind==='strip'?c.name.replace(/ strip(s)?$/,''):c.kind==='star'?'★':c.id.split('-').at(-1).replace(/^0/,'')}</span>`:'').join('')}</div></div>`).join('');
+for(const el of document.querySelectorAll('.lamp'))lamps[+el.dataset.i]=el;
+const shown=new Uint8Array(CHANNELS.length).fill(255),shownLevel=new Uint8Array(CHANNELS.length);
+// A lamp's opacity follows the detected brightness, so fades read on the board too.
+function board(values,level){CHANNELS.forEach((c,i)=>{const v=values[i],l=v?level[i]:0;if(v===shown[i]&&l===shownLevel[i])return;shown[i]=v;shownLevel[i]=l;const el=lamps[i],col=c.palette==='multi'?(v===2?COLORS.blue:v===3?`linear-gradient(90deg,${COLORS.yellow} 50%,${COLORS.blue} 50%)`:COLORS.yellow):COLORS[c.palette];
+ el.classList.toggle('on',!!v);el.style.background=v?col:'';el.style.opacity=v?.35+.65*l/100:'';el.style.setProperty('--glow',v?(c.palette==='multi'&&v===2?COLORS.blue:COLORS[c.palette]||COLORS.yellow):'transparent');el.title=`${c.name}${v?` · ${l}%${c.palette==='multi'?` (${MULTI[v]})`:''}`:' · off'}`;});}
+
+async function load(){
+ try{
+  const response=await fetch('/outputs/original-house-cues.json');
+  if(!response.ok)throw new Error('No detected timing has been published yet.');
+  const data=await response.json().catch(()=>{throw new Error('No detected timing has been published yet.');});
+  cues=prepareOriginalCues(data,CHANNELS);
+  $('cue-info').textContent=`${(cues.endFrame-cues.startFrame).toLocaleString()} video frames · ${format(cues.start)}–${format(cues.end)} detected`;
+  $('range-name').textContent=`Detected from the original video · ${format(cues.start)}–${format(cues.end)}`;
+  $('range-start').textContent=format(cues.start);$('range-end').textContent=`detected until ${format(cues.end)}`;
+ }catch(error){$('cue-info').textContent=error.message;$('cue-chip').textContent='NONE';}
+ $('play').disabled=false;
+}
+load();
+// The original video plays in the side panel with its own sound; once it is
+// there it becomes the clock, otherwise the soundtrack is.
+const clock=createShowClock(audio,video);
+const videoStatus=text=>{$('video-status').textContent=text;};
+let videoUrl=null;
+function showVideo(source,name,picked,startAt=0){
+ if(videoUrl)URL.revokeObjectURL(videoUrl);videoUrl=typeof source==='string'?null:URL.createObjectURL(source);
+ video.src=videoUrl||source;videoStatus('Loading the original video…');
+ video.onloadedmetadata=()=>{video.onerror=null;$('video-empty').hidden=true;$('video-change').hidden=!picked;if(startAt)video.currentTime=startAt;clock.useVideo();
+  videoStatus(matchesSource(video.duration)?`${name} · the lights follow the frame on screen`:`${name} is ${format(video.duration)} long, not the 3:05 original, so its frames won't line up with the lights.`);
+  if(typeof source==='string')ensureSeekable(source,name);};
+ video.onerror=()=>{video.onloadedmetadata=null;clock.useAudio();if(picked)forgetVideo();askForVideo('That file could not be played. ');};
+}
+// A server that ignores byte ranges leaves only the downloaded part seekable;
+// then play the whole file from memory so any point can be reached.
+async function ensureSeekable(source,name){
+ const s=video.seekable;if(s.length&&s.end(s.length-1)>=video.duration-1)return;
+ try{const blob=await (await fetch(source,{cache:'no-store'})).blob();const t=video.currentTime,playing=!video.paused;showVideo(blob,name,false,t);if(playing)video.play().catch(()=>{});}catch{}
+}
+function askForVideo(prefix=''){$('video-empty').hidden=false;$('video-change').hidden=true;videoStatus(`${prefix}Until a video is loaded, the lights follow the soundtrack.`);}
+$('video-file').onchange=e=>{const file=e.target.files[0];if(!file)return;rememberVideo(file);showVideo(file,file.name,true);e.target.value='';};
+$('video-change').onclick=()=>$('video-file').click();
+(async()=>{
+ try{const r=await fetch(HOSTED_VIDEO,{method:'HEAD'});if(r.ok&&(r.headers.get('content-type')||'').startsWith('video/')){showVideo(HOSTED_VIDEO,'Original video',false);return;}}catch{}
+ const saved=await recallVideo();if(saved)showVideo(saved,saved.name||'Original video',true);else askForVideo();
+})();
+
+const media=()=>clock.media;
+$('play').onclick=async()=>{const m=media();try{if(!m.paused)m.pause();else{if(m.ended)m.currentTime=0;await m.play();}}catch(error){$('cue-note').textContent=`Playback could not start: ${error.message}`;}};
+$('restart').onclick=()=>{media().currentTime=cues?.start||0;};
+// The playhead follows the show except while it is being dragged; seeks are
+// clamped to the media so the end of the slider never lands past it.
+const timeline=$('timeline');let scrubbing=false;
+const seek=t=>{const m=media(),d=Number.isFinite(m.duration)?m.duration:t;m.currentTime=Math.max(0,Math.min(t,d-.01));};
+timeline.addEventListener('pointerdown',()=>{scrubbing=true;});
+for(const type of ['pointerup','pointercancel'])addEventListener(type,()=>{scrubbing=false;});
+timeline.oninput=e=>seek(+e.target.value);
+timeline.onchange=e=>{seek(+e.target.value);scrubbing=false;};
+$('volume').oninput=e=>{audio.volume=video.volume=+e.target.value/100;};audio.volume=video.volume=.35;
+$('brightness').oninput=e=>{brightness=+e.target.value/100;$('brightness-value').textContent=`${e.target.value}%`;scene?.setBrightness();};
+$('all-on').onchange=e=>{allOn=e.target.checked;};
+for(const m of [audio,video]){m.addEventListener('play',()=>{if(m===media())$('play').textContent='❚❚';});m.addEventListener('pause',()=>{if(m===media())$('play').textContent='▶';});}
+
 let lastUI=0;
-function animate(now){requestAnimationFrame(animate);latestTime=time();const d=duration();if(mode==='soundtrack')hostedClock.sample();if(mode==='lit'&&!white)renderLit();else if(mode==='notes'&&noteCues&&!white)renderNotes(pixels,latestTime,d,noteCues,brightness,colors);else if(mode!=='timing'&&mode!=='soundtrack')renderFrame(pixels,latestTime,d,brightness,mode==='youtube'?null:audio.analysis,white,colors);if(mode!=='timing'||!sourceClock.playing)scene?.draw(colors);if(now-lastUI>100){lastUI=now;const power=estimatePower(pixels,colors);text('power-total',`${Math.round(power.total)} W`);for(const bank of ['A','B','C']){$('bank-'+bank).style.width=`${power.watts[bank]/BANKS[bank].watts*100}%`;text('watts-'+bank,`${Math.round(power.watts[bank])} W`);}text('time',format(latestTime));text('duration',format(d));text('cue-name',mode==='lit'?white?'Power test · full-white override':'All props lit · no timings yet':mode==='notes'?white?'Power test · full-white override':'Instrument notes · round robin within each instrument group':(mode==='timing'||mode==='soundtrack')?sourceFrame<0?'Black / end · stored RGB':`Source frame ${sourceFrame+1} · stored RGB`:white?'Power test · full-white override':cueAt(latestTime,d).name);$('timeline').max=d;$('timeline').value=latestTime;text('play',playing()?'Ⅱ':'▶');$('play').setAttribute('aria-label',playing()?'Pause show':'Play show');}}
+function animate(now){
+ requestAnimationFrame(animate);
+ const t=clock.time(),d=Number.isFinite(media().duration)?media().duration:SOUNDTRACK_SECONDS;
+ const values=allOn?ALL_ON:cues?cues.stateAt(t,states,levels):states.fill(0),level=allOn?FULL:levels;
+ scene?.draw(values,level,brightness);board(values,level);if(overlayOn)paintOverlay();
+ if(now-lastUI>80){lastUI=now;$('time').textContent=format(t);$('duration').textContent=format(d);$('timeline').max=d;if(!scrubbing)timeline.value=t;
+  const f=cues?.frameAt(t);$('frame-label').textContent=cues?(f>=cues.startFrame&&f<cues.endFrame?`· video frame ${f+1}`:'· outside the detected range'):'';}
+}
 requestAnimationFrame(animate);
-function enterSource(){++loadGeneration;audio.pause();hostedClock.pause();if(ytReady)youtube.pauseVideo();mode='timing';sourceClock.fail('Checking source files…');sourceFrame=-1;white=false;$('white-test').checked=false;$('white-test').disabled=true;$('brightness').disabled=true;colors.fill(0);setTrack('Source-frame sequence','Video + shared .wltiming','FRAMES','Load both the source recording and its timing file.');}
-$('source-video-file').onchange=async e=>{const file=e.target.files[0];if(!file)return;enterSource();try{await sourceClock.load(file);}catch(error){notice(error.message);}};
-async function loadSequence(bytes){enterSource();const generation=loadGeneration;try{const sequence=await verifyRgbIntegrity(decodeTiming(await bytes));if(sequence.meta.channelMapSha256!==await mapHash)throw new Error('This timing file uses a different channel map.');if(generation!==loadGeneration)return;sourceSequence=sequence;sourceFrame=-1;await sourceClock.setSequence(sequence);text('track-info',`${sequence.meta.frameCount.toLocaleString()} source frames · ${format(sequence.meta.durationUs/1e6)} · camera-effect adaptation`);}catch(error){if(generation!==loadGeneration)return;sourceSequence=null;sourceClock.sequence=null;sourceClock.fail(error.message);}}
-$('timing-file').onchange=e=>{const file=e.target.files[0];if(file)loadSequence(file.arrayBuffer());};
-$('extracted-show').onclick=()=>loadSequence(fetch('/outputs/wizards-ground-level.wltiming').then(r=>{if(!r.ok)throw new Error('Extracted show file is unavailable.');return r.arrayBuffer();}));
 
-async function prepareHostedShow(autoplay=false){
- ++loadGeneration;const generation=loadGeneration;leaveSource();audio.pause();if(ytReady)youtube.pauseVideo();mode='soundtrack';white=false;$('white-test').checked=false;$('white-test').disabled=true;$('brightness').disabled=true;colors.fill(0);setTrack('Wizards in Winter','Loading extracted soundtrack + stored source frames…','MUSIC','Preparing the recorded show…');
- try{const response=await fetch('/outputs/wizards-ground-level.wltiming');if(!response.ok)throw new Error('Stored light sequence is unavailable.');const sequence=await verifyRgbIntegrity(decodeTiming(await response.arrayBuffer()));if(sequence.meta.channelMapSha256!==await mapHash)throw new Error('Channel map differs.');if(generation!==loadGeneration)return;sourceSequence=sequence;await hostedClock.bind(sequence);sourceFrame=hostedClock.lastFrame;if(generation!==loadGeneration){hostedClock.pause();return;}setTrack('Wizards in Winter','Original extracted audio · 5,569 stored source frames','MUSIC','The original soundtrack plays against the same stored timestamps and RGB data. Approved window/door outlines and ten poles use spatially reassigned camera colours; source timing is preserved.');if(autoplay)await hostedClock.play();}
- catch(error){if(generation===loadGeneration){hostedClock.ready=false;$('play').disabled=true;notice(error.message);}}
-}
-async function prepareNoteShow(autoplay=false){
- ++loadGeneration;const generation=loadGeneration;leaveSource();audio.pause();if(ytReady)youtube.pauseVideo();mode='notes';colors.fill(0);setTrack('Wizards in Winter','Loading soundtrack + instrument note cues…','NOTES','Preparing the note-driven show…');
- try{const response=await fetch('/outputs/wizards-note-cues.json');if(!response.ok)throw new Error('Instrument note cues are unavailable.');const cues=prepareCues(await response.json());
-  if(hostedAudio.readyState<1)await new Promise((resolve,reject)=>{hostedAudio.addEventListener('loadedmetadata',resolve,{once:true});hostedAudio.addEventListener('error',()=>reject(new Error('Hosted soundtrack could not load.')),{once:true});hostedAudio.load();});
-  if(generation!==loadGeneration)return;noteCues=cues;hostedAudio.currentTime=0;
-  setTrack('Wizards in Winter','Original soundtrack · instrument note cues','NOTES','Each MIDI instrument has its own props, and its notes move round robin across them: piano on the front poles, lead on the back poles, guitar on the arches, bass on the windows, strings and synths on the stars, drums across the door sides and lintel.');if(autoplay)await hostedAudio.play();}
- catch(error){if(generation===loadGeneration){noteCues=null;$('play').disabled=true;notice(error.message);}}
-}
-// The props were replaced after both timing sources were made, so neither maps
-// onto them yet: the soundtrack plays with every prop lit in its own colours.
-async function prepareLitShow(autoplay=false){
- ++loadGeneration;const generation=loadGeneration;leaveSource();audio.pause();if(ytReady)youtube.pauseVideo();mode='lit';setTrack('Wizards in Winter','Original soundtrack · all props lit','LIT','The new props have no timings yet, so every prop stays lit in its own bulb colours while the soundtrack plays.');
- try{if(hostedAudio.readyState<1)await new Promise((resolve,reject)=>{hostedAudio.addEventListener('loadedmetadata',resolve,{once:true});hostedAudio.addEventListener('error',()=>reject(new Error('Hosted soundtrack could not load.')),{once:true});hostedAudio.load();});
-  if(generation!==loadGeneration)return;$('play').disabled=false;if(autoplay)await hostedAudio.play();}
- catch(error){if(generation===loadGeneration)notice(error.message);}
-}
-// The dropdown picks which timing source drives the lights.
-const prepareWizards=autoplay=>({filmed:prepareHostedShow,notes:prepareNoteShow}[$('wizards-timing').value]||prepareLitShow)(autoplay);
-$('wizards-timing').onchange=()=>prepareWizards(false);
-$('wizards-play').onclick=()=>prepareWizards(true);
-prepareWizards(false);
-
-// Read-only diagnostics for bench/browser verification, never controller output.
-window.winterlight={get status(){return {mode,time:latestTime,duration:duration(),playing:playing(),pixelCount:pixels.length,sections:scene?.sectionCount,channels:CHANNEL_COUNT,props:props.length,banks:BANKS,selected:selected?.id,brightness,white,analysisFrames:audio.analysis?.length||0,power:estimatePower(pixels,colors)};}};
+// Read-only diagnostics for browser checks.
+window.winterlight={get status(){const t=clock.time();return {time:t,clock:clock.usingVideo?'video':'soundtrack',videoTime:video.currentTime,frame:cues?.frameAt(t),channels:CHANNELS.length,bulbs:scene?.bulbCount,lit:[...states].filter(Boolean).length,cues:!!cues};}};

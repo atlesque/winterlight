@@ -1,8 +1,8 @@
 # Winterlight
 
-A Christmas light show for an 8.50 m Belgian brick-house facade, adapted to *Wizards in Winter*. The props are modelled on the [original filmed house](original.html): a **2.5 m wireframe tree with its star** between the four planting tiles, **HAPPY HOLIDAYS letters** under the eave, a **peace sign** and a **Christmas circle** in the upper windows, a smaller circle on the front door, **yellow and blue eave strips** (with icicles on the garage), **six candy canes** along the street edge and **six mini trees** in front of the kitchen window. Entrance and garage access stay clear.
+A Christmas light show for an 8.50 m Belgian brick-house facade, synced to *Wizards in Winter*. Our house carries the [original filmed house](original.html)'s props one for one (all 56 channels) and runs the original's detected timing, so both houses play the same show.
 
-The ten props hold **1,095 RGB addresses / 3,285 channels**, each prop on its own data output. Three controller/power banks serve 410 / 387 / 298 addresses (295 / 279 / 215 W at 0.72 W per address) through 27 isolated power feeds of at most 50 addresses. The channel map is `outputs/pixel-map.csv`; the old facade layout's map (four arches, two stars, ten poles and three outlines) is kept in `outputs/legacy-facade/pixel-map.csv` because the extracted show and controller-bank files below were made for it.
+Where they sit (`src/house.js`, geometry in `src/props.js`): yellow/blue icicle strips along the main and garage eaves (upper and lower floor strips), outlines round the small left window, the door frame, the kitchen window and the garage door (window strips), HAPPY HOLIDAYS in the band between the door and the upper windows, the two circles and the peace sign each in one pane of the upper windows, a 2.5 m wireframe tree with its star between the planting tiles, eleven mini trees between the facade and the tiles, eight candy canes along the street edge and the ground strip along the left side and front of the shrubbery.
 
 ## Run and view
 
@@ -11,29 +11,13 @@ npm install
 npm run dev
 ```
 
-Open the reported local URL. The main page loads the matching extracted soundtrack and revised stored Wizards artifact; press **Play**. Drag to orbit, choose street/garden/plan views, inspect props and enable cable routes. `/props-preview.html` remains a static colour/placement view of the same approved geometry.
+Open the reported local URL. The main page works exactly like `/original.html`: the original video (or its soundtrack) is the clock, the lights follow `outputs/original-house-cues.json`, and the side panel has the same light intensity, all-props-on switch and per-channel board. **Overlay video** lays our lights over the original video; our props sit where they are on our house, so they do not line up with the filmed ones.
 
 The hosted site is [Winterlight](https://winterlight.alexander-df0.workers.dev). Deploy through `npm run deploy`; `npm run deploy:check` builds and checks packaging without publishing. It uses Cloudflare Workers Static Assets with no server handler or storage binding. Pushes to `main` deploy automatically through Workers Builds, and other branches get a Preview URL through `wrangler preview` using the empty `previews` block in `wrangler.jsonc`.
 
-## Wiring and procurement
+## Earlier layouts
 
-The facade route rises on the right and passes above the door lintel, keeping the threshold clear. Dimensions and wire routes are schematic estimates pending site measurements. `src/props.js` is the shared source for prop counts, banks, ports, power sections and geometry. Opening dimensions live in `src/house.js`.
-
-Use 12 V WS2811 bullet pixels at ≤0.72 W/node and grouped RGB facade strip at **30 LEDs/m, three LEDs/group, 10 addresses/m, ≤7.2 W/m**. Install 15.4 m of strip including corner allowance. Higher-power/density substitutions require a revised electrical calculation and channel map. The conditional full-white design maximum is 686.88 W, excluding controllers, losses and ambient derating. Software estimates are not voltage-drop, fuse, thermal or physical commissioning tests.
-
-Reuse existing compatible pixels first. A new build needs 18 × 50-node strings (16 installed plus two spare), versus 23 formerly. Strip, profiles, bases and extra feed connections still need a combined delivered quote; no net saving is claimed before costing those additions.
-
-## Wizards timing
-
-The **Light timings** dropdown picks what drives the Wizards show. The new props have no timings yet, so **No timings yet · all props lit** (the default) plays the hosted soundtrack with every prop lit in its own bulb colours. **MIDI instrument timings** and **Original timings (filmed show)** were made for the old props and are disabled until they are mapped onto the new ones: the note cues (`outputs/wizards-note-cues.json`, compiled by `tools/transcription/build_light_cues.py`) name the old poles, arches, outlines and stars, and the source-frame playback described below uses the old channel map. Light intensity defaults to 60%.
-
-The revised `outputs/wizards-ground-level.wltiming` stores **5,569 native source frames**, with every original PTS and the complete 185.875737 s audio timeline preserved. Filmed icicle samples are spatially reassigned to the window and door outlines; columns from the filmed central sign supply pole accents. Retained arches and stars keep their samples. No temporal resampling, beat regeneration or colour averaging is used. Camera colours/shapes are adaptations, not original controller data.
-
-Hosted audio drives frame selection. **Load video** and **Use extracted Wizards show** can pair the exact original local MP4 with this artifact for presented-video-frame comparisons. Local `.wltiming` files must match the current channel-map hash and source identity. Source playback disables brightness/full-white overrides to preserve stored bytes. The final frame holds through the 56.770 ms audio tail and blacks out at end.
-
-Bank partitions contain A=1,104, B=1,020 and C=738 channels/frame. Native timestamps and all corresponding RGB bytes are preserved. WLT2 is a custom format, **not FSEQ**; physical FPP/controller playback requires an adapter with documented timestamp quantization and measured latency. This project sends no commands to real controllers.
-
-**Return to original demo** enables a synthetic test score and full-white checks; **Load audio** analyses a local recording for adapted energy/onset effects. The demo's 40 fps `.wlshow` export is separate from native-frame Wizards playback. It has magic `WLS1`, a little-endian JSON-header length, metadata and frame-major RGB (2,862 channels/frame), with no audio.
+The old facade layout (arches, stars, poles and outlines, mapped in `outputs/legacy-facade/pixel-map.csv`), its MIDI note show and its extracted `.wltiming` show have been retired from the page; their output files stay in `outputs/` for reference and the code is in git history.
 
 ## Original house
 
@@ -86,27 +70,13 @@ Historical price/regulatory research is dated explicitly; it is not a current de
 ## Rebuild and validate
 
 ```bash
-node tools/build-project.mjs
-# Equivalent planning rebuild: python3 work/package.py
-node tools/export-banks.mjs outputs/wizards-ground-level.wltiming outputs/controller-banks
-node tools/frame-worksheet.mjs
 npm test
 npm run build
 ```
 
-The planning generator rebuilds the guide, diagrams, BOM and CSV wiring/port schedules from shared configuration. It does not silently relabel a timing file when the map changes. Re-extract and package from the exact source recording when sampling/counts change:
-
-```bash
-python3 tools/extract-source.py source.mp4 work/source.rgb work/source-mapping.json
-node tools/pack-source-frames.mjs source.mp4 work/source.rgb outputs/wizards-ground-level.wltiming work/source-mapping.json
-node tools/verify-source-frames.mjs source.mp4 outputs/wizards-ground-level.wltiming outputs/source-integrity-report.json
-```
-
-The extractor uses reviewed current sampling coordinates in `outputs/source-mapping.json`. `tools/remap-source-props.mjs` also reproduces this specific spatial migration from an archived legacy artifact/map/provenance. Original MP4 and private migration backups are excluded from the repository; the requested extracted soundtrack remains in `public/media/`.
-
 ## SEO and sharing preview
 
-Each page's `<head>` carries its own title, description, canonical URL, Open Graph and Twitter card tags. The main page and `props-preview.html` share `public/og-image.jpg`, and `original.html` uses `public/og-image-original.jpg`. Both are 1200×630 renders of the site's own 3D scenes. The pages also share `favicon.svg`, `apple-touch-icon.png`, `robots.txt` and `sitemap.xml`. `props-preview.html` is `noindex` so search results land on the shows.
+Each page's `<head>` carries its own title, description, canonical URL, Open Graph and Twitter card tags. The main page uses `public/og-image.jpg`, and `original.html` uses `public/og-image-original.jpg`. Both are 1200×630 renders of the site's own 3D scenes. The pages also share `favicon.svg`, `apple-touch-icon.png`, `robots.txt` and `sitemap.xml`.
 
 To regenerate the share images after a model changes: `npm run build`, start `npx vite preview --port 4173`, then run `node tools/og-image/render.mjs` (needs Playwright). The page list, show moment and card text live at the top of that script; the card layout is `tools/og-image/card.html`.
 
