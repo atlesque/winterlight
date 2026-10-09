@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://winterlight.alexander-df0.workers.dev/sitemap.xml

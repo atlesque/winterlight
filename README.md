@@ -67,3 +67,11 @@ node tools/verify-source-frames.mjs source.mp4 outputs/wizards-ground-level.wlti
 ```
 
 The extractor uses reviewed current sampling coordinates in `outputs/source-mapping.json`. `tools/remap-source-props.mjs` also reproduces this specific spatial migration from an archived legacy artifact/map/provenance. Original MP4 and private migration backups are excluded from the repository; the requested extracted soundtrack remains in `public/media/`.
+
+## SEO and sharing preview
+
+Each page's `<head>` carries its own title, description, canonical URL, Open Graph and Twitter card tags. All pages share `public/og-image.jpg` (1200×630), a render of the site's own 3D scene, plus `favicon.svg`, `apple-touch-icon.png`, `robots.txt` and `sitemap.xml`. `props-preview.html` is `noindex` so search results land on the show.
+
+To regenerate the OG image after the model changes: `npm run build`, start `npx vite preview --port 4173`, then run `node tools/og-image/render.mjs` (needs Playwright). Edit the card text in `tools/og-image/card.html`.
+
+To add a new page such as `original.html`: copy the head block from `index.html`, then change `<title>`, `description`, `canonical`, `og:title`, `og:description`, `og:url` and the two `twitter:` text tags to that page (for example `https://winterlight.alexander-df0.workers.dev/original.html`). Keep the shared `og:image` or point it at a page-specific 1200×630 render in `public/`. Remove the JSON-LD block from the copy, and add the page's URL to `public/sitemap.xml`.
