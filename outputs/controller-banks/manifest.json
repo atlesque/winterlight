@@ -1,0 +1,42 @@
+{
+  "parentTimingSha256": "a0b2b466d5c68c6345bb71585ac79233f6c68be405dd1c74697bc1f0cd826c84",
+  "sourceSha256": "32bac17909d2b27a5d065470c52666c2f7f9d727cd721b60d14c93a0b1f27c42",
+  "durationUs": 185875737,
+  "banks": [
+    {
+      "bank": "A",
+      "file": "bank-A.wltiming",
+      "channels": 1050,
+      "frames": 5569,
+      "globalChannelStart": 1,
+      "globalChannelEnd": 1050,
+      "sha256": "837909146c252f99555b11e1a8644797fb59c73080e4b1f925aa9b709d4d236e",
+      "timestampChanges": 0,
+      "rgbByteChanges": 0
+    },
+    {
+      "bank": "B",
+      "file": "bank-B.wltiming",
+      "channels": 1050,
+      "frames": 5569,
+      "globalChannelStart": 1051,
+      "globalChannelEnd": 2100,
+      "sha256": "afceb4c01210aa7a52e0e72d38f51dca85945a3d9fecca4f0e86643a617a7185",
+      "timestampChanges": 0,
+      "rgbByteChanges": 0
+    },
+    {
+      "bank": "C",
+      "file": "bank-C.wltiming",
+      "channels": 1050,
+      "frames": 5569,
+      "globalChannelStart": 2101,
+      "globalChannelEnd": 3150,
+      "sha256": "8ce64df7878c11c2cbf990d99213ceb0ec92ebabc9e846705cc26a5d9ea1d37f",
+      "timestampChanges": 0,
+      "rgbByteChanges": 0
+    }
+  ],
+  "format": "WLT2 bank partition, not FSEQ",
+  "hardwareStatus": "No physical controller playback has been verified; player must use original PTS and shared audio clock"
+}

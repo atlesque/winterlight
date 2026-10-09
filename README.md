@@ -21,9 +21,9 @@ The scene models the house, garden, all1,050 individual pixels, all11 data outpu
 
 The export button renders40frames/second using the same recording analysis, channel map and intensity setting. It ignores the temporary full-white test override. `.wlshow` is a custom preview format, **not FSEQ**: bytes0–3 are ASCII `WLS1`, bytes4–7 are the little-endian JSON-header length, followed by UTF-8 metadata and frame-major RGB bytes (3,150 channels/frame). It contains no audio. A deployment adapter and real xLights verification are still required before playback on hardware.
 
-### Source-frame playback (work in progress)
+### Source-frame playback
 
-**Load video** and **Load timing** pair a local recording with an immutable `.wltiming` artifact. Video supplies picture and audio; its presented frame timestamps select stored RGB bytes. Source-video and channel-map hashes must match. Brightness and full-white overrides are disabled in this mode. The audit records frame coverage, skipped frames, unmatched timestamps and late callbacks.
+**Load video** and **Use extracted Wizards show** play the supplied recording with its generated5,569-frame artifact. **Load timing** can pair another validated local recording with an immutable `.wltiming` artifact. Video supplies picture and audio; its presented frame timestamps select stored RGB bytes. Source-video and channel-map hashes must match. Brightness and full-white overrides are disabled in this mode. The audit records frame coverage, skipped frames, unmatched timestamps and late callbacks.
 
 WLT2 stores native source-frame presentation times and one RGB frame per source frame. It is distinct from the approximate 40 fps `.wlshow` export. To package already reviewed RGB frames, install FFmpeg/ffprobe and run:
 
@@ -34,10 +34,15 @@ node tools/verify-source-frames.mjs source.mp4 output.wltiming report.json
 
 The verifier checks the RGB checksum, source identity, channel map, every native timestamp and final frame duration. It rejects changed RGB bytes or altered playback timestamps. Browser loading also checks the RGB checksum before enabling playback. These checks establish artifact integrity, not extracted-light fidelity or physical display alignment.
 
-The packer preserves source timings; it does **not** recover light states from the video. The requested recording is still missing, so no source-specific timing file has been created. Browser video callbacks also cannot guarantee simultaneous video/canvas display. See [remaining verification work](outputs/source-frame-timing-status.md). Hardware reuse still requires a player/export adapter and measured output latency.
+The actual recording has been processed into [wizards-ground-level.wltiming](outputs/wizards-ground-level.wltiming), with one stored RGB frame per source PTS and a documented camera-effect adaptation. [Playback and extraction guide](outputs/source-playback-guide.md) explains the spatial/colour approximations, audio tail and exact bank partitions. Browser callbacks do not guarantee simultaneous optical output; physical controller playback still requires an adapter and measured output latency.
 
 ## Project files
 
+- [Source-frame playback guide](outputs/source-playback-guide.md)
+- [Full-source playback audit](outputs/source-playback-audit.json)
+- [Every-frame timeline worksheet](outputs/source-frame-summary.csv)
+- [Source integrity report](outputs/source-integrity-report.json)
+- [Controller bank manifest](outputs/controller-banks/manifest.json)
 - [Critical parts review](outputs/parts-critical-review.md)
 - [Revised parts checklist](outputs/revised-bom.csv)
 - [Complete project guide](outputs/christmas-show-project.md)
@@ -49,7 +54,7 @@ The packer preserves source timings; it does **not** recover light states from t
 - [EU supplier research](outputs/eu-sourcing-research.md)
 - [Technical and Belgian regulatory research](outputs/technical-research.md)
 
-Prices and research were checked on 8 October 2026. Exact music cue timings remain to be measured. The documentation distinguishes observed video details from proposed adaptations. Confirm site measurements, component specifications, electrical protection and applicable music permissions before purchasing or installation.
+Prices and research were checked on 8 October 2026. The supplied video now has a native-frame timing artifact; the older phrase cue worksheet remains approximate. The documentation distinguishes observed video details from proposed adaptations. Confirm site measurements, component specifications, electrical protection and applicable music permissions before purchasing or installation.
 
 ## Rebuild the documents
 

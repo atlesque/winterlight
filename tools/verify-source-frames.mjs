@@ -12,6 +12,7 @@ try {
  const source=probeSourceFrames(video);
  if(meta.frameCount!==source.timestamps.length)throw new Error('Source frame count differs');
  if(meta.timeBase!==source.timeBase||meta.mediaOriginUs!==source.mediaOriginUs)throw new Error('Native time base or media origin differs');
+ if(meta.videoEndUs!==undefined&&meta.videoEndUs!==source.videoEndUs)throw new Error('Video end timestamp differs');
  if(meta.durationUs!==source.durationUs)throw new Error('Final source frame duration differs');
  for(let i=0;i<meta.frameCount;i++){
   if(meta.nativePts?.[i]!==source.nativePts[i])throw new Error(`Native PTS differs at frame ${i}`);

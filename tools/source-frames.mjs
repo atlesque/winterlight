@@ -10,5 +10,7 @@ export function probeSourceFrames(video){
  const timestamps=frames.map((f,i)=>{if(f.best_effort_timestamp===undefined)throw new Error(`Missing native PTS on frame ${i}`);return toUs(f.best_effort_timestamp);});
  const last=frames.at(-1),lastDurationTicks=last.duration??last.pkt_duration;
  if(lastDurationTicks===undefined)throw new Error('Final frame duration is missing; do not invent it from average FPS');
- return {timestamps,durationUs:toUs(BigInt(last.best_effort_timestamp)+BigInt(lastDurationTicks)),timeBase:stream.time_base,mediaOriginUs:originUs,nativePts:frames.map(f=>String(f.best_effort_timestamp))};
+ const videoEndUs=toUs(BigInt(last.best_effort_timestamp)+BigInt(lastDurationTicks));
+ const durationUs=Math.max(videoEndUs,Math.round(Number(probe.format.duration)*1e6));
+ return {timestamps,durationUs,videoEndUs,timeBase:stream.time_base,mediaOriginUs:originUs,nativePts:frames.map(f=>String(f.best_effort_timestamp))};
 }

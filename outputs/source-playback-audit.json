@@ -1,0 +1,29 @@
+{
+  "uniqueFrames": 5569,
+  "callbacks": 5569,
+  "skippedSourceFrames": 0,
+  "missedCallbacks": 0,
+  "unmatchedPTS": 0,
+  "maxTimestampErrorUs": 0,
+  "lateCallbacks": 1,
+  "frame": -1,
+  "mediaTime": 185.875737,
+  "ended": true,
+  "timingSha256": "a0b2b466d5c68c6345bb71585ac79233f6c68be405dd1c74697bc1f0cd826c84",
+  "sourceSha256": "32bac17909d2b27a5d065470c52666c2f7f9d727cd721b60d14c93a0b1f27c42",
+  "rgbSha256": "bc57779db713d47254ef5793ada4c559cb2c9fd02afac3852c00c0fb3d7d7da5",
+  "date": "2026-10-09",
+  "scope": "Full final-artifact browser playback, source video and audio on one media element",
+  "lateCallbackContext": "One late callback at initial paused frame; count stayed at one during full playback",
+  "limitations": [
+    "No certified optical compositor alignment",
+    "No physical controller or loudspeaker commissioning"
+  ],
+  "seekCheck": {
+    "requestedSeconds": 175,
+    "presentedFrameZeroBased": 5244,
+    "presentedMediaTime": 174.9748,
+    "timestampLookupErrorUs": 0
+  },
+  "browserErrors": []
+}
