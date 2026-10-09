@@ -69,10 +69,10 @@ export function createOriginalScene(host){
    const [x,y]=toMeters(m.x,m.y),plane=new THREE.Mesh(new THREE.PlaneGeometry(m.w/PX_PER_M,m.h/PX_PER_M),material);plane.position.set(x,y,-.6);scene.add(plane);
    glows[c].push({material,color:new THREE.Color(col)});
   }else if(ch.kind==='wreath'||ch.kind==='peace'||ch.kind==='star'){
-   const [cx,cy]=toMeters(ch.roi.ring[0],ch.roi.ring[1]),z=m.z??(ch.kind==='star'?TREE.depth:-.85);
+   const ringAt=m.ring||ch.roi.ring,[cx,cy]=toMeters(ringAt[0],ringAt[1]),z=m.z??(ch.kind==='star'?TREE.depth:-.85);
    const ring=(r,n,color)=>{for(let k=0;k<n;k++){const a=2*Math.PI*k/n;addBulb(c,[cx+Math.cos(a)*r,cy+Math.sin(a)*r,z],color);}};
    if(ch.kind==='wreath'){ring(30/PX_PER_M,34,col);ring(17/PX_PER_M,22,col);const [bx,by]=toMeters(...m.bow);for(const dx of [-.08,0,.08])for(const dy of [-.06,0,.06])addBulb(c,[bx+dx,by+dy,z+.03],COLORS.red,.9);}
-   else if(ch.kind==='peace'){const r=ch.roi.ring[2]/PX_PER_M;ring(r,40,col);ch.roi.lines.forEach(line=>along(line.map(([x,y])=>[...toMeters(x,y),z]),.09).forEach(p=>addBulb(c,p,col)));}
+   else if(ch.kind==='peace'){const r=ringAt[2]/PX_PER_M;ring(r,40,col);(m.lines||ch.roi.lines).forEach(line=>along(line.map(([x,y])=>[...toMeters(x,y),z]),.09).forEach(p=>addBulb(c,p,col)));}
    else{const R=TREE.starRadius/PX_PER_M,top=toMeters(...TREE.apex)[1]+R*.9,pts=[];for(let k=0;k<=10;k++){const a=Math.PI/2+k*Math.PI/5,r=k%2?R*.45:R;pts.push([cx+Math.cos(a)*r,top+Math.sin(a)*r,z]);}along(pts,.08).forEach(p=>addBulb(c,p,col,1.1));}
   }else if(ch.kind==='cane'){
    const [x]=toMeters(m.x,0),h=m.height,pts=[[x,0,m.z],[x,h*.78,m.z]];for(let k=0;k<=6;k++){const a=Math.PI*k/6;pts.push([x+m.hook*(.09-Math.cos(a)*.09),h*.78+Math.sin(a)*.11,m.z]);}
@@ -91,12 +91,14 @@ export function createOriginalScene(host){
  const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
  const bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.95,.5,.1);composer.addPass(bloom);composer.addPass(new OutputPass());
 
- const last=new Uint8Array(CHANNELS.length).fill(255);
- function draw(states,brightness=1){
+ const last=new Uint8Array(CHANNELS.length).fill(255),lastLevel=new Uint8Array(CHANNELS.length);
+ // values: colour per channel (0 off); levels: detected brightness 0–100, so fades show.
+ function draw(values,levels,brightness=1){
   let dirty=false;
-  CHANNELS.forEach((ch,c)=>{const v=states[c];if(v===last[c])return;last[c]=v;dirty=true;
-   for(const i of channelBulbs[c]){const b=bulbs[i],lit=v&&(!b.tone||(v&b.tone));mesh.setColorAt(i,tmp.copy(b.color).multiplyScalar(lit?brightness*2.2:OFF));}
-   for(const g of glows[c])g.material.color.copy(g.color).multiplyScalar(v?brightness*2:OFF*1.5);});
+  CHANNELS.forEach((ch,c)=>{const v=values[c],l=v?levels[c]:0;if(v===last[c]&&l===lastLevel[c])return;last[c]=v;lastLevel[c]=l;dirty=true;
+   const on=OFF+(brightness*2.2-OFF)*l/100,glow=OFF*1.5+(brightness*2-OFF*1.5)*l/100;
+   for(const i of channelBulbs[c]){const b=bulbs[i],lit=v&&(!b.tone||(v&b.tone));mesh.setColorAt(i,tmp.copy(b.color).multiplyScalar(lit?on:OFF));}
+   for(const g of glows[c])g.material.color.copy(g.color).multiplyScalar(glow);});
   if(dirty)mesh.instanceColor.needsUpdate=true;
  }
  function setBrightness(){last.fill(255);}

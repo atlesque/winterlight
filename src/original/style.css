@@ -4,3 +4,6 @@
 .lamp{min-width:18px;height:18px;padding:0 4px;border-radius:4px;background:#1c2833;border:1px solid #ffffff10;font-size:9px;color:#5f7385;display:inline-flex;align-items:center;justify-content:center}
 .lamp.on{color:#16110a;border-color:transparent;box-shadow:0 0 8px var(--glow)}
 .lamp.wide{min-width:60px}
+.video-panel{margin-top:14px;aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:#05070c;border:1px solid #ffffff0a}
+.video-panel iframe{width:100%;height:100%;border:0;display:block}
+.video-status{margin:6px 0 0}

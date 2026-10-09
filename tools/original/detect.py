@@ -1,15 +1,15 @@
-"""Detect, frame by frame, which props of the original filmed house are lit.
+"""Detect, frame by frame, how brightly each prop of the original filmed house is lit.
 
 The original video is filmed from a fixed camera, so every prop stays at the
 same pixels. For each channel in src/original/layout.js this samples its region
 on every decoded frame, learns that channel's own off and on levels over the
-whole video, and classifies each frame with hysteresis. Multicolour strips are
-also classified as yellow, blue or both. No smoothing or resampling: one
-decision per source frame, timed by the source frame index.
+whole video, and records each frame's brightness in 5% steps so fades survive.
+Multicolour strips are also classified as yellow, blue or both. No smoothing or
+resampling: one value per source frame, timed by the source frame index.
 
 Requires ffmpeg/ffprobe, numpy, Pillow and node (to read the shared layout).
 
-  python3 -I tools/original/detect.py VIDEO --end 20 --out outputs/original-house-cues.json
+  python3 -I tools/original/detect.py VIDEO --end 30 --out outputs/original-house-cues.json
   python3 -I tools/original/detect.py VIDEO --overlay work/original/overlay.png --at 180
   python3 -I tools/original/detect.py --reference STILL.png --overlay work/original/reference.png
 """
@@ -21,9 +21,8 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[2]
 W, H = 960, 540
-FORMAT = 'Winterlight original-house cues v1'
-# Hysteresis between each channel's own off level (p5) and on level (p97);
-# the enter/exit fractions come from each channel's `detect` in the layout.
+FORMAT = 'Winterlight original-house cues v2'
+# A channel whose 5th and 97th percentile levels differ by less than this never visibly changes.
 MIN_CONTRAST = 18
 
 
@@ -89,15 +88,16 @@ def frames(video):
     if proc.wait() != 0: raise RuntimeError('Video decode failed')
 
 
-def measure(video, ms):
-    """Per frame and channel: brightness of the brightest quarter of the region, and the blue share of its lit pixels."""
-    idx = [np.flatnonzero(m.ravel()) for m in ms]
+def measure(video, ms, channels):
+    """Per frame and channel: brightness of the brightest quarter of the region (or its mean,
+    for channels whose detect.stat is 'mean'), and the blue share of its lit pixels."""
+    idx = [np.flatnonzero(m.ravel()) for m in ms]; use_mean = [c['detect'].get('stat') == 'mean' for c in channels]
     level, blue, still = [], [], None
     for n, frame in enumerate(frames(video)):
         flat = frame.reshape(-1, 3).astype(np.int16); lv, bl = [], []
-        for ix in idx:
+        for ix, mean in zip(idx, use_mean):
             px = flat[ix]; lum = px.max(axis=1); k = max(2, len(ix) // 4)
-            level_now = lum[np.argpartition(lum, -k)[-k:]].mean(); lv.append(level_now)
+            level_now = lum.mean() if mean else lum[np.argpartition(lum, -k)[-k:]].mean(); lv.append(level_now)
             # Blue share among all clearly lit pixels, so alternating yellow and blue bulbs read as both.
             lit = px[lum >= level_now * .5]
             bl.append(np.mean(lit[:, 2] > np.maximum(lit[:, 0], lit[:, 1]) + 12))
@@ -106,31 +106,33 @@ def measure(video, ms):
     return np.array(level, np.float32), np.array(blue, np.float32), still
 
 
-def classify(level, channels):
-    """Per-channel hysteresis between that channel's own off and on levels."""
+def brightness(level, channels):
+    """Per frame and channel: brightness as a share of that channel's own range.
+
+    0 is the channel's off level (5th percentile over the video) and 1 its
+    brightest (97th percentile), so fades and partial frames keep their level.
+    Anything under the channel's floor is light spilling from neighbours."""
     lo, hi = np.percentile(level, 5, axis=0), np.percentile(level, 97, axis=0)
-    on = np.zeros(level.shape, bool); stats = []
+    out = np.zeros(level.shape, np.float32); stats = []
     for c in range(level.shape[1]):
-        span = hi[c] - lo[c]
+        span = hi[c] - lo[c]; stat = {'off': round(float(lo[c]), 1), 'on': round(float(hi[c]), 1)}
         if span < MIN_CONTRAST:
             # Never visibly changes in this video: decide on absolute brightness.
-            on[:, c] = level[:, c] > 90; stats.append({'off': round(float(lo[c]), 1), 'on': round(float(hi[c]), 1), 'static': True}); continue
-        th = channels[c]['detect']; enter, leave = lo[c] + th['enter'] * span, lo[c] + th['exit'] * span; state = False
-        for f in range(level.shape[0]):
-            v = level[f, c]; state = v >= enter if not state else v > leave; on[f, c] = state
-        stats.append({'off': round(float(lo[c]), 1), 'on': round(float(hi[c]), 1)})
-    return on, stats
+            out[:, c] = level[:, c] > 90; stats.append({**stat, 'static': True}); continue
+        n = np.clip((level[:, c] - lo[c]) / span, 0, 1)
+        out[:, c] = np.where(n >= channels[c]['detect']['floor'], n, 0); stats.append(stat)
+    return out, stats
 
 
-def segments(values, start, end):
-    """[[first, last+1, value], ...] runs of non-zero values inside [start, end)."""
+def segments(values, levels, start, end):
+    """[[first, last+1, colour, percent], ...] runs of lit frames inside [start, end)."""
     out, run = [], None
     for f in range(start, end):
-        v = int(values[f])
-        if run and run[2] == v: run[1] = f + 1; continue
-        if run and run[2]: out.append(run)
-        run = [f, f + 1, v]
-    if run and run[2]: out.append(run)
+        key = (int(values[f]), int(levels[f])) if levels[f] else (0, 0)
+        if run and (run[2], run[3]) == key: run[1] = f + 1; continue
+        if run and run[3]: out.append(run)
+        run = [f, f + 1, *key]
+    if run and run[3]: out.append(run)
     return out
 
 
@@ -153,9 +155,11 @@ def main():
     steps = {b - a_ for a_, b in zip(pts, pts[1:])}
     if len(steps) != 1: raise SystemExit(f'Variable frame rate ({sorted(steps)[:5]}…); store a PTS table before using this format')
     step = steps.pop(); rate = 1 / (tb * step)
-    level, blue, _ = measure(a.video, masks(data))
+    level, blue, _ = measure(a.video, masks(data), data['channels'])
     if len(level) != len(pts): raise SystemExit(f'Decoded {len(level)} frames but probed {len(pts)}')
-    on, stats = classify(level, data['channels'])
+    lit, stats = brightness(level, data['channels'])
+    # Whole 5% steps keep the runs short; a 5% step is below what the camera resolves.
+    percent = np.where(lit > 0, np.maximum(5, np.rint(lit * 20) * 5), 0).astype(int)
     t0 = pts[0] * tb
     first = max(0, int(np.ceil((Fraction(a.start) - t0) * rate - Fraction(1, 1000))))
     last = len(pts) if a.end is None else min(len(pts), int(np.ceil((Fraction(a.end) - t0) * rate - Fraction(1, 1000))))
@@ -164,8 +168,8 @@ def main():
         if ch['palette'] == 'multi':
             b = blue[:, c]; v = np.where(b < .25, 1, np.where(b > .75, 2, 3))
         else: v = np.ones(len(level), int)
-        channels[ch['id']] = segments(np.where(on[:, c], v, 0), first, last)
-        stats[c]['onFrames'] = int(on[first:last, c].sum())
+        channels[ch['id']] = segments(v, percent[:, c], first, last)
+        stats[c]['litFrames'] = int((percent[first:last, c] > 0).sum())
     if a.levels:
         Path(a.levels).parent.mkdir(parents=True, exist_ok=True)
         np.savetxt(a.levels, level[first:last], delimiter=',', fmt='%.1f', header=','.join(ch['id'] for ch in data['channels']), comments='')
@@ -174,7 +178,7 @@ def main():
         'source': {'sha256': hashlib.sha256(Path(a.video).read_bytes()).hexdigest(), 'width': stream['width'], 'height': stream['height'], 'frameCount': len(pts),
                    'frameRate': [rate.numerator, rate.denominator], 'firstPtsSeconds': float(t0)},
         'range': {'startFrame': first, 'endFrame': last},
-        'method': 'Per-frame region brightness (top quarter of pixels at 960x540), per-channel hysteresis between that channel\'s 5th and 97th percentile over the whole video; multicolour strips split by blue share. No smoothing.',
+        'method': 'Per-frame region brightness (top quarter of pixels at 960x540, or the mean for the mini trees) as a share of the channel\'s own 5th-97th percentile range over the whole video, in 5% steps; levels under a per-channel floor count as spill from neighbours. Multicolour strips split by blue share. No smoothing.',
         'channels': channels,
         'levels': {ch['id']: s for ch, s in zip(data['channels'], stats)},
     }

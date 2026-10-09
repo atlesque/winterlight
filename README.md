@@ -46,22 +46,24 @@ Bank partitions contain A=1,104, B=1,020 and C=738 channels/frame. Native timest
 | HAPPY HOLIDAYS letters (red, green, yellow) | one per letter (13) |
 | Christmas circles | left, right |
 | Candy canes | one per cane (8) |
-| Mini trees | one per tree (10) |
+| Mini trees | one per tree (11) |
 | Ground strip, 30 cm high (yellow/blue) | one |
 | Peace sign | one |
 | Wireframe tree | one per vertical strip (16) + star |
 
-All 55 channels are described once in `src/original/layout.js`, in the pixel coordinates of a reference still of the final all-on frame (a 2× crop of the video). The 3D model and the detector both read that file. Counts of canes, mini trees and tree strips are estimates from the still.
+All 56 channels are described once in `src/original/layout.js`, in the pixel coordinates of a reference still of the final all-on frame (a 2× crop of the video). The 3D model and the detector both read that file. Counts of canes, mini trees and tree strips are estimates from the still.
 
-Because the original video is filmed from a fixed camera, `tools/original/detect.py` samples each channel's region on every decoded frame, learns that channel's own off and on brightness over the whole video, and decides on/off per frame with hysteresis. Multicolour strips are also classified as yellow, blue or both. There is no smoothing or resampling, so cue changes land on exact video frames (29.97 fps). The page plays them against the hosted soundtrack, which was extracted from the same video.
+Because the original video is filmed from a fixed camera, `tools/original/detect.py` samples each channel's region on every decoded frame, learns that channel's own off and on brightness over the whole video, and records each frame's brightness between them in 5% steps, so the show's fades come through rather than being flattened to on/off. Multicolour strips are also classified as yellow, blue or both. There is no smoothing or resampling, so cue changes land on exact video frames (29.97 fps). The page plays them against the hosted soundtrack, which was extracted from the same video.
 
 ```bash
 # Check the regions against a frame of the video, then detect a range.
 python3 -I tools/original/detect.py source.mp4 --overlay work/original/overlay.png --at 180
-python3 -I tools/original/detect.py source.mp4 --end 20 --out outputs/original-house-cues.json --levels work/original/levels.csv
+python3 -I tools/original/detect.py source.mp4 --end 30 --out outputs/original-house-cues.json --levels work/original/levels.csv
 ```
 
-Each channel's on/off thresholds sit between its own off and on levels; the strips switch at 35% (their full-video on level includes bloom from later props), the letters at 60% (they catch up to ~46% spill from the icicles above) and the ground strip at 55% (snow lit by the icicles). The window-strip regions stop short of the icicles for the same reason. `outputs/original-house-cues.json` currently covers 0:00–0:20 (600 frames).
+Light spills between neighbouring props, so each channel has a floor below which it counts as off: 10% for the floor strips, 25% for the canes and circles, 50% for the letters (they catch up to ~46% spill from the icicles above) and 45% for the ground strip (snow lit by the icicles and mini trees). The mini trees stand closer together than their glow is wide, so each is watched along its centre line by mean brightness with a 45% floor. The window-strip regions stop short of the icicles, and the peace sign is watched only along its upper half, above the mini-tree tops, for the same reason. `outputs/original-house-cues.json` currently covers 0:00–0:30 (900 frames).
+
+The side panel plays the official YouTube video muted alongside the model. The soundtrack stays the clock you control; the video follows it, the lights read the video's own clock while it plays so they match the picture, and if the video buffers the soundtrack and lights wait for it. `VIDEO_OFFSET` in `src/original/youtube-sync.js` is 0 because the hosted soundtrack was extracted from that same video.
 
 Seen from the camera, tree strips at angle θ and π−θ overlap, so each front/back pair shares one detection line and one state.
 

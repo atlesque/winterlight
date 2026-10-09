@@ -15,7 +15,8 @@
     <aside>
       <div class="eyebrow muted" style="margin-top:26px">ORIGINAL VIDEO TIMING</div><h2>Reverse-engineered,<br>one frame at a time.</h2>
       <div class="source-card"><span class="music-icon">♫</span><div><strong>Wizards in Winter</strong><small id="cue-info">Loading detected timing…</small></div><span class="chip" id="cue-chip">VIDEO</span></div>
-      <p id="cue-note" class="note">Each prop's on/off state is detected from the statically filmed original video, one decision per video frame, and played against the soundtrack extracted from that same video.</p>
+      <div class="video-panel"><div id="yt-player"></div></div><p id="video-status" class="note video-status">Loading the original video…</p>
+      <p id="cue-note" class="note">Each prop's brightness is detected from the statically filmed original video, one value per video frame so the fades come through, and played against the soundtrack extracted from that same video.</p>
       <div class="settings">
         <label class="range-label" for="brightness">Light intensity <span id="brightness-value">60%</span></label><input id="brightness" type="range" min="5" max="100" value="60">
         <label class="switch-row"><span>All props on <small>Reference: compare with the final frame of the video</small></span><input id="all-on" type="checkbox"></label>
