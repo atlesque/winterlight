@@ -48,3 +48,8 @@ test('stored original-video cues cover the whole video for every channel',{skip:
  assert.equal(cues.startFrame,0);assert.equal(cues.endFrame,data.source.frameCount);
  assert.deepEqual(Object.keys(data.channels).sort(),CHANNELS.map(c=>c.id).sort());
 });
+test('the wireframe tree is stored only on or off, never faded',{skip:!existsSync(stored)},()=>{
+ const data=JSON.parse(readFileSync(stored,'utf8')),onOff=CHANNELS.filter(c=>c.detect.onOff);
+ assert.deepEqual(onOff.map(c=>c.prop).filter((p,i,a)=>a.indexOf(p)===i),['tree']);assert.equal(onOff.length,17);
+ for(const c of onOff)for(const run of data.channels[c.id])assert.equal(run[3],100,`${c.id} ${run}`);
+});
