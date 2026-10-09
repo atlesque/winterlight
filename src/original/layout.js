@@ -50,7 +50,10 @@ function build(){
  // lit ones reads about a third of lit, so its floor sits above that.
  // Canes and circles glow 15–20% when a neighbour flashes; their real fades
  // decay through 40% to off within a frame or two, so little is lost.
- const FLOORS={strip:{floor:.1},letter:{floor:.5},minitree:{floor:.45,stat:'mean'},cane:{floor:.25},wreath:{floor:.25},peace:{floor:.3}};
+ // The wireframe tree's strips and star never fade: they are on or off, so they
+// are stored at full level. A strip's usual on level is about half the brightest
+// frames (2:27, when the camera saturates), hence its lower cut.
+const FLOORS={strip:{floor:.1},letter:{floor:.5},minitree:{floor:.45,stat:'mean'},cane:{floor:.25},wreath:{floor:.25},peace:{floor:.3},treeStrip:{floor:.3,onOff:true},star:{floor:.5,onOff:true}};
  const add=(prop,id,name,kind,palette,roi,model={})=>list.push({id,prop,name,kind,palette,roi,model,detect:FLOORS[kind]||{floor:.2}});
 // Each floor has bulbs along its edges and icicle lights hanging below them;
  // the icicles carry most of the colour (all blue at 1:48), so the regions
@@ -84,8 +87,9 @@ add('peace','peace','Peace sign','peace','yellow',{lines:[arc,[[788,334],[788,36
  for(let k=0;k<TREE.strips;k++){
   // Strip k sits at angle θ around the cone. θ and π−θ project onto the same
   // line from the camera, so those front/back pairs share one detection line.
+  // The line stops a quarter above the base, clear of the mini trees' glow.
   const theta=2*Math.PI*k/TREE.strips,s=Math.sin(theta),bx=TREE.base[0]+TREE.halfWidth*s;
-  add('tree',`tree-${String(k+1).padStart(2,'0')}`,`Tree strip ${k+1}`,'treeStrip','yellow',{lines:[[[TREE.apex[0]+(bx-TREE.apex[0])*.3,TREE.apex[1]+(TREE.base[1]-TREE.apex[1])*.3],[bx,TREE.base[1]-6]]],width:5},{theta});
+  add('tree',`tree-${String(k+1).padStart(2,'0')}`,`Tree strip ${k+1}`,'treeStrip','yellow',{lines:[[[TREE.apex[0]+(bx-TREE.apex[0])*.3,TREE.apex[1]+(TREE.base[1]-TREE.apex[1])*.3],[TREE.apex[0]+(bx-TREE.apex[0])*.75,TREE.apex[1]+(TREE.base[1]-TREE.apex[1])*.75]]],width:5},{theta});
  }
  add('tree','tree-star','Tree star','star','yellow',{ring:[...TREE.star,TREE.starRadius*.7],width:12});
  return list;
