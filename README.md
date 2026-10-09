@@ -4,6 +4,12 @@ A practical ground-level Christmas pixel light show project for a Belgian brick 
 
 The design uses 1,050 RGB pixels in four arches, four short bars, two stars and a small matrix. All props are freestanding, with no roof access, wall mounting, door garland or Christmas trees. Three independent 350-pixel power banks support xLights sequencing and wired FPP playback.
 
+## Hosted show
+
+Open [Winterlight](https://winterlight.alexander-df0.workers.dev) and press **Play**. The hosted show includes the extracted soundtrack and uses the same stored source-frame data, with the audio media timeline driving frame selection. Local MP4 comparison remains available.
+
+Deploy updates with `npm run deploy`; `npm run deploy:check` validates the package without publishing. Cloudflare Workers Static Assets serves all files directly: no R2 bucket, server handler, paid plan upgrade or storage binding is used. Static asset storage and requests are free under [Cloudflare’s billing policy](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/). The current account-wide subscription could not be read with the existing token.
+
 ## Run the Three.js simulator
 
 ```bash
@@ -60,4 +66,4 @@ Prices and research were checked on 8 October 2026. The supplied video now has a
 
 Run `python3 work/package.py` from the repository root. The script uses the Python standard library to regenerate the HTML guide, SVG diagrams and CSV worksheets from the project material, and checks the channel totals and bank allocations.
 
-This repository includes the simulator, planning documentation and document packaging script. It does not send network commands to real controllers or include a licensed commercial recording.
+This repository includes the simulator, planning documentation and document packaging script. It does not send network commands to real controllers. The extracted commercial soundtrack is included as requested; the complete source video remains local.

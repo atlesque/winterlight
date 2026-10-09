@@ -24,7 +24,7 @@
         <button id="demo-button" class="text-button" hidden>Return to original demo</button>
         <div id="youtube-container" hidden><div id="youtube-player"></div><p class="note">Video-clock choreography is approximate. Embedding depends on YouTube availability.</p></div>
         <div class="frame-source">
-          <div class="field-title">Source-frame playback</div><button class="small-button" id="extracted-show">Use extracted Wizards show</button>
+          <div class="field-title">Wizards in Winter</div><button class="small-button" id="hosted-show">Play Wizards show ♫</button><audio id="hosted-audio" preload="metadata" src="/media/wizards-in-winter.m4a"></audio><p id="hosted-audit" class="note" hidden></p><div class="field-title">Local video comparison</div><button class="small-button" id="extracted-show">Use extracted Wizards show</button>
           <div class="source-buttons"><label class="small-button upload">Load video<input id="source-video-file" type="file" accept="video/*"></label><label class="small-button upload">Load timing<input id="timing-file" type="file" accept=".wltiming"></label></div>
           <div id="source-video-container" hidden><video id="source-video" playsinline preload="auto"></video><p id="frame-audit" class="note">A matching source video and timing file are required.</p></div>
           <p class="note">Reuses stored RGB frames and original timestamps. Exact source recording required; the demo and audio analysis are not a substitute.</p>

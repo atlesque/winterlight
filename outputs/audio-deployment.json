@@ -1,0 +1,11 @@
+{
+  "sourceSha256": "32bac17909d2b27a5d065470c52666c2f7f9d727cd721b60d14c93a0b1f27c42",
+  "audioSha256": "8eb6d0f422eca3c1e45eb0832153fe1c79ba6a83536647efc50a768bec2330d6",
+  "codec": "AAC copied without re-encoding",
+  "durationSeconds": 185.875737,
+  "audioStartSeconds": 0,
+  "decodedAudioFramesMatchSource": true,
+  "deployment": "Workers Static Assets",
+  "billingCheck": "Account subscriptions inaccessible with existing token (403); static asset requests/storage are free regardless of account plan",
+  "publicUrl": "https://winterlight.alexander-df0.workers.dev"
+}
