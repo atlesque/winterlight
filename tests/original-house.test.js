@@ -53,3 +53,16 @@ test('the wireframe tree is stored only on or off, never faded',{skip:!existsSyn
  assert.deepEqual(onOff.map(c=>c.prop).filter((p,i,a)=>a.indexOf(p)===i),['tree']);assert.equal(onOff.length,17);
  for(const c of onOff)for(const run of data.channels[c.id])assert.equal(run[3],100,`${c.id} ${run}`);
 });
+test('the wireframe tree\'s chase turns round the cone instead of lighting front and back together',{skip:!existsSync(stored)},()=>{
+ const data=JSON.parse(readFileSync(stored,'utf8')),strips=CHANNELS.filter(c=>c.kind==='treeStrip');
+ // 1:17.1–1:22.1: a slice of the cone chases round it, several turns.
+ let turned=0,last=null,both=0;
+ for(let f=2312;f<2462;f++){
+  const lit=strips.filter(c=>data.channels[c.id].some(([a,b])=>a<=f&&f<b));if(!lit.length)continue;
+  const angle=Math.atan2(lit.reduce((s,c)=>s+Math.sin(c.model.theta),0),lit.reduce((s,c)=>s+Math.cos(c.model.theta),0));
+  if(last!==null){let d=angle-last;d=Math.atan2(Math.sin(d),Math.cos(d));turned+=d;}last=angle;
+  // A strip and its mirror across the line of sight (θ and π−θ) lit together means the slice is on both sides at once.
+  both+=lit.some(c=>Math.abs(Math.cos(c.model.theta))>.1&&lit.some(o=>Math.abs(Math.sin(o.model.theta)-Math.sin(c.model.theta))<1e-9&&o!==c));
+ }
+ assert.ok(Math.abs(turned)>4*2*Math.PI,`turned ${(turned/2/Math.PI).toFixed(1)} times`);assert.equal(both,0);
+});

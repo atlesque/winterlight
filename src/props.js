@@ -46,7 +46,7 @@ function outline(o,z,open=false){
 
 const STRIP=.1,L=PROP_LAYOUT;
 const geometry={
-  upper(){const {from,to,y}=L.eaves.main;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],STRIP,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},
+  upper(){const {from,to,y,z}=L.upper;return {bulbs:multiRun([[from,y,z],[to,y,z]],STRIP,true),frames:[[[from,y,z-.02],[to,y,z-.02]]]};},
   lower(){const {from,to,y}=L.eaves.garage;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],STRIP,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},
   // The small left window, the door frame, the kitchen window and the garage door.
   windows(){

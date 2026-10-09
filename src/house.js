@@ -19,20 +19,27 @@ export const HOUSE = {
   ]},
 };
 // Where the original house's props sit on ours (see src/props.js). Facade
-// props hang on the front wall: eave strips, outlines round the ground-floor
+// props hang on the front wall: an icicle strip along the top of the upper
+// windows and one under the garage eave, outlines round the ground-floor
 // openings and garage, the letters in the band between the door and the
-// upper windows, and one circle or peace sign per upper window pane. In the
+// upper windows, a circle in one pane of each upper window and the peace sign
+// on the front door. In the
 // garden the tree stands between the planting tiles, the mini trees between
 // the facade and the tiles, the canes along the street edge and the ground
 // strip along the left side and front of the shrubbery.
 const tick=(from,to,n)=>Array.from({length:n},(_,i)=>+(from+(to-from)*i/(n-1)).toFixed(3));
+const UPPER=HOUSE.windows.slice(0,2);
 export const PROP_LAYOUT = {
-  eaves:{main:{from:3.05,to:8.55,y:5.42},garage:{from:-.05,to:3.15,y:2.74},z:.09},
+  // The upper icicle strip runs along the top edge of the two upper windows, from the
+  // left one's frame to the right one's, in front of their glass; the lower one under the garage eave.
+  upper:{from:+(UPPER[0].x-UPPER[0].width/2-.09).toFixed(3),to:+(UPPER[1].x+UPPER[1].width/2+.09).toFixed(3),y:+(UPPER[0].y+UPPER[0].height/2+.13).toFixed(3),z:.22},
+  eaves:{garage:{from:-.05,to:3.15,y:2.74},z:.09},
   outlines:{z:.27},
   letters:{text:'HAPPY HOLIDAYS',from:3.2,to:8.4,y:2.9,height:.42,z:.07},
-  // Each upper window has two panes; a prop fills one pane, clear of the sill.
+  // Each upper window has two panes; a wreath fills one pane, clear of the sill.
   wreaths:{'wreath-left':{x:4.1,y:4.15,radius:.27,z:.26},'wreath-right':{x:7.15,y:4.15,radius:.27,z:.26}},
-  peace:{x:6.45,y:4.15,radius:.27,z:.26},
+  // The peace sign hangs on the front door at eye height, in front of its upper glass and clear of the handle.
+  peace:{x:HOUSE.door.x,y:1.62,radius:.25,z:.27},
   tree:{x:6.74,z:2.375,radius:.42,height:2.5,star:{radius:.2,gap:.06}},
   canes:{xs:tick(5.75,8.34,8),z:3.8,height:.6,hook:.12},
   minitrees:{xs:tick(5.8,8.35,11),z:.75,height:1,radius:.1},

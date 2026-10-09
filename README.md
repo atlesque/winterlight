@@ -2,7 +2,7 @@
 
 A Christmas light show for an 8.50 m Belgian brick-house facade, synced to *Wizards in Winter*. Our house carries the [original filmed house](original.html)'s props one for one (all 56 channels) and runs the original's detected timing, so both houses play the same show.
 
-Where they sit (`src/house.js`, geometry in `src/props.js`): yellow/blue icicle strips along the main and garage eaves (upper and lower floor strips), outlines round the small left window, the door frame, the kitchen window and the garage door (window strips), HAPPY HOLIDAYS in the band between the door and the upper windows, the two circles and the peace sign each in one pane of the upper windows, a 2.5 m wireframe tree with its star between the planting tiles, eleven mini trees between the facade and the tiles, eight candy canes along the street edge and the ground strip along the left side and front of the shrubbery.
+Where they sit (`src/house.js`, geometry in `src/props.js`): yellow/blue icicle strips along the top edge of the two upper windows and under the garage eave (upper and lower floor strips), outlines round the small left window, the door frame, the kitchen window and the garage door (window strips), HAPPY HOLIDAYS in the band between the door and the upper windows, the two circles each in one pane of the upper windows, the peace sign on the front door, a 2.5 m wireframe tree with its star between the planting tiles, eleven mini trees between the facade and the tiles, eight candy canes along the street edge and the ground strip along the left side and front of the shrubbery.
 
 ## Run and view
 
@@ -53,13 +53,13 @@ The side panel plays the original video with its own sound, and while it plays t
 ffmpeg -i source.mp4 -map 0:v:0 -map 0:a:0 -vf scale=1280:720:flags=lanczos -c:v libx264 -preset slow -crf 27 -pix_fmt yuv420p -fps_mode passthrough -c:a aac -b:a 96k -movflags +faststart public/media/wizards-in-winter-video.mp4
 ```
 
-Seen from the camera, tree strips at angle θ and π−θ overlap, so each front/back pair shares one detection line and one state.
+Seen from the camera, tree strips at angle θ and π−θ (front and back of the cone) overlap, so detection reads seven lines across the tree and lights both strips of each lit line. In the video the light goes round the cone: a 60° slice chases round it (1:17–1:29, 2:12–2:26, 2:30–2:52), four or two arms turn together (2:53–3:02), and short sweeps start as two points on one side that run round the front and the back and meet on the other to light the whole tree. `tools/original/tree_motion.py` (run by the detector, or on its own over a cue file) gives each passage of twelve or more changes that motion: it fits a slice or evenly spaced arms turning round the cone, steadily in one direction, and lights in each frame the strips nearest that pattern that still look exactly like the video from the front. Shorter passages keep both sides lit, so the two points run round the front and the back. Which way the light turns can't be seen from the front (a pattern turning one way looks like its mirror image turning the other), so the front moving left to right is taken.
 
 ## Current deliverables
 
 - [Approved build guide](outputs/christmas-show-project.md) and [printable HTML](outputs/christmas-show-project.html)
 - [Facade/plan layout](outputs/layout.svg) and [wiring diagram](outputs/wiring.svg)
-- [Pixel/channel map](outputs/pixel-map.csv), [controller port settings](outputs/controller-config.csv) and [power feed schedule](outputs/power-feeds.csv)
+- [Pixel/channel map](outputs/legacy-facade/pixel-map.csv), [controller port settings](outputs/controller-config.csv) and [power feed schedule](outputs/power-feeds.csv)
 - [Revised parts checklist](outputs/revised-bom.csv) and [parts review](outputs/parts-critical-review.md)
 - [Sourcing and cost changes](outputs/eu-sourcing-research.md) and [technical research](outputs/technical-research.md)
 - [Playback guide](outputs/source-playback-guide.md), [sampling provenance](outputs/source-mapping.json), [every-frame worksheet](outputs/source-frame-summary.csv) and [cue assignments](outputs/cue-worksheet.csv)

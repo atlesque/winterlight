@@ -35,14 +35,22 @@ test('facade props stay on our frontage and garden props in the garden, off the 
  assert.ok(Math.max(...fence.filter(p=>p[2]<3.5).map(p=>p[0]))<Math.min(...tiles.map(t=>t.x))-size/2);
 });
 
-test('letters sit between the door and the upper windows; upper-window props fit one pane',()=>{
+test('letters sit between the door and the upper windows; circles fit one pane; the peace sign is on the door',()=>{
  const letters=bulbs('letter'),top=HOUSE.windows[0].y-HOUSE.windows[0].height/2-.1;
  assert.ok(Math.min(...letters.map(p=>p[1]))>HOUSE.door.height+.15);assert.ok(Math.max(...letters.map(p=>p[1]))<top);
- for(const kind of ['wreath','peace'])for(const c of OWN_CHANNELS.filter(c=>c.kind===kind)){
+ const peace=bulbs('peace'),{door}=HOUSE;
+ assert.ok(peace.every(([x,y])=>Math.abs(x-door.x)<door.width/2-.1&&y>door.height/2&&y<door.height-.15),'peace sign on the door');
+ for(const kind of ['wreath'])for(const c of OWN_CHANNELS.filter(c=>c.kind===kind)){
   const xs=c.bulbs.map(b=>b.pos[0]),window=HOUSE.windows.slice(0,2).find(w=>Math.abs(w.x-xs[0])<w.width/2),half=window.width/2;
   const pane=xs[0]<window.x?[window.x-half,window.x]:[window.x,window.x+half];
   assert.ok(Math.min(...xs)>pane[0]&&Math.max(...xs)<pane[1],`${c.id} fits one pane`);
  }
+});
+
+test('the upper strip runs along the top edge of the upper windows, from the left one to the right one',()=>{
+ const [left,right]=HOUSE.windows,top=left.y+left.height/2,line=OWN_CHANNELS.find(c=>c.id==='upper').bulbs.filter(b=>b.size===1).map(b=>b.pos);
+ assert.ok(line.every(p=>p[1]>top&&p[1]<top+.2),'just above the window tops');
+ assert.ok(Math.abs(Math.min(...line.map(p=>p[0]))-(left.x-left.width/2))<.15&&Math.abs(Math.max(...line.map(p=>p[0]))-(right.x+right.width/2))<.15,'window to window');
 });
 
 test('the star sits just above the tree, with a small gap',()=>{
