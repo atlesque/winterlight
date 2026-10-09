@@ -122,6 +122,14 @@ def brightness(level, channels):
             out[:, c] = level[:, c] > 90; stats.append({**stat, 'static': True}); continue
         n = np.clip((level[:, c] - lo[c]) / span, 0, 1)
         out[:, c] = np.where(n >= channels[c]['detect']['floor'], n, 0); stats.append(stat)
+    # Channels in a group (the wireframe tree's strips) spill onto each other, so
+    # one also has to reach a share of the group's brightest region that frame.
+    groups = {}
+    for c, ch in enumerate(channels):
+        if ch['detect'].get('group'): groups.setdefault(ch['detect']['group'], []).append(c)
+    for members in groups.values():
+        top = level[:, members].max(axis=1)
+        for c in members: out[level[:, c] < channels[c]['detect']['ratio'] * top, c] = 0
     return out, stats
 
 
@@ -182,7 +190,7 @@ def main():
         'source': {'sha256': hashlib.sha256(Path(a.video).read_bytes()).hexdigest(), 'width': stream['width'], 'height': stream['height'], 'frameCount': len(pts),
                    'frameRate': [rate.numerator, rate.denominator], 'firstPtsSeconds': float(t0)},
         'range': {'startFrame': first, 'endFrame': last},
-        'method': 'Per-frame region brightness (top quarter of pixels at 960x540, or the mean for the mini trees) as a share of the channel\'s own 5th-97th percentile range over the whole video, in 5% steps (the wireframe tree only on or off); levels under a per-channel floor count as spill from neighbours. Multicolour strips split by blue share. No smoothing.',
+        'method': 'Per-frame region brightness (top quarter of pixels at 960x540, or the mean for the mini trees) as a share of the channel\'s own 5th-97th percentile range over the whole video, in 5% steps (the wireframe tree only on or off); levels under a per-channel floor count as spill from neighbours, and a tree strip must also reach 60% of the brightest strip in that frame. Multicolour strips split by blue share. No smoothing.',
         'channels': channels,
         'levels': {ch['id']: s for ch, s in zip(data['channels'], stats)},
     }
