@@ -9,7 +9,7 @@ or, failing that, from drum-onsets.json ({"kick": [...], ...} in seconds).
 Writes <run>/metrics.json and prints it. These are proxies: there is no
 ground-truth score, so compare runs against each other, not against 1.0.
 """
-import json, sys
+import argparse, json
 from pathlib import Path
 import numpy as np, librosa, pretty_midi, mir_eval, scipy.signal as ss
 
@@ -34,12 +34,12 @@ def stem_metrics(wav, mid):
     return dict(notes=len(notes), pitch_range=[min(pitches), max(pitches)] if pitches else None,
                 onset_F=round(f, 3), onset_P=round(p, 3), onset_R=round(r, 3),
                 chroma_cos=round(float(cos[act].mean()), 3) if act.any() else None,
-                coverage=round(float((R.sum(0)[loud] > 0).mean()), 3))
+                coverage=round(float((R.sum(0)[loud] > 0).mean()), 3) if loud.any() else None)
 
 def drum_onsets(run):
     mid = run / 'midi/drums.mid'
     if mid.exists():
-        pm = pretty_midi.PrettyMIDI(str(mid)); hits = [n for i in pm.instruments for n in i.notes]
+        pm = pretty_midi.PrettyMIDI(str(mid)); hits = [n for i in pm.instruments if i.is_drum for n in i.notes]
         return {k: sorted(n.start for n in hits if n.pitch in v) for k, v in DRUM_CLASSES.items()}
     js = run / 'drum-onsets.json'
     return json.loads(js.read_text()) if js.exists() else {}
@@ -59,15 +59,34 @@ def light_match(L, ref):
     f, o = max((mir_eval.onset.f_measure(ref, np.clip(L + o, 0, None), window=0.07)[0], o) for o in np.arange(-0.3, 0.31, 0.01))
     return dict(F=round(f, 3), best_offset_s=round(float(o), 2))
 
-run = Path(sys.argv[1]); out = {'stems': {}, 'drums': {}, 'lights': {}}
-L = light_events()
-for mid in sorted((run / 'midi').glob('*.mid')):
-    wav = run / 'stems' / f'{mid.stem}.wav'
-    if mid.stem == 'drums' or not wav.exists(): continue
-    out['stems'][mid.stem] = stem_metrics(wav, mid)
-    pm = pretty_midi.PrettyMIDI(str(mid))
-    out['lights'][mid.stem] = light_match(L, np.unique(np.round([n.start for i in pm.instruments for n in i.notes], 2)))
-for k, v in drum_onsets(run).items():
-    out['drums'][k] = len(v); out['lights'][k] = light_match(L, v)
-(run / 'metrics.json').write_text(json.dumps(out, indent=1))
-print(json.dumps(out, indent=1))
+def evaluate(run, reference_stems=None):
+    if not run.is_dir():
+        raise ValueError(f'Run directory does not exist: {run}')
+    out = {'stems': {}, 'drums': {}, 'lights': {}}
+    L = light_events()
+    for mid in sorted((run / 'midi').glob('*.mid')):
+        wav = (reference_stems if reference_stems is not None else run / 'stems') / f'{mid.stem}.wav'
+        if mid.stem == 'drums': continue
+        if not wav.exists():
+            raise ValueError(f'Missing reference stem for {mid}: {wav}')
+        out['stems'][mid.stem] = stem_metrics(wav, mid)
+        pm = pretty_midi.PrettyMIDI(str(mid))
+        out['lights'][mid.stem] = light_match(L, np.unique(np.round([n.start for i in pm.instruments if not i.is_drum for n in i.notes], 2)))
+    for k, v in drum_onsets(run).items():
+        out['drums'][k] = len(v); out['lights'][k] = light_match(L, v)
+    if not out['stems'] and not out['drums']:
+        raise ValueError(f'No transcription candidates in {run}')
+    filename = 'metrics-reference.json' if reference_stems is not None else 'metrics.json'
+    (run / filename).write_text(json.dumps(out, indent=1, allow_nan=False) + '\n')
+    return out
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('run', type=Path)
+    parser.add_argument('--reference-stems', type=Path,
+                        help='Use one fixed WAV directory across candidates; writes metrics-reference.json')
+    args = parser.parse_args()
+    print(json.dumps(evaluate(args.run, args.reference_stems), indent=1, allow_nan=False))
+
+if __name__ == '__main__':
+    main()

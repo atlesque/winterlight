@@ -10,3 +10,5 @@ work/source-analysis/
 work/layout-migration/
 
 work/transcription/
+
+tools/transcription/__pycache__/
