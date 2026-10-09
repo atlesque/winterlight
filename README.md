@@ -61,6 +61,8 @@ python3 -I tools/original/detect.py source.mp4 --overlay work/original/overlay.p
 python3 -I tools/original/detect.py source.mp4 --end 20 --out outputs/original-house-cues.json --levels work/original/levels.csv
 ```
 
+Each channel's on/off thresholds sit between its own off and on levels; the strips switch at 35% (their full-video on level includes bloom from later props), the letters at 60% (they catch up to ~46% spill from the icicles above) and the ground strip at 55% (snow lit by the icicles). The window-strip regions stop short of the icicles for the same reason. `outputs/original-house-cues.json` currently covers 0:00–0:20 (600 frames).
+
 Seen from the camera, tree strips at angle θ and π−θ overlap, so each front/back pair shares one detection line and one state.
 
 ## Current deliverables

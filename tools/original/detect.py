@@ -22,8 +22,9 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parents[2]
 W, H = 960, 540
 FORMAT = 'Winterlight original-house cues v1'
-# Hysteresis between each channel's own off level (p5) and on level (p97).
-ENTER, EXIT, MIN_CONTRAST = .5, .38, 18
+# Hysteresis between each channel's own off level (p5) and on level (p97);
+# the enter/exit fractions come from each channel's `detect` in the layout.
+MIN_CONTRAST = 18
 
 
 def layout():
@@ -67,7 +68,7 @@ def overlay(data, image, path, scale, offset):
     hues = [(0, 255, 255), (255, 0, 255), (255, 255, 0), (0, 255, 0)]
     for i, c in enumerate(data['channels']):
         col = hues[i % len(hues)]
-        draw_roi(draw, {**c['roi'], 'width': 1}, tf, 1, fill=col, outline_only=True)
+        draw_roi(draw, {**c['roi'], 'width': 1 / scale}, tf, scale, fill=col, outline_only=True)
     Path(path).parent.mkdir(parents=True, exist_ok=True); img.save(path); print('Overlay written to', path)
 
 
@@ -105,7 +106,7 @@ def measure(video, ms):
     return np.array(level, np.float32), np.array(blue, np.float32), still
 
 
-def classify(level):
+def classify(level, channels):
     """Per-channel hysteresis between that channel's own off and on levels."""
     lo, hi = np.percentile(level, 5, axis=0), np.percentile(level, 97, axis=0)
     on = np.zeros(level.shape, bool); stats = []
@@ -114,7 +115,7 @@ def classify(level):
         if span < MIN_CONTRAST:
             # Never visibly changes in this video: decide on absolute brightness.
             on[:, c] = level[:, c] > 90; stats.append({'off': round(float(lo[c]), 1), 'on': round(float(hi[c]), 1), 'static': True}); continue
-        enter, leave = lo[c] + ENTER * span, lo[c] + EXIT * span; state = False
+        th = channels[c]['detect']; enter, leave = lo[c] + th['enter'] * span, lo[c] + th['exit'] * span; state = False
         for f in range(level.shape[0]):
             v = level[f, c]; state = v >= enter if not state else v > leave; on[f, c] = state
         stats.append({'off': round(float(lo[c]), 1), 'on': round(float(hi[c]), 1)})
@@ -154,7 +155,7 @@ def main():
     step = steps.pop(); rate = 1 / (tb * step)
     level, blue, _ = measure(a.video, masks(data))
     if len(level) != len(pts): raise SystemExit(f'Decoded {len(level)} frames but probed {len(pts)}')
-    on, stats = classify(level)
+    on, stats = classify(level, data['channels'])
     t0 = pts[0] * tb
     first = max(0, int(np.ceil((Fraction(a.start) - t0) * rate - Fraction(1, 1000))))
     last = len(pts) if a.end is None else min(len(pts), int(np.ceil((Fraction(a.end) - t0) * rate - Fraction(1, 1000))))

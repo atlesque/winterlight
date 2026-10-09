@@ -59,7 +59,7 @@ export function createOriginalScene(host){
  CHANNELS.forEach((ch,c)=>{
   const m=ch.model,col=COLORS[ch.palette]||COLORS.warm;
   if(ch.kind==='strip'){
-   const paths=m.path3d?[m.path3d]:ch.roi.lines.map((line,i)=>line.map(([x,y])=>[...toMeters(x,y),m.lineZ?.[i]??.15]));
+   const paths=m.path3d?[m.path3d]:(m.lines||ch.roi.lines).map((line,i)=>line.map(([x,y])=>[...toMeters(x,y),m.lineZ?.[i]??.15]));
    paths.forEach((path,i)=>along(path).forEach((p,k)=>{multi(c,p,k);
     // Icicle drops under every other bulb, alternating length.
     if(m.icicles?.[i]&&k%2===0)for(let d=1;d<=(k%4?2:3);d++)multi(c,[p[0],p[1]-d*.09,p[2]+.02],k+d,.6);}));
