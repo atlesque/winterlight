@@ -61,12 +61,19 @@ load();
 const clock=createShowClock(audio,video);
 const videoStatus=text=>{$('video-status').textContent=text;};
 let videoUrl=null;
-function showVideo(source,name,picked){
+function showVideo(source,name,picked,startAt=0){
  if(videoUrl)URL.revokeObjectURL(videoUrl);videoUrl=typeof source==='string'?null:URL.createObjectURL(source);
  video.src=videoUrl||source;videoStatus('Loading the original video…');
- video.onloadedmetadata=()=>{video.onerror=null;$('video-empty').hidden=true;$('video-change').hidden=!picked;clock.useVideo();
-  videoStatus(matchesSource(video.duration)?`${name} · the lights follow the frame on screen`:`${name} is ${format(video.duration)} long, not the 3:05 original, so its frames won't line up with the lights.`);};
+ video.onloadedmetadata=()=>{video.onerror=null;$('video-empty').hidden=true;$('video-change').hidden=!picked;if(startAt)video.currentTime=startAt;clock.useVideo();
+  videoStatus(matchesSource(video.duration)?`${name} · the lights follow the frame on screen`:`${name} is ${format(video.duration)} long, not the 3:05 original, so its frames won't line up with the lights.`);
+  if(typeof source==='string')ensureSeekable(source,name);};
  video.onerror=()=>{video.onloadedmetadata=null;clock.useAudio();if(picked)forgetVideo();askForVideo('That file could not be played. ');};
+}
+// A server that ignores byte ranges leaves only the downloaded part seekable;
+// then play the whole file from memory so any point can be reached.
+async function ensureSeekable(source,name){
+ const s=video.seekable;if(s.length&&s.end(s.length-1)>=video.duration-1)return;
+ try{const blob=await (await fetch(source,{cache:'no-store'})).blob();const t=video.currentTime,playing=!video.paused;showVideo(blob,name,false,t);if(playing)video.play().catch(()=>{});}catch{}
 }
 function askForVideo(prefix=''){$('video-empty').hidden=false;$('video-change').hidden=true;videoStatus(`${prefix}Until a video is loaded, the lights follow the soundtrack.`);}
 $('video-file').onchange=e=>{const file=e.target.files[0];if(!file)return;rememberVideo(file);showVideo(file,file.name,true);e.target.value='';};
@@ -79,7 +86,14 @@ $('video-change').onclick=()=>$('video-file').click();
 const media=()=>clock.media;
 $('play').onclick=async()=>{const m=media();try{if(!m.paused)m.pause();else{if(m.ended)m.currentTime=0;await m.play();}}catch(error){$('cue-note').textContent=`Playback could not start: ${error.message}`;}};
 $('restart').onclick=()=>{media().currentTime=cues?.start||0;};
-$('timeline').oninput=e=>{media().currentTime=+e.target.value;};
+// The playhead follows the show except while it is being dragged; seeks are
+// clamped to the media so the end of the slider never lands past it.
+const timeline=$('timeline');let scrubbing=false;
+const seek=t=>{const m=media(),d=Number.isFinite(m.duration)?m.duration:t;m.currentTime=Math.max(0,Math.min(t,d-.01));};
+timeline.addEventListener('pointerdown',()=>{scrubbing=true;});
+for(const type of ['pointerup','pointercancel'])addEventListener(type,()=>{scrubbing=false;});
+timeline.oninput=e=>seek(+e.target.value);
+timeline.onchange=e=>{seek(+e.target.value);scrubbing=false;};
 $('volume').oninput=e=>{audio.volume=video.volume=+e.target.value/100;};audio.volume=video.volume=.35;
 $('brightness').oninput=e=>{brightness=+e.target.value/100;$('brightness-value').textContent=`${e.target.value}%`;scene?.setBrightness();};
 $('all-on').onchange=e=>{allOn=e.target.checked;};
@@ -91,7 +105,7 @@ function animate(now){
  const t=clock.time(),d=Number.isFinite(media().duration)?media().duration:SOUNDTRACK_SECONDS;
  const values=allOn?ALL_ON:cues?cues.stateAt(t,states,levels):states.fill(0),level=allOn?FULL:levels;
  scene?.draw(values,level,brightness);board(values,level);if(overlayOn)paintOverlay();
- if(now-lastUI>80){lastUI=now;$('time').textContent=format(t);$('duration').textContent=format(d);$('timeline').max=d;if(document.activeElement!==$('timeline'))$('timeline').value=t;
+ if(now-lastUI>80){lastUI=now;$('time').textContent=format(t);$('duration').textContent=format(d);$('timeline').max=d;if(!scrubbing)timeline.value=t;
   const f=cues?.frameAt(t);$('frame-label').textContent=cues?(f>=cues.startFrame&&f<cues.endFrame?`· video frame ${f+1}`:'· outside the detected range'):'';}
 }
 requestAnimationFrame(animate);

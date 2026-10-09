@@ -79,15 +79,16 @@ export function createOriginalScene(host){
    const ring=(r,n,color)=>{for(let k=0;k<n;k++){const a=2*Math.PI*k/n;addBulb(c,[cx+Math.cos(a)*r,cy+Math.sin(a)*r,z],color);}};
    if(ch.kind==='wreath'){ring(30/PX_PER_M,34,col);ring(17/PX_PER_M,22,col);const [bx,by]=toMeters(...m.bow);for(const dx of [-.08,0,.08])for(const dy of [-.06,0,.06])addBulb(c,[bx+dx,by+dy,z+.03],COLORS.red,.9);}
    else if(ch.kind==='peace'){const r=ringAt[2]/PX_PER_M;ring(r,40,col);(m.lines||ch.roi.lines).forEach(line=>along(line.map(([x,y])=>[...toMeters(x,y),z]),.09).forEach(p=>addBulb(c,p,col)));}
-   else{const R=TREE.starRadius/PX_PER_M,top=toMeters(...TREE.apex)[1]+R*.9,pts=[];for(let k=0;k<=10;k++){const a=Math.PI/2+k*Math.PI/5,r=k%2?R*.45:R;pts.push([cx+Math.cos(a)*r,top+Math.sin(a)*r,z]);}along(pts,.08).forEach(p=>addBulb(c,p,col,1.1));}
+   else{const R=TREE.starRadius/PX_PER_M,pts=[];for(let k=0;k<=10;k++){const a=Math.PI/2+k*Math.PI/5,r=k%2?R*.45:R;pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r,z]);}along(pts,.08).forEach(p=>addBulb(c,p,col,1.1));}
   }else if(ch.kind==='cane'){
    const [x]=toMeters(m.x,0),h=m.height,pts=[[x,0,m.z],[x,h*.78,m.z]];for(let k=0;k<=6;k++){const a=Math.PI*k/6;pts.push([x+m.hook*(.09-Math.cos(a)*.09),h*.78+Math.sin(a)*.11,m.z]);}
    along(pts,.045).forEach(p=>addBulb(c,p,col,.8));
   }else if(ch.kind==='minitree'){
    const [x]=toMeters(m.x,0);for(let s=0;s<6;s++){const a=2*Math.PI*s/6;along([[x+Math.cos(a)*m.radius,0,m.z+Math.sin(a)*m.radius],[x,m.height,m.z]],.07).forEach(p=>addBulb(c,p,col,.75));}
   }else if(ch.kind==='treeStrip'){
-   const [bx]=toMeters(TREE.base[0],0),R=TREE.halfWidth/PX_PER_M,top=toMeters(...TREE.apex)[1];
-   along([[bx+Math.sin(m.theta)*R,0,TREE.depth+Math.cos(m.theta)*R],[bx,top,TREE.depth]],.11).forEach(p=>addBulb(c,p,col,.85));
+   // The strips meet at the measured apex, under the star, not above the base centre.
+   const [bx]=toMeters(TREE.base[0],0),R=TREE.halfWidth/PX_PER_M,[ax,top]=toMeters(...TREE.apex);
+   along([[bx+Math.sin(m.theta)*R,0,TREE.depth+Math.cos(m.theta)*R],[ax,top,TREE.depth]],.11).forEach(p=>addBulb(c,p,col,.85));
   }
  });
  const sphere=new THREE.SphereGeometry(.035,8,6),material=new THREE.MeshBasicMaterial({toneMapped:false});
