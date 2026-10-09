@@ -7,21 +7,29 @@ const props=parseMap(readFileSync(new URL('../outputs/pixel-map.csv',import.meta
 const pixels=makeLayout(props);
 const stored=JSON.parse(readFileSync(new URL('../outputs/wizards-note-cues.json',import.meta.url),'utf8'));
 const cues=prepareCues(stored);
-const lit=(frame,prefix)=>pixels.some(p=>p.prop.id.startsWith(prefix)&&frame[p.index*3]+frame[p.index*3+1]+frame[p.index*3+2]>.01);
-const cue=(groups)=>prepareCues({format:'Winterlight note cues v1',offsetMs:0,groups:Object.fromEntries(NOTE_GROUPS.map(n=>[n,groups[n]||[]]))});
+const litProps=frame=>new Set(pixels.filter(p=>frame[p.index*3]+frame[p.index*3+1]+frame[p.index*3+2]>.01).map(p=>p.prop.id));
+const only=(name,events)=>prepareCues({...stored,groups:Object.fromEntries(NOTE_GROUPS.map(n=>[n,{props:stored.groups[n].props,events:n===name?events:[]}]))});
 
-test('stored note cues cover every instrument group and the soundtrack',()=>{
+test('stored cues give every instrument its own props and use every prop',()=>{
  assert.equal(stored.audioSha256,'8eb6d0f422eca3c1e45eb0832153fe1c79ba6a83536647efc50a768bec2330d6');
- for(const name of NOTE_GROUPS)assert.ok(cues.groups[name].list.length>0,name);
- const last=Math.max(...NOTE_GROUPS.map(n=>cues.groups[n].list.at(-1).end));assert.ok(last<185.876);
+ const covered=new Set(NOTE_GROUPS.flatMap(n=>stored.groups[n].props.map(p=>p.split(':')[0])));
+ for(const p of props)assert.ok(covered.has(p.id),`${p.id} has no instrument`);
+ for(const name of NOTE_GROUPS){const used=new Set(cues.groups[name].list.map(e=>e.prop));assert.equal(used.size,cues.groups[name].props.length,`${name} leaves props unused`);}
+ assert.ok(Math.max(...NOTE_GROUPS.map(n=>cues.groups[n].list.at(-1).end))<185.876);
 });
-test('each instrument lights only its own prop group',()=>{
- const one=(group,event,prefix)=>{const frame=renderNotes(pixels,1.05,10,cue({[group]:[event]}),1);assert.ok(lit(frame,prefix),group);
-  for(const other of ['Pole','Arch','Star','StripWC','StripKitchen','StripDoor'])if(!prefix.startsWith(other)&&!(prefix==='StripWC'&&other==='StripKitchen'))assert.ok(!lit(frame,other),`${group} lit ${other}`);};
- one('poles',[1000,200,3,1],'Pole4');one('arches',[1000,200,2,1],'Arch3');one('windows',[1000,200,0,1],'StripWC');one('stars',[1000,200,1,1],'Star2');one('door',[1000,10,0,1],'StripDoor');
+test('consecutive notes move round robin through the group',()=>{
+ for(const name of ['piano','guitar','drums']){const seq=cues.groups[name].list.map(e=>e.prop),moves=seq.slice(1).filter((p,i)=>p!==seq[i]).length;assert.ok(moves/(seq.length-1)>.95,name);}
+});
+test('a note lights only its assigned prop',()=>{
+ const check=(name,index,expected)=>assert.deepEqual([...litProps(renderNotes(pixels,1.05,10,only(name,[[1000,200,index,1]]),1))],[expected]);
+ check('piano',2,'Pole3');check('lead',0,'Pole6');check('guitar',3,'Arch4');check('bass',1,'StripKitchen');check('other',0,'Star1');check('drums',1,'StripDoor');
+});
+test('door hits light one segment at a time',()=>{
+ const lit=index=>pixels.filter(p=>p.prop.id==='StripDoor').filter(p=>renderNotes(pixels,1.01,10,only('drums',[[1000,10,index,1]]),1)[p.index*3]>.01).length;
+ const counts=[0,1,2].map(lit);assert.ok(counts.every(n=>n>0&&n<62));assert.equal(counts.reduce((a,b)=>a+b,0),62);
 });
 test('notes are silent before their start and decay after release',()=>{
- const c=cue({poles:[[1000,200,0,1]]}),level=t=>renderNotes(pixels,t,10,c,1)[pixels.find(p=>p.prop.id==='Pole1').index*3];
+ const c=only('piano',[[1000,200,0,1]]),level=t=>renderNotes(pixels,t,10,c,1)[pixels.find(p=>p.prop.id==='Pole1').index*3];
  assert.equal(level(.99),0);assert.ok(level(1.1)>.5);assert.ok(level(1.5)<level(1.25));assert.ok(level(3)<.01);
 });
 test('rendering is bounded, deterministic, seekable and black at the end',()=>{
@@ -29,5 +37,7 @@ test('rendering is bounded, deterministic, seekable and black at the end',()=>{
  assert.ok(renderNotes(pixels,185.876,185.876,cues).every(x=>x===0));
 });
 test('malformed cue files are rejected',()=>{
- assert.throws(()=>prepareCues({format:'other'}));assert.throws(()=>cue({poles:[[2000,100,0,1],[1000,100,0,1]]}));assert.throws(()=>cue({poles:[[0,100,0,2]]}));
+ assert.throws(()=>prepareCues({format:'Winterlight note cues v1'}));
+ assert.throws(()=>only('piano',[[2000,100,0,1],[1000,100,0,1]]));assert.throws(()=>only('piano',[[0,100,5,1]]));assert.throws(()=>only('piano',[[0,100,0,2]]));
+ assert.throws(()=>prepareCues({...stored,groups:{...stored.groups,lead:{...stored.groups.lead,props:['Pole1']}}}));
 });
