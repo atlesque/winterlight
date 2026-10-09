@@ -19,8 +19,16 @@ export const HOUSE = {
     {x:6.03,z:3.2,height:.9},{x:7.45,z:3.2,height:.85},
   ]},
 };
+// Standing props keep to the paving between the planting tiles: two arch rows
+// in the clear bands behind and in front of the second tile row, stars ahead
+// of the first row, front poles along the facade and back poles in the gaps.
 export const PROP_LAYOUT = {
-  arches:{centers:[6.3,7.7,6.3,7.7],radius:.5,z:[2.85,2.85,3.6,3.6]},
-  stars:{centers:[6.25,7.85],z:1.15},
+  arches:{centers:[6.17,7.97,6.17,7.97],radius:.5,z:[2.375,2.375,3.78,3.78]},
+  stars:{centers:[6.25,7.85],z:.95},
+  poles:[[5.8,.6],[6.35,.6],[6.9,.6],[7.45,.6],[8,.6],
+    [6.74,1.55],[6.74,3.2],[7.07,2.375],[8.18,1.55],[8.18,3.2]],
+  // Cable corridors run street-ward through the gap between the tile columns
+  // and the strip right of them, then along the clear band to each prop.
+  corridors:[6.74,8.18],
 };
 export const BANK_POSITIONS = {A:[5.9,.24,.34],B:[8.2,.24,.34],C:[7.05,.24,.34]};
