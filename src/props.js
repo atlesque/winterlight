@@ -69,13 +69,17 @@ export function propPositions(prop){
   if(prop.count!==model.count)throw new Error(`Pixel count differs for ${prop.id}`);
   if(model.path)return samplePath(model.path,prop.count,model.closed);
   if(prop.id.startsWith('Pole')){
-    const i=Number(prop.id.slice(4))-1,x=5.8+(i%5)*.55+(i<5?0:.13),z=i<5?.6:1.9;
+    const [x,z]=PROP_LAYOUT.poles[Number(prop.id.slice(4))-1];
     return Array.from({length:prop.count},(_,j)=>[x,.1+j/(prop.count-1)*.9,z]);
   }
   return retainedPositions(prop);
 }
-// Facade runs rise in the right garden and cross above the door lintel.
+// Facade runs rise in the right garden and cross above the door lintel; garden
+// runs past the planting tiles keep to the corridors between them.
 export function cableRoute(source,prop,dest){
   if(prop.id.startsWith('Strip'))return [source,[source[0],.145,.65],[source[0],.145,.25],[source[0],2.55,.25],[dest[0],2.55,.25],dest];
-  return [source,[source[0],.145,.65],[dest[0],.145,.65],[dest[0],.145,dest[2]],dest];
+  const tiles=HOUSE.planters.tiles,edge=Math.min(...tiles.map(t=>t.z))-HOUSE.planters.size/2;
+  if(dest[2]<=edge)return [source,[source[0],.145,.65],[dest[0],.145,.65],[dest[0],.145,dest[2]],dest];
+  const lane=PROP_LAYOUT.corridors.reduce((a,b)=>Math.abs(b-dest[0])<Math.abs(a-dest[0])?b:a);
+  return [source,[source[0],.145,.65],[lane,.145,.65],[lane,.145,dest[2]],[dest[0],.145,dest[2]],dest];
 }

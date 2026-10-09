@@ -42,6 +42,18 @@ test('stands, cabinets and cable corridors stay clear of both access routes',()=
  assert.ok(HOUSE.driveway.maxX>=HOUSE.garage.x+HOUSE.garage.width/2);
 });
 
+test('standing props, bases and cable routes stay off the planting tiles',()=>{
+ const {size,tiles}=HOUSE.planters;
+ const onTile=(x,z,rx=0,rz=rx)=>tiles.some(t=>Math.abs(x-t.x)<size/2+rx&&Math.abs(z-t.z)<size/2+rz);
+ for(const p of pixels.filter(p=>!p.prop.path))assert.ok(!onTile(p.position[0],p.position[2],.03),`${p.prop.id} over a planter`);
+ for(const [x,z] of PROP_LAYOUT.poles)assert.ok(!onTile(x,z,.11),'pole base clear');
+ for(const x of PROP_LAYOUT.stars.centers)assert.ok(!onTile(x,PROP_LAYOUT.stars.z,.225,.16),'star base clear');
+ for(const p of props.filter(p=>!p.path))for(const {start} of powerSections(p)){
+  const route=cableRoute(BANK_POSITIONS[p.bank],p,pixels.find(x=>x.prop===p&&x.local===start).position);
+  for(let i=1;i<route.length;i++)for(let f=0;f<=1;f+=.02){const a=route[i-1],b=route[i];assert.ok(!onTile(a[0]+(b[0]-a[0])*f,a[2]+(b[2]-a[2])*f),`${p.id} cable crosses a planter`);}
+ }
+});
+
 test('all 27 sections cover each prop once and facade leads cross above the door',()=>{
  let count=0;
  for(const p of props){const sections=powerSections(p);let next=0;for(const {start,end} of sections){assert.equal(start,next);assert.ok(end-start>0&&end-start<=50);next=end;count++;}assert.equal(next,p.count);assert.ok(p.port>=1&&p.port<=8);

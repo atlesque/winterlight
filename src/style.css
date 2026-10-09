@@ -6,3 +6,4 @@
 
 .frame-source{margin-top:20px;border-top:1px solid #ffffff10;padding-top:16px}#source-video{display:block;width:100%;margin-top:12px;border-radius:5px;background:#080f18}
 .wizards-play{width:100%;margin:8px 0 16px}
+.header-links{display:flex;gap:18px}

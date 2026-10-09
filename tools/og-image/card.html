@@ -12,9 +12,14 @@ html,body{margin:0;width:1200px;height:630px;overflow:hidden;background:#06101c;
 h1{font-family:Manrope,sans-serif;font-weight:500;font-size:62px;line-height:1.04;letter-spacing:-2.4px;margin:16px 0 20px}
 p{font-size:23px;line-height:1.4;color:#a3b3c2;margin:0}
 </style></head><body>
-<img class="scene" src="scene.png"><div class="fade"></div>
+<img class="scene" id="scene"><div class="fade"></div>
 <div class="text"><div class="brand"><i>✳</i>Winterlight</div>
-<div class="eyebrow"><span class="dot"></span>CHRISTMAS LIGHT SHOW</div>
-<h1>A little winter magic.</h1>
-<p>A 3D house light show<br>synced to Wizards in Winter.</p></div>
+<div class="eyebrow"><span class="dot"></span><span id="eyebrow">CHRISTMAS LIGHT SHOW</span></div>
+<h1 id="title">A little winter magic.</h1>
+<p id="subtitle">A 3D house light show<br>synced to Wizards in Winter.</p></div>
+<script>
+const q=new URLSearchParams(location.search);
+document.getElementById('scene').src=q.get('scene')||'scene.png';
+for(const k of ['eyebrow','title','subtitle'])if(q.get(k))document.getElementById(k).innerHTML=q.get(k);
+</script>
 </body></html>

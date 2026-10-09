@@ -35,6 +35,42 @@ Bank partitions contain A=1,104, B=1,020 and C=738 channels/frame. Native timest
 
 **Return to original demo** enables a synthetic test score and full-white checks; **Load audio** analyses a local recording for adapted energy/onset effects. The demo's 40 fps `.wlshow` export is separate from native-frame Wizards playback. It has magic `WLS1`, a little-endian JSON-header length, metadata and frame-major RGB (2,862 channels/frame), with no audio.
 
+## Original house
+
+`/original.html` rebuilds the house from the filmed show as its own 3D scene, separate from the facade model above, so the original show can be reverse-engineered prop by prop. Its props and how they are addressed:
+
+| Prop | Channels |
+|---|---|
+| Upper and lower floor strips (yellow/blue) | one per floor |
+| Window strips (yellow/blue) | one group |
+| HAPPY HOLIDAYS letters (red, green, yellow) | one per letter (13) |
+| Christmas circles | left, right |
+| Candy canes | one per cane (8) |
+| Mini trees | one per tree (11) |
+| Ground strip, 30 cm high (yellow/blue) | one |
+| Peace sign | one |
+| Wireframe tree | one per vertical strip (16) + star |
+
+All 56 channels are described once in `src/original/layout.js`, in the pixel coordinates of a reference still of the final all-on frame (a 2× crop of the video). The 3D model and the detector both read that file. Counts of canes, mini trees and tree strips are estimates from the still.
+
+Because the original video is filmed from a fixed camera, `tools/original/detect.py` samples each channel's region on every decoded frame, learns that channel's own off and on brightness over the whole video, and records each frame's brightness between them in 5% steps, so the show's fades come through rather than being flattened to on/off. Multicolour strips are also classified as yellow, blue or both. There is no smoothing or resampling, so cue changes land on exact video frames (29.97 fps). The page plays them against the hosted soundtrack, which was extracted from the same video.
+
+```bash
+# Check the regions against a frame of the video, then detect a range.
+python3 -I tools/original/detect.py source.mp4 --overlay work/original/overlay.png --at 180
+python3 -I tools/original/detect.py source.mp4 --out outputs/original-house-cues.json --levels work/original/levels.csv
+```
+
+Light spills between neighbouring props, so each channel has a floor below which it counts as off: 10% for the floor strips, 25% for the canes and circles, 50% for the letters (they catch up to ~46% spill from the icicles above) and 45% for the ground strip (snow lit by the icicles and mini trees). The mini trees stand closer together than their glow is wide, so each is watched along its centre line by mean brightness with a 45% floor. The window-strip regions stop short of the icicles, and the peace sign is watched only along its upper half, above the mini-tree tops, for the same reason. `outputs/original-house-cues.json` covers the whole video, 0:00–3:05 (all 5,569 frames).
+
+The side panel plays the original video with its own sound, and while it plays the lights follow the frame on screen (`src/original/video-clock.js`). The site hosts a 720p copy at `public/media/wizards-in-winter-video.mp4` (about 13 MB, every source frame and timestamp kept). If it is ever missing, the page asks for a local MP4 once and keeps it in that browser, and without any video the hosted soundtrack drives the lights. The hosted copy was made with:
+
+```bash
+ffmpeg -i source.mp4 -map 0:v:0 -map 0:a:0 -vf scale=1280:720:flags=lanczos -c:v libx264 -preset slow -crf 27 -pix_fmt yuv420p -fps_mode passthrough -c:a aac -b:a 96k -movflags +faststart public/media/wizards-in-winter-video.mp4
+```
+
+Seen from the camera, tree strips at angle θ and π−θ overlap, so each front/back pair shares one detection line and one state.
+
 ## Current deliverables
 
 - [Approved build guide](outputs/christmas-show-project.md) and [printable HTML](outputs/christmas-show-project.html)
@@ -70,8 +106,8 @@ The extractor uses reviewed current sampling coordinates in `outputs/source-mapp
 
 ## SEO and sharing preview
 
-Each page's `<head>` carries its own title, description, canonical URL, Open Graph and Twitter card tags. All pages share `public/og-image.jpg` (1200×630), a render of the site's own 3D scene, plus `favicon.svg`, `apple-touch-icon.png`, `robots.txt` and `sitemap.xml`. `props-preview.html` is `noindex` so search results land on the show.
+Each page's `<head>` carries its own title, description, canonical URL, Open Graph and Twitter card tags. The main page and `props-preview.html` share `public/og-image.jpg`, and `original.html` uses `public/og-image-original.jpg`. Both are 1200×630 renders of the site's own 3D scenes. The pages also share `favicon.svg`, `apple-touch-icon.png`, `robots.txt` and `sitemap.xml`. `props-preview.html` is `noindex` so search results land on the shows.
 
-To regenerate the OG image after the model changes: `npm run build`, start `npx vite preview --port 4173`, then run `node tools/og-image/render.mjs` (needs Playwright). Edit the card text in `tools/og-image/card.html`.
+To regenerate the share images after a model changes: `npm run build`, start `npx vite preview --port 4173`, then run `node tools/og-image/render.mjs` (needs Playwright). The page list, show moment and card text live at the top of that script; the card layout is `tools/og-image/card.html`.
 
-To add a new page such as `original.html`: copy the head block from `index.html`, then change `<title>`, `description`, `canonical`, `og:title`, `og:description`, `og:url` and the two `twitter:` text tags to that page (for example `https://winterlight.alexander-df0.workers.dev/original.html`). Keep the shared `og:image` or point it at a page-specific 1200×630 render in `public/`. Remove the JSON-LD block from the copy, and add the page's URL to `public/sitemap.xml`.
+To add a new page: copy the head block from `original.html`, change the title, description, canonical, `og:url`, `og:title`, `og:description` and the two `twitter:` text tags, add the page to `tools/og-image/render.mjs` if it should have its own image, and add its URL to `public/sitemap.xml`.

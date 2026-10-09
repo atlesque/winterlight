@@ -12,4 +12,6 @@ work/layout-migration/
 work/transcription/
 
 tools/transcription/__pycache__/
-tools/og-image/scene.png
+tools/og-image/scene-*.png
+work/original/
+tools/original/__pycache__/

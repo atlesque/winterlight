@@ -144,6 +144,8 @@ layout+=text(110,452,'Garage and entrance stay clear · no roof/upstairs lights 
 const px=x=>100+x*110,pz=z=>555+z*58;
 layout+=`<rect x="100" y="555" width="935" height="244" fill="#263846"/><rect x="100" y="555" width="368.5" height="244" fill="#33414a"/><rect x="540" y="555" width="165" height="244" fill="#33414a"/>`;
 layout+=text(130,680,'Garage access',16)+text(548,680,'Entrance',16);
+for(const t of HOUSE.planters.tiles){const half=HOUSE.planters.size/2;layout+=`<rect x="${px(t.x-half)}" y="${pz(t.z-half)}" width="${HOUSE.planters.size*110}" height="${HOUSE.planters.size*58}" fill="#2f3a2c" stroke="#5d7a4a"/>`;}
+layout+=text(px(6.2),pz(3.95)+16,'Planting tiles',13);
 for(const p of PROPS.filter(p=>!p.path)){const pts=propPositions(p);layout+=`<polyline points="${pts.map(([x,,z])=>`${px(x)},${pz(z)}`).join(' ')}" stroke="${palette[p.bank]}" stroke-width="4" fill="none"/>`;if(p.id.startsWith('Pole'))layout+=`<circle cx="${px(pts[0][0])}" cy="${pz(pts[0][2])}" r="5" fill="#80caff"/>`;}
 for(const [bank,[x,,z]] of Object.entries(BANK_POSITIONS))layout+=`<rect x="${px(x)-10}" y="${pz(z)-9}" width="20" height="18" fill="${palette[bank]}"/>`+text(px(x)-5,pz(z)-14,bank,13);
 layout+=text(45,840,'19 props · 954 addresses · 27 fused feeds · strips total 15.4 m including corner/slack allowance',17);
