@@ -6,7 +6,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { HOUSE, PROP_LAYOUT } from './house.js';
 import { OWN_CHANNELS } from './props.js';
-import { HOUSE_STRIPS, STRIP_POWER } from './original/layout.js';
+import { HOUSE_STRIPS } from './original/layout.js';
 
 // Our house with the original house's props. Bulbs are one instanced mesh; each
 // channel owns a range of bulbs with their base colours, and draw() takes the
@@ -99,18 +99,15 @@ export function createScene(host) {
   const tree=PROP_LAYOUT.tree;cylinder(.02,tree.height,tree.x,tree.height/2,tree.z,mats.frame);cylinder(.12,.06,tree.x,.03,tree.z,mats.frame);
   const bulbs=[],channelBulbs=OWN_CHANNELS.map(()=>[]);
   OWN_CHANNELS.forEach((c,i)=>{for(const b of c.bulbs){channelBulbs[i].push(bulbs.length);bulbs.push({...b,color:new THREE.Color(b.color)});}});
-  const lights=new THREE.InstancedMesh(new THREE.SphereGeometry(.016,8,6),new THREE.MeshBasicMaterial({toneMapped:false}),bulbs.length),m4=new THREE.Matrix4(),tmp=new THREE.Color();
-  // The house strips get bigger bulbs and a wider glow, as bright as the original's.
-  const STRIP_BULB=1.5,STRIP_GLOW=1.5;
+  const lights=new THREE.InstancedMesh(new THREE.SphereGeometry(.029,8,6),new THREE.MeshBasicMaterial({toneMapped:false}),bulbs.length),m4=new THREE.Matrix4(),tmp=new THREE.Color();
+  // Bulbs, bloom and drive match the original house's scene (its bulbs seen from
+  // its own camera), so every prop is as bright here as there; the house strips
+  // get the same 1.3x bulbs as the original's dense strips.
+  const STRIP_BULB=1.3;
   OWN_CHANNELS.forEach((c,i)=>{if(HOUSE_STRIPS.has(c.id))for(const k of channelBulbs[i])bulbs[k].strip=true;});
   bulbs.forEach((b,i)=>{const s=b.size*(b.strip?STRIP_BULB:1);m4.makeScale(s,s,s).setPosition(...b.pos);lights.setMatrixAt(i,m4);lights.setColorAt(i,tmp.copy(b.color).multiplyScalar(OFF));});
   lights.instanceMatrix.needsUpdate=true;scene.add(lights);
-  // Soft additive glow around each lit bulb, following its colour; kept faint so the bloom does most of the halo.
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(bulbs.flatMap(b=>b.pos),3));const glowColors=new Float32Array(bulbs.length*3);geometry.setAttribute('color',new THREE.BufferAttribute(glowColors,3));geometry.setAttribute('scale',new THREE.Float32BufferAttribute(bulbs.map(b=>b.strip?STRIP_GLOW:1),1));
-  const glowMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true,uniforms:{ratio:{value:renderer.getPixelRatio()}},vertexShader:'attribute float scale; varying vec3 vColor; uniform float ratio; void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=min(40.0*scale,220.0*scale*ratio/-mv.z);gl_Position=projectionMatrix*mv;}',fragmentShader:'varying vec3 vColor; void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;float a=exp(-r*r*7.0)*.12;gl_FragColor=vec4(vColor,a);}'});
-  scene.add(new THREE.Points(geometry,glowMat));
-  const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));// Bloom as strong and wide as the original house's; the threshold stays higher because our glow sprites already add a halo.
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(800,600),.95,.5,.5));composer.addPass(new OutputPass());
+  const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));composer.addPass(new UnrealBloomPass(new THREE.Vector2(800,600),.95,.5,.1));composer.addPass(new OutputPass());
   const bounce=new THREE.PointLight('#ffd9a0',0,9,2);bounce.position.set(6.5,1.5,2.6);scene.add(bounce);
   let aspectFit=1;
   const resize=()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;camera.aspect=w/h;const fit=Math.max(1,1.4/camera.aspect);camera.position.sub(controls.target).multiplyScalar(fit/aspectFit).add(controls.target);aspectFit=fit;controls.maxDistance=Math.max(35,35*fit);camera.updateProjectionMatrix();renderer.setSize(w,h);composer.setSize(w,h);};new ResizeObserver(resize).observe(host);resize();
@@ -121,10 +118,10 @@ export function createScene(host) {
   function draw(values,levels,brightness=1){
     let dirty=false;
     OWN_CHANNELS.forEach((c,i)=>{const v=values[i],l=v?levels[i]:0;if(v===last[i]&&l===lastLevel[i])return;last[i]=v;lastLevel[i]=l;dirty=true;
-      const power=HOUSE_STRIPS.has(c.id)?STRIP_POWER:1,on=OFF+(brightness*2.2*power-OFF)*l/100;let sum=0;
-      for(const k of channelBulbs[i]){const b=bulbs[k],lit=v&&(!b.tone||(v&b.tone));lights.setColorAt(k,tmp.copy(b.color).multiplyScalar(lit?on:OFF));const g=lit?brightness*power*l/100:0;glowColors[k*3]=b.color.r*g;glowColors[k*3+1]=b.color.g*g;glowColors[k*3+2]=b.color.b*g;sum+=g;}
+      const on=OFF+(brightness*2.2-OFF)*l/100;let sum=0;
+      for(const k of channelBulbs[i]){const b=bulbs[k],lit=v&&(!b.tone||(v&b.tone));lights.setColorAt(k,tmp.copy(b.color).multiplyScalar(lit?on:OFF));if(lit)sum+=brightness*l/100;}
       glowSum+=sum-channelGlow[i];channelGlow[i]=sum;});
-    if(dirty){lights.instanceColor.needsUpdate=true;geometry.attributes.color.needsUpdate=true;bounce.intensity=glowSum/bulbs.length*2;}
+    if(dirty){lights.instanceColor.needsUpdate=true;bounce.intensity=glowSum/bulbs.length*2;}
     controls.update();composer.render();
   }
   return {draw,bulbCount:bulbs.length,

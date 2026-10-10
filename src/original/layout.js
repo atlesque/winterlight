@@ -17,9 +17,9 @@ export const toMeters=(x,y)=>[(x-ORIGIN[0])/PX_PER_M,(ORIGIN[1]-y)/PX_PER_M];
 export const MULTI={1:'yellow',2:'blue',3:'both'};
 export const COLORS={yellow:'#ffc860',blue:'#3d6bff',red:'#ff2a1e',green:'#27e06a',warm:'#ffd690'};
 // The three house strips (upper floor, lower floor, ground) carry twice the bulbs
-// of other props and, on our house, are driven harder, so on average they glow
-// brighter than the decorations. Detected levels still scale them, so fades show.
-export const HOUSE_STRIPS=new Set(['upper','lower','fence']),STRIP_POWER=1.6;
+// of other props, and bigger ones, so on average they glow brighter than the
+// decorations on both houses. Detected levels still scale them, so fades show.
+export const HOUSE_STRIPS=new Set(['upper','lower','fence']);
 
 export const PROPS=[
  {id:'upper',name:'Upper floor strip',addressing:'one channel'},
