@@ -44,16 +44,17 @@ function outline(o,z,open=false){
   return open?[[o.x-w,bottom,z],[o.x-w,top,z],[o.x+w,top,z],[o.x+w,bottom,z]]:[[o.x-w,bottom,z],[o.x-w,top,z],[o.x+w,top,z],[o.x+w,bottom,z],[o.x-w,bottom,z]];
 }
 
-const STRIP=.1,L=PROP_LAYOUT;
+// Window outlines keep the 10 cm pitch; the three house strips are twice as dense.
+const STRIP=.1,DENSE=.05,L=PROP_LAYOUT;
 const geometry={
-  upper(){const {from,to,y,z}=L.upper;return {bulbs:multiRun([[from,y,z],[to,y,z]],STRIP,true),frames:[[[from,y,z-.02],[to,y,z-.02]]]};},
-  lower(){const {from,to,y}=L.eaves.garage;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],STRIP,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},
+  upper(){const {from,to,y,z}=L.upper;return {bulbs:multiRun([[from,y,z],[to,y,z]],DENSE,true),frames:[[[from,y,z-.02],[to,y,z-.02]]]};},
+  lower(){const {from,to,y}=L.eaves.garage;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],DENSE,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},
   // The small left window, the door frame, the kitchen window and the garage door.
   windows(){
     const z=L.outlines.z,paths=[outline(HOUSE.windows[3],z),outline({...HOUSE.door,y:0},z,true),outline(HOUSE.windows[2],z),outline({...HOUSE.garage,y:0},z,true)];
     return {bulbs:paths.flatMap(p=>multiRun(p,STRIP,false)),frames:paths};
   },
-  fence(){const path=L.fence.path;return {bulbs:multiRun(path,STRIP,false),frames:[path.map(p=>[p[0],p[1]-.01,p[2]])],posts:path};},
+  fence(){const path=L.fence.path;return {bulbs:multiRun(path,DENSE,false),frames:[path.map(p=>[p[0],p[1]-.01,p[2]])],posts:path};},
   letter(channel,index){
     const {from,to,y,height,z}=L.letters,slot=(to-from)/L.letters.text.length,width=height*.7;
     // The channel's own place in HAPPY HOLIDAYS, so the gap between the words stays.

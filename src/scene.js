@@ -6,6 +6,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { HOUSE, PROP_LAYOUT } from './house.js';
 import { OWN_CHANNELS } from './props.js';
+import { HOUSE_STRIPS, STRIP_POWER } from './original/layout.js';
 
 // Our house with the original house's props. Bulbs are one instanced mesh; each
 // channel owns a range of bulbs with their base colours, and draw() takes the
@@ -115,8 +116,8 @@ export function createScene(host) {
   function draw(values,levels,brightness=1){
     let dirty=false;
     OWN_CHANNELS.forEach((c,i)=>{const v=values[i],l=v?levels[i]:0;if(v===last[i]&&l===lastLevel[i])return;last[i]=v;lastLevel[i]=l;dirty=true;
-      const on=OFF+(brightness*2.2-OFF)*l/100;let sum=0;
-      for(const k of channelBulbs[i]){const b=bulbs[k],lit=v&&(!b.tone||(v&b.tone));lights.setColorAt(k,tmp.copy(b.color).multiplyScalar(lit?on:OFF));const g=lit?brightness*l/100:0;glowColors[k*3]=b.color.r*g;glowColors[k*3+1]=b.color.g*g;glowColors[k*3+2]=b.color.b*g;sum+=g;}
+      const power=HOUSE_STRIPS.has(c.id)?STRIP_POWER:1,on=OFF+(brightness*2.2*power-OFF)*l/100;let sum=0;
+      for(const k of channelBulbs[i]){const b=bulbs[k],lit=v&&(!b.tone||(v&b.tone));lights.setColorAt(k,tmp.copy(b.color).multiplyScalar(lit?on:OFF));const g=lit?brightness*power*l/100:0;glowColors[k*3]=b.color.r*g;glowColors[k*3+1]=b.color.g*g;glowColors[k*3+2]=b.color.b*g;sum+=g;}
       glowSum+=sum-channelGlow[i];channelGlow[i]=sum;});
     if(dirty){lights.instanceColor.needsUpdate=true;geometry.attributes.color.needsUpdate=true;bounce.intensity=glowSum/bulbs.length*2;}
     controls.update();composer.render();
