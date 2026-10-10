@@ -3,25 +3,23 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111923">
 <title>Winterlight · 3D Christmas light show synced to Wizards in Winter</title>
-<meta name="description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade and watch the original show play on it, prop for prop.">
+<meta name="description" content="An interactive 3D Christmas light show synced to Wizards in Winter. Switch between the original filmed house and a Belgian house running the same show prop for prop, or watch both in split view.">
 <link rel="canonical" href="https://winterlight.alexander-df0.workers.dev/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Winterlight"><meta property="og:locale" content="en_GB">
-<meta property="og:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta property="og:description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade and watch the original show play on it, prop for prop."><meta property="og:url" content="https://winterlight.alexander-df0.workers.dev/">
+<meta property="og:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta property="og:description" content="An interactive 3D Christmas light show synced to Wizards in Winter. Switch between the original filmed house and a Belgian house running the same show prop for prop, or watch both in split view."><meta property="og:url" content="https://winterlight.alexander-df0.workers.dev/">
 <meta property="og:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="3D model of a house with a wireframe Christmas tree, a peace sign, Christmas circles and HAPPY HOLIDAYS letters lit up">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta name="twitter:description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade and watch the original show play on it, prop for prop."><meta name="twitter:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Winterlight","url":"https://winterlight.alexander-df0.workers.dev/","description":"An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade and watch the original show play on it, prop for prop.","image":"https://winterlight.alexander-df0.workers.dev/og-image.jpg","inLanguage":"en"}</script>
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta name="twitter:description" content="An interactive 3D Christmas light show synced to Wizards in Winter. Switch between the original filmed house and a Belgian house running the same show prop for prop, or watch both in split view."><meta name="twitter:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Winterlight","url":"https://winterlight.alexander-df0.workers.dev/","description":"An interactive 3D Christmas light show synced to Wizards in Winter. Switch between the original filmed house and a Belgian house running the same show prop for prop, or watch both in split view.","image":"https://winterlight.alexander-df0.workers.dev/og-image.jpg","inLanguage":"en"}</script>
 </head>
 <body>
 <div id="app">
-  <header><a class="brand" href="/">✳ <span>Winterlight<small>CHRISTMAS SHOW STUDIO</small></span></a><div class="header-note">A Belgian winter, reimagined.</div><a class="guide-link" href="/original.html">Original house ↗</a></header>
+  <header><a class="brand" href="/">✳ <span>Winterlight<small>CHRISTMAS SHOW STUDIO</small></span></a><div class="header-note">A Belgian winter, reimagined.</div><div class="house-toggle" role="group" aria-label="House"><button data-mode="ours" aria-pressed="true">Our house</button><button data-mode="original" aria-pressed="false">Original</button><button data-mode="split" aria-pressed="false">Split view</button></div></header>
   <main>
-    <section class="stage" aria-label="3D model of our house with the original show's props">
-      <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> OUR HOUSE</div><h1>A little winter magic.</h1><p>The original show, prop for prop, on our own facade.</p></div>
-    </section>
+    <section class="stage" aria-label="3D light show"></section>
     <aside>
-      <div class="eyebrow muted" style="margin-top:26px">ORIGINAL VIDEO TIMING</div><h2>The original show,<br>on our house.</h2>
+      <div class="eyebrow muted" style="margin-top:26px">ORIGINAL VIDEO TIMING</div><h2 id="aside-title">The original show,<br>on our house.</h2>
     </aside>
   </main>
 </div><script type="module" src="/src/main.js"></script>

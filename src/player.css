@@ -12,9 +12,9 @@
 .text-button.inline{display:inline;padding:0}
 .video-status{margin:6px 0 0}
 .overlay-video{position:absolute;inset:0;width:100%;height:100%;display:block;background:#000}
-.stage.overlay #viewport canvas{mix-blend-mode:screen;opacity:var(--model-mix,.7)}
-.stage.overlay.difference #viewport canvas{mix-blend-mode:difference;opacity:1}
-.stage.overlay .scene-heading,.stage.overlay .scene-footer{display:none}
+.pane.overlay .viewport canvas{mix-blend-mode:screen;opacity:var(--model-mix,.7)}
+.pane.overlay.difference .viewport canvas{mix-blend-mode:difference;opacity:1}
+.pane.overlay .scene-heading,.stage.overlay .scene-footer{display:none}
 .small-button[aria-pressed=true]{background:#3b362f;border-color:#d1ab71;color:#f0d6b5}
 .overlay-controls{position:absolute;left:24px;bottom:20px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;max-width:calc(100% - 48px);background:#101a24e6;border:1px solid #ffffff14;border-radius:7px;padding:9px 12px;font-size:10px;color:#b8c7d3;z-index:2}
 .overlay-controls label{display:flex;align-items:center;gap:7px}
@@ -25,3 +25,18 @@
 .step-button:hover{background:#253443;border-color:#d1ab714f}
 .frame-number{min-width:44px;text-align:center;font-size:10px;color:#b8c7d3;font-variant-numeric:tabular-nums}
 @media(max-width:720px){.frame-number{min-width:34px;font-size:9px}.step-button{width:26px;height:26px}}
+.viewport>canvas{width:100%;height:100%}
+.panes{position:absolute;inset:0;display:flex;flex-direction:column}
+.pane{position:relative;flex:1;min-height:0;overflow:hidden}
+.stage[data-mode=split] #pane-original{border-bottom:1px solid #ffffff1c}
+.stage[data-mode=split] .scene-heading{top:16px}
+.stage[data-mode=split] .scene-heading .scene-title,.stage[data-mode=split] .scene-heading p{display:none}
+.scene-heading .scene-title{font-family:Manrope,sans-serif;font-size:32px;font-weight:500;letter-spacing:-1.2px;margin:10px 0 5px}
+.house-toggle{display:flex;gap:2px;padding:3px;background:#17232f;border:1px solid #ffffff14;border-radius:8px}
+.house-toggle button{border:0;background:none;color:#9fb0bf;font-size:11px;padding:7px 12px;border-radius:5px;white-space:nowrap}
+.house-toggle button:hover{color:#e6edf2;background:#22303d}
+.house-toggle button[aria-pressed=true]{background:#3b362f;color:#f0d6b5;box-shadow:inset 0 0 0 1px #d1ab7166}
+@media(min-width:1600px){.scene-heading .scene-title{font-size:40px}}
+@media(max-width:1000px){.scene-heading .scene-title{font-size:26px}}
+@media(max-width:720px){.stage[data-mode=split]{height:84dvh}.house-toggle button{font-size:10px;padding:6px 8px}}
+@media(max-width:420px){.brand small{display:none}.house-toggle button{padding:6px 6px}}

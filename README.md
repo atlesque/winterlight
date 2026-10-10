@@ -1,6 +1,6 @@
 # Winterlight
 
-A Christmas light show for an 8.50 m Belgian brick-house facade, synced to *Wizards in Winter*. Our house carries the [original filmed house](original.html)'s props one for one (all 56 channels) and runs the original's detected timing, so both houses play the same show.
+A Christmas light show for an 8.50 m Belgian brick-house facade, synced to *Wizards in Winter*. Our house carries the [original filmed house](/?house=original)'s props one for one (all 56 channels) and runs the original's detected timing, so both houses play the same show.
 
 Where they sit (`src/house.js`, geometry in `src/props.js`): yellow/blue icicle strips along the top edge of the two upper windows and under the garage eave (upper and lower floor strips), outlines round the small left window, the door frame, the kitchen window and the garage door (window strips), HAPPY HOLIDAYS in the band between the door and the upper windows, the two circles each in one pane of the upper windows, the peace sign on the front door, a 2.5 m wireframe tree with its star between the planting tiles, eleven mini trees between the facade and the tiles, eight candy canes along the street edge and the ground strip along the left side and front of the shrubbery.
 
@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open the reported local URL. The main page works exactly like `/original.html`: the original video (or its soundtrack) is the clock, the lights follow `outputs/original-house-cues.json`, and the side panel has the same light intensity, all-props-on switch and per-channel board. **Overlay video** lays our lights over the original video; our props sit where they are on our house, so they do not line up with the filmed ones.
+Open the reported local URL. Both houses live on one page; the toggle in the header shows **Our house**, the **Original** house, or a **Split view** with the original on top and ours below. The choice is kept in the URL (`?house=original`, `?house=split`; our house is the default), and `/original.html` redirects to `/?house=original`. Both houses run one player (`src/player.js`): the original video (or its soundtrack) is the clock, the lights follow `outputs/original-house-cues.json`, and the side panel has the light intensity, all-props-on switch and per-channel board. The view buttons move both cameras. **Overlay video** lays the original model's lights over the original video, so it only shows when the original house is on screen (in split view it overlays the top pane).
 
 The hosted site is [Winterlight](https://winterlight.alexander-df0.workers.dev). Deploy through `npm run deploy`; `npm run deploy:check` builds and checks packaging without publishing. It uses Cloudflare Workers Static Assets with no server handler or storage binding. Pushes to `main` deploy automatically through Workers Builds, and other branches get a Preview URL through `wrangler preview` using the empty `previews` block in `wrangler.jsonc`.
 
@@ -21,7 +21,7 @@ The old facade layout (arches, stars, poles and outlines, mapped in `outputs/leg
 
 ## Original house
 
-`/original.html` rebuilds the house from the filmed show as its own 3D scene, separate from the facade model above, so the original show can be reverse-engineered prop by prop. Its props and how they are addressed:
+The **Original** house (`src/original/scene.js`) rebuilds the house from the filmed show as its own 3D scene, separate from the facade model above, so the original show can be reverse-engineered prop by prop. Its props and how they are addressed:
 
 | Prop | Channels |
 |---|---|
@@ -76,8 +76,8 @@ npm run build
 
 ## SEO and sharing preview
 
-Each page's `<head>` carries its own title, description, canonical URL, Open Graph and Twitter card tags. The main page uses `public/og-image.jpg`, and `original.html` uses `public/og-image-original.jpg`. Both are 1200×630 renders of the site's own 3D scenes. The pages also share `favicon.svg`, `apple-touch-icon.png`, `robots.txt` and `sitemap.xml`.
+`index.html`'s `<head>` carries the title, description, canonical URL, Open Graph and Twitter card tags; the page swaps `document.title` as the house toggle changes. `original.html` is only a redirect to `/?house=original` with a canonical link there. `public/og-image.jpg` (our house) and `public/og-image-original.jpg` (the original house) are 1200×630 renders of the site's own 3D scenes. The pages also share `favicon.svg`, `apple-touch-icon.png`, `robots.txt` and `sitemap.xml`.
 
 To regenerate the share images after a model changes: `npm run build`, start `npx vite preview --port 4173`, then run `node tools/og-image/render.mjs` (needs Playwright). The page list, show moment and card text live at the top of that script; the card layout is `tools/og-image/card.html`.
 
-To add a new page: copy the head block from `original.html`, change the title, description, canonical, `og:url`, `og:title`, `og:description` and the two `twitter:` text tags, add the page to `tools/og-image/render.mjs` if it should have its own image, and add its URL to `public/sitemap.xml`.
+To add a new page: copy the head block from `index.html`, change the title, description, canonical, `og:url`, `og:title`, `og:description` and the two `twitter:` text tags, add the page to `tools/og-image/render.mjs` if it should have its own image, and add its URL to `public/sitemap.xml`.
