@@ -4,7 +4,7 @@ import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
-import {CHANNELS,COLORS,TREE,REFERENCE,toMeters,PX_PER_M} from './layout.js';
+import {CHANNELS,COLORS,TREE,REFERENCE,toMeters,PX_PER_M,HOUSE_STRIPS} from './layout.js';
 
 // The original two-storey house from the filmed show, built from the same
 // reference-still coordinates the detector samples. Facade lights sit on the
@@ -66,7 +66,10 @@ export function createOriginalScene(host){
   const m=ch.model,col=COLORS[ch.palette]||COLORS.warm;
   if(ch.kind==='strip'){
    const paths=m.path3d?[m.path3d]:(m.lines||ch.roi.lines).map((line,i)=>line.map(([x,y])=>[...toMeters(x,y),m.lineZ?.[i]??.15]));
-   paths.forEach((path,i)=>along(path).forEach((p,k)=>{multi(c,p,k);
+   // The house strips get twice the bulbs and bigger ones rather than a harder drive:
+   // this scene's strong bloom would blend a driven blue and orange into white.
+   const dense=HOUSE_STRIPS.has(ch.id);
+   paths.forEach((path,i)=>along(path,dense?BULB_SPACING/2:BULB_SPACING).forEach((p,k)=>{multi(c,p,k,dense?1.3:1);
     // Icicle drops under every other bulb, alternating length.
     if(m.icicles?.[i]&&k%2===0)for(let d=1;d<=(k%4?2:3);d++)multi(c,[p[0],p[1]-d*.09,p[2]+.02],k+d,.6);}));
   }else if(ch.kind==='letter'){

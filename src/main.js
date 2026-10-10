@@ -11,7 +11,7 @@ import {createScene} from './scene.js';
 const $=id=>document.getElementById(id),audio=$('audio'),video=$('video');
 const format=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
 const SOUNDTRACK_SECONDS=185.875737;
-let scene=null,cues=null,brightness=.6,allOn=false;
+let scene=null,cues=null,brightness=1,allOn=false;
 const states=new Uint8Array(CHANNELS.length),levels=new Uint8Array(CHANNELS.length),ALL_ON=new Uint8Array(CHANNELS.map(c=>c.palette==='multi'?3:1)),FULL=new Uint8Array(CHANNELS.length).fill(100);
 try{scene=createScene($('viewport'));scene.view('video');}catch(error){$('scene-error').hidden=false;$('scene-error').textContent='The 3D scene needs WebGL. Enable hardware acceleration or try a WebGL-capable browser.';console.error(error);}
 // Overlay mode: our house's lights over the original video. Our house is not
