@@ -40,3 +40,4 @@
 @media(max-width:1000px){.scene-heading .scene-title{font-size:26px}}
 @media(max-width:720px){.stage[data-mode=split]{height:84dvh}.house-toggle button{font-size:10px;padding:6px 8px}}
 @media(max-width:420px){.brand small{display:none}.house-toggle button{padding:6px 6px}}
+.cost-link{display:block;font-size:11px;color:#d5b58c;margin:-12px 0 20px}.cost-link:hover{color:#f0d6b5}

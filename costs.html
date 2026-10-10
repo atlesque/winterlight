@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111923">
+<title>Winterlight · LED cost estimate</title>
+<meta name="description" content="Which LEDs to use for every prop of the Winterlight show on our house, and what it costs in euro per prop, per group and in total, with wiring, controllers and power. Switch props on or off to see the total change.">
+<link rel="canonical" href="https://winterlight.alexander-df0.workers.dev/costs.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Winterlight"><meta property="og:locale" content="en_GB">
+<meta property="og:title" content="Winterlight · LED cost estimate"><meta property="og:description" content="Which LEDs to use for every prop of the Winterlight show on our house, and what it costs in euro per prop, per group and in total, with wiring, controllers and power."><meta property="og:url" content="https://winterlight.alexander-df0.workers.dev/costs.html">
+<meta property="og:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="3D model of a house with a wireframe Christmas tree, a peace sign, Christmas circles and HAPPY HOLIDAYS letters lit up">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Winterlight · LED cost estimate"><meta name="twitter:description" content="Which LEDs to use for every prop of the Winterlight show on our house, and what it costs in euro per prop, per group and in total, with wiring, controllers and power."><meta name="twitter:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg">
+</head>
+<body class="costs-page">
+<header><a class="brand" href="/">✳ <span>Winterlight<small>CHRISTMAS SHOW STUDIO</small></span></a><a class="back-link" href="/">← Back to the light show</a></header>
+<main class="costs">
+ <section class="intro">
+  <div class="eyebrow"><span class="dot"></span> LED COST ESTIMATE</div>
+  <h1>What it takes to light our house.</h1>
+  <p>Every prop of the show on our house, priced as 12 V WS2811 pixels with the wiring, controllers and power it needs. Switch props or whole groups off to see what they add. Prices are euro with VAT, from European shops checked on <span id="checked"></span>; parts marked <span class="badge">estimate</span> are rounded guesses.</p>
+ </section>
+ <div class="layout">
+  <div class="groups" id="groups"></div>
+  <aside class="summary" aria-live="polite">
+   <div class="total-card">
+    <div class="field-title">Estimated total</div>
+    <div class="total" id="total"></div>
+    <div class="delta" id="delta"></div>
+    <dl class="kpis" id="kpis"></dl>
+   </div>
+   <div class="field-title">Where the money goes</div>
+   <div class="breakdown" id="breakdown" role="table" aria-label="Cost by category"></div>
+   <div class="options">
+    <label class="range-label" for="pixel-price">Price per string of 50 pixels <span id="pixel-price-value"></span></label><input id="pixel-price" type="range" min="6" max="25" step=".5">
+    <label class="range-label" for="spare">Spare pixels <span id="spare-value"></span></label><input id="spare" type="range" min="0" max="20" step="1">
+    <label class="range-label" for="contingency">Contingency <span id="contingency-value"></span></label><input id="contingency" type="range" min="0" max="30" step="1">
+    <label class="switch-row"><span>Music for visitors <small>USB sound card and FM transmitter</small></span><input id="audio" type="checkbox"></label>
+    <button id="reset" class="small-button">Back to the full show</button>
+   </div>
+  </aside>
+ </div>
+ <section class="infra"><h2>Show infrastructure</h2><p class="note">Shared by every prop: it grows with the pixels and boxes the selected props need.</p><div id="infra"></div></section>
+ <section class="analysis" id="analysis"></section>
+ <section class="sources"><h2>Prices and sources</h2><div id="sources"></div></section>
+</main>
+<script type="module" src="/src/costs/page.js"></script>
+</body></html>
