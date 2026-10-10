@@ -4,6 +4,8 @@
 export const HOSTED_VIDEO='/media/wizards-in-winter-video.mp4';
 // Length of the original upload the cues were detected from.
 export const SOURCE_SECONDS=185.875737;
+// Its frame rate (30000/1001), for stepping frames before the cues have loaded.
+export const SOURCE_RATE=30000/1001;
 
 // Whether a video is the same cut as the source, so its frames line up with the cues.
 export function matchesSource(duration,expected=SOURCE_SECONDS){return Number.isFinite(duration)&&Math.abs(duration-expected)<.5;}

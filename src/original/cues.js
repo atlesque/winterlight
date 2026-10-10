@@ -23,9 +23,11 @@ export function prepareOriginalCues(data,channels){
   }
  });
  const rate=num/den,firstPts=data.source.firstPtsSeconds||0;
- return {rate,startFrame,endFrame,count,states,levels,start:firstPts+startFrame/rate,end:firstPts+endFrame/rate,
+ return {rate,firstPts,startFrame,endFrame,count,states,levels,start:firstPts+startFrame/rate,end:firstPts+endFrame/rate,
   // Small epsilon so a time exactly on a frame boundary selects that frame.
   frameAt(t){return Math.floor((t-firstPts)*rate+1e-6);},
+  // Middle of a frame, so seeking there shows that frame whichever way the player rounds.
+  timeOf(f){return firstPts+(f+.5)/rate;},
   // Fills out with each channel's colour and, if given, level with its brightness (0–100).
   stateAt(t,out=new Uint8Array(count),level){const f=this.frameAt(t);
    if(f<startFrame||f>=endFrame){out.fill(0);level?.fill(0);return out;}
