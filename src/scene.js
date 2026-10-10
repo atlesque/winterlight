@@ -13,13 +13,14 @@ import { HOUSE_STRIPS, STRIP_POWER } from './original/layout.js';
 // same per-channel colour states and levels as the original house's scene.
 const OFF=.07;
 export function createScene(host) {
-  const scene=new THREE.Scene();scene.background=new THREE.Color('#131f2e');scene.fog=new THREE.FogExp2('#131f2e',.018);
-  const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;host.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();scene.background=new THREE.Color('#070b12');scene.fog=new THREE.FogExp2('#070b12',.018);
+  const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.8;host.appendChild(renderer.domElement);
   const camera=new THREE.PerspectiveCamera(43,1,.1,100);camera.position.set(14,9,20);
   const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(4.25,2.8,-1.5);controls.enableDamping=true;controls.minDistance=5;controls.maxDistance=35;controls.maxPolarAngle=Math.PI/2-.035;controls.update();
-  scene.add(new THREE.HemisphereLight('#b6cff7','#3b3230',.6));
-  const moon=new THREE.DirectionalLight('#a6bff2',.65);moon.position.set(-8,15,7);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);moon.shadow.camera.left=-16;moon.shadow.camera.right=16;moon.shadow.camera.top=12;moon.shadow.camera.bottom=-12;scene.add(moon);
-  const mats={snow:new THREE.MeshStandardMaterial({color:'#d7e1e8',roughness:.85}),dark:new THREE.MeshStandardMaterial({color:'#22252b',roughness:.62}),metal:new THREE.MeshStandardMaterial({color:'#5b626e',metalness:.3,roughness:.65}),trim:new THREE.MeshStandardMaterial({color:'#bac5ca',roughness:.7}),path:new THREE.MeshStandardMaterial({color:'#505b62',roughness:.7}),soil:new THREE.MeshStandardMaterial({color:'#4b514d',roughness:1}),frame:new THREE.MeshStandardMaterial({color:'#1b222a',roughness:.8})};
+  // A dark night: the moon and sky only sketch the house in, so the lights carry the scene.
+  scene.add(new THREE.HemisphereLight('#8ea6d6','#2a2422',.12));
+  const moon=new THREE.DirectionalLight('#a6bff2',.22);moon.position.set(-8,15,7);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);moon.shadow.camera.left=-16;moon.shadow.camera.right=16;moon.shadow.camera.top=12;moon.shadow.camera.bottom=-12;scene.add(moon);
+  const mats={snow:new THREE.MeshStandardMaterial({color:'#8a949e',roughness:.85}),dark:new THREE.MeshStandardMaterial({color:'#22252b',roughness:.62}),metal:new THREE.MeshStandardMaterial({color:'#5b626e',metalness:.3,roughness:.65}),trim:new THREE.MeshStandardMaterial({color:'#bac5ca',roughness:.7}),path:new THREE.MeshStandardMaterial({color:'#505b62',roughness:.7}),soil:new THREE.MeshStandardMaterial({color:'#4b514d',roughness:1}),frame:new THREE.MeshStandardMaterial({color:'#1b222a',roughness:.8})};
   function brickTexture(){const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;const c=canvas.getContext('2d');c.fillStyle='#765a50';c.fillRect(0,0,512,512);for(let row=0;row<16;row++)for(let col=-1;col<8;col++){let seed=(row*71+col*33+123)&255;c.fillStyle=`rgb(${112+seed%24},${61+seed%17},${42+seed%15})`;c.fillRect(col*80+(row%2?40:0)+2,row*32+2,76,28);}const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(3,1.4);tex.anisotropy=renderer.capabilities.getMaxAnisotropy();return tex;}
   const brick=new THREE.MeshStandardMaterial({map:brickTexture(),roughness:.92});
   function box(w,h,d,x,y,z,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
@@ -45,7 +46,7 @@ export function createScene(host) {
   const garage=HOUSE.garage;
   box(garage.width,garage.height,.09,garage.x,garage.height/2,.01,mats.dark);
   for(let j=0;j<12;j++)box(garage.width-.06,.018,.025,garage.x,.12+j*.18,.071,mats.metal);
-  const glass=new THREE.MeshStandardMaterial({color:'#4c4032',emissive:'#e6aa58',emissiveIntensity:.24,roughness:.4,metalness:.15});
+  const glass=new THREE.MeshStandardMaterial({color:'#4c4032',emissive:'#e6aa58',emissiveIntensity:.1,roughness:.4,metalness:.15});
   function window(x,y,w,h){box(w+.17,h+.17,.15,x,y,.025,mats.dark);box(w,h,.07,x,y,.12,glass);if(w>.5)box(.05,h,.08,x,y,.175,mats.dark);box(w+.25,.08,.26,x,y-h/2-.07,.12,mats.trim);}
   for(const opening of HOUSE.windows)window(opening.x,opening.y,opening.width,opening.height);
   const door=HOUSE.door;
@@ -99,11 +100,14 @@ export function createScene(host) {
   const bulbs=[],channelBulbs=OWN_CHANNELS.map(()=>[]);
   OWN_CHANNELS.forEach((c,i)=>{for(const b of c.bulbs){channelBulbs[i].push(bulbs.length);bulbs.push({...b,color:new THREE.Color(b.color)});}});
   const lights=new THREE.InstancedMesh(new THREE.SphereGeometry(.016,8,6),new THREE.MeshBasicMaterial({toneMapped:false}),bulbs.length),m4=new THREE.Matrix4(),tmp=new THREE.Color();
-  bulbs.forEach((b,i)=>{m4.makeScale(b.size,b.size,b.size).setPosition(...b.pos);lights.setMatrixAt(i,m4);lights.setColorAt(i,tmp.copy(b.color).multiplyScalar(OFF));});
+  // The house strips get bigger bulbs and a wider glow, as bright as the original's.
+  const STRIP_BULB=1.5,STRIP_GLOW=1.5;
+  OWN_CHANNELS.forEach((c,i)=>{if(HOUSE_STRIPS.has(c.id))for(const k of channelBulbs[i])bulbs[k].strip=true;});
+  bulbs.forEach((b,i)=>{const s=b.size*(b.strip?STRIP_BULB:1);m4.makeScale(s,s,s).setPosition(...b.pos);lights.setMatrixAt(i,m4);lights.setColorAt(i,tmp.copy(b.color).multiplyScalar(OFF));});
   lights.instanceMatrix.needsUpdate=true;scene.add(lights);
   // Soft additive glow around each lit bulb, following its colour.
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(bulbs.flatMap(b=>b.pos),3));const glowColors=new Float32Array(bulbs.length*3);geometry.setAttribute('color',new THREE.BufferAttribute(glowColors,3));
-  const glowMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true,uniforms:{ratio:{value:renderer.getPixelRatio()}},vertexShader:'varying vec3 vColor; uniform float ratio; void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=min(40.0,220.0*ratio/-mv.z);gl_Position=projectionMatrix*mv;}',fragmentShader:'varying vec3 vColor; void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;float a=exp(-r*r*7.0)*.5;gl_FragColor=vec4(vColor,a);}'});
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(bulbs.flatMap(b=>b.pos),3));const glowColors=new Float32Array(bulbs.length*3);geometry.setAttribute('color',new THREE.BufferAttribute(glowColors,3));geometry.setAttribute('scale',new THREE.Float32BufferAttribute(bulbs.map(b=>b.strip?STRIP_GLOW:1),1));
+  const glowMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true,uniforms:{ratio:{value:renderer.getPixelRatio()}},vertexShader:'attribute float scale; varying vec3 vColor; uniform float ratio; void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=min(40.0*scale,220.0*scale*ratio/-mv.z);gl_Position=projectionMatrix*mv;}',fragmentShader:'varying vec3 vColor; void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;float a=exp(-r*r*7.0)*.5;gl_FragColor=vec4(vColor,a);}'});
   scene.add(new THREE.Points(geometry,glowMat));
   const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));composer.addPass(new UnrealBloomPass(new THREE.Vector2(800,600),.35,.45,.82));composer.addPass(new OutputPass());
   const bounce=new THREE.PointLight('#ffd9a0',0,9,2);bounce.position.set(6.5,1.5,2.6);scene.add(bounce);

@@ -24,8 +24,8 @@ export const HOUSE = {
 // openings and garage, the letters in the band between the door and the
 // upper windows, a circle in one pane of each upper window and the peace sign
 // on the front door. In the
-// garden the tree stands between the planting tiles, the mini trees between
-// the facade and the tiles, the canes along the street edge and the ground
+// garden the tree stands between the planting tiles, the mini trees on top of
+// the four clipped bushes (the bushes hid them when they stood behind), the canes along the street edge and the ground
 // strip along the left side and front of the shrubbery.
 const tick=(from,to,n)=>Array.from({length:n},(_,i)=>+(from+(to-from)*i/(n-1)).toFixed(3));
 const UPPER=HOUSE.windows.slice(0,2);
@@ -42,6 +42,8 @@ export const PROP_LAYOUT = {
   peace:{x:HOUSE.door.x,y:1.62,radius:.25,z:.27},
   tree:{x:6.74,z:2.375,radius:.42,height:2.5,star:{radius:.2,gap:.06}},
   canes:{xs:tick(5.75,8.34,8),z:3.8,height:.6,hook:.12},
-  minitrees:{xs:tick(5.8,8.35,11),z:.75,height:1,radius:.1},
+  // Eleven short trees standing on the bush tops: a row of three across each
+  // bush, two on the back right one. Listed left to right so chases still run across.
+  minitrees:{height:.55,radius:.08,spots:HOUSE.planters.tiles.flatMap((t,i)=>(i===1?[-.15,.15]:[-.22,0,.22]).map(dx=>({x:+(t.x+dx).toFixed(3),z:t.z,y:+(.037+HOUSE.planters.bush).toFixed(3)}))).sort((a,b)=>a.x-b.x||a.z-b.z)},
   fence:{path:[[5.58,.3,.3],[5.58,.3,3.95],[8.5,.3,3.95]]},
 };
