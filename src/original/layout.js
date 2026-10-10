@@ -53,7 +53,7 @@ function build(){
  // The wireframe tree's strips and star never fade: they are on or off, so they
 // are stored at full level. A strip's usual on level is about half the brightest
 // frames (2:27, when the camera saturates), hence its lower cut.
-const FLOORS={strip:{floor:.1},letter:{floor:.5},minitree:{floor:.45,stat:'mean'},cane:{floor:.25},wreath:{floor:.25},peace:{floor:.3},treeStrip:{floor:.3,onOff:true},star:{floor:.5,onOff:true}};
+const FLOORS={strip:{floor:.1},letter:{floor:.5},minitree:{floor:.45,stat:'mean'},cane:{floor:.25},wreath:{floor:.25},peace:{floor:.3},treeStrip:{floor:.2,onOff:true,stat:'mean',group:'tree',ratio:.6},star:{floor:.5,onOff:true}};
  const add=(prop,id,name,kind,palette,roi,model={})=>list.push({id,prop,name,kind,palette,roi,model,detect:FLOORS[kind]||{floor:.2}});
 // Each floor has bulbs along its edges and icicle lights hanging below them;
  // the icicles carry most of the colour (all blue at 1:48), so the regions
@@ -84,12 +84,17 @@ const FLOORS={strip:{floor:.1},letter:{floor:.5},minitree:{floor:.45,stat:'mean'
 const PEACE=[788,368,36],arc=[];
 for(let k=0;k<=12;k++){const a=Math.PI*(1.1+.8*k/12);arc.push([PEACE[0]+Math.cos(a)*PEACE[2],PEACE[1]+Math.sin(a)*PEACE[2]]);}
 add('peace','peace','Peace sign','peace','yellow',{lines:[arc,[[788,334],[788,360]]],width:7},{z:.7,ring:PEACE,lines:[[[788,332],[788,404]],[[788,368],[763,393]],[[788,368],[813,393]]]});
+ // Strip k sits at angle θ around the cone and is seen at sin θ across it. θ and
+ // π−θ project onto the same line, and the outermost lines (sin θ of .92 and 1)
+ // lie closer together than a strip's own width, so the strips are watched in
+ // seven wedges from the apex. Each wedge reaches halfway to its neighbours and
+ // runs from a third of the way down to just above the mini trees.
+ const WEDGES=[-1,-.71,-.38,0,.38,.71,1],round=s=>WEDGES.reduce((a,b)=>Math.abs(b-s)<Math.abs(a-s)?b:a);
+ const edge=i=>i<0?-1:i>=WEDGES.length-1?1:(WEDGES[i]+WEDGES[i+1])/2;
+ const at=(s,f)=>[TREE.apex[0]+(TREE.base[0]+TREE.halfWidth*s-TREE.apex[0])*f,TREE.apex[1]+(TREE.base[1]-TREE.apex[1])*f];
  for(let k=0;k<TREE.strips;k++){
-  // Strip k sits at angle θ around the cone. θ and π−θ project onto the same
-  // line from the camera, so those front/back pairs share one detection line.
-  // The line stops a quarter above the base, clear of the mini trees' glow.
-  const theta=2*Math.PI*k/TREE.strips,s=Math.sin(theta),bx=TREE.base[0]+TREE.halfWidth*s;
-  add('tree',`tree-${String(k+1).padStart(2,'0')}`,`Tree strip ${k+1}`,'treeStrip','yellow',{lines:[[[TREE.apex[0]+(bx-TREE.apex[0])*.3,TREE.apex[1]+(TREE.base[1]-TREE.apex[1])*.3],[TREE.apex[0]+(bx-TREE.apex[0])*.75,TREE.apex[1]+(TREE.base[1]-TREE.apex[1])*.75]]],width:5},{theta});
+  const theta=2*Math.PI*k/TREE.strips,w=WEDGES.indexOf(round(Math.sin(theta))),a=edge(w-1),b=edge(w);
+  add('tree',`tree-${String(k+1).padStart(2,'0')}`,`Tree strip ${k+1}`,'treeStrip','yellow',{poly:[at(a,.33),at(b,.33),at(b,.78),at(a,.78)]},{theta});
  }
  add('tree','tree-star','Tree star','star','yellow',{ring:[...TREE.star,TREE.starRadius*.7],width:12});
  return list;

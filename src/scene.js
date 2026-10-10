@@ -4,11 +4,14 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { BANK_COLORS } from './show.js';
-import { HOUSE, PROP_LAYOUT, BANK_POSITIONS } from './house.js';
-import {BANKS,powerSections,cableRoute} from './props.js';
+import { HOUSE, PROP_LAYOUT } from './house.js';
+import { OWN_CHANNELS } from './props.js';
 
-export function createScene(host,pixels,onSelect,{preview=false}={}) {
+// Our house with the original house's props. Bulbs are one instanced mesh; each
+// channel owns a range of bulbs with their base colours, and draw() takes the
+// same per-channel colour states and levels as the original house's scene.
+const OFF=.07;
+export function createScene(host) {
   const scene=new THREE.Scene();scene.background=new THREE.Color('#131f2e');scene.fog=new THREE.FogExp2('#131f2e',.018);
   const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;host.appendChild(renderer.domElement);
   const camera=new THREE.PerspectiveCamera(43,1,.1,100);camera.position.set(14,9,20);
@@ -20,7 +23,8 @@ export function createScene(host,pixels,onSelect,{preview=false}={}) {
   const brick=new THREE.MeshStandardMaterial({map:brickTexture(),roughness:.92});
   function box(w,h,d,x,y,z,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
   function cylinder(r,h,x,y,z,mat){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),mat);m.position.set(x,y,z);m.castShadow=true;scene.add(m);return m;}
-  function tube(points,r=.018,mat=mats.frame){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(12,points.length*2),r,6,false),mat);scene.add(mesh);return mesh;}
+  // Frames are polylines: straight runs between their points, so letter and star corners stay sharp.
+  function tube(points,r=.018,mat=mats.frame){const curve=new THREE.CurvePath(),v=points.map(p=>new THREE.Vector3(...p));for(let i=1;i<v.length;i++)curve.add(new THREE.LineCurve3(v[i-1],v[i]));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(12,(v.length-1)*6),r,6,false),mat);scene.add(mesh);return mesh;}
   box(60,.15,50,0,-.13,5,mats.snow);
   const roofMat=new THREE.MeshStandardMaterial({color:'#55535a',roughness:.94});
   function roof(x,width,depth,eaves,ridge){
@@ -81,47 +85,44 @@ export function createScene(host,pixels,onSelect,{preview=false}={}) {
   const mailboxFront=mailbox.z+mailbox.depth/2;
   box(.39,.085,.014,mailbox.x,.84,mailboxFront+.008,mats.metal);
   box(.34,.035,.018,mailbox.x,.845,mailboxFront+.018,mats.dark);
-  for(const prop of [...new Set(pixels.map(p=>p.prop))]) {
-    const positions=pixels.filter(p=>p.prop===prop).map(p=>p.position);
-    if(prop.id.startsWith('Arch'))tube(positions.slice(0,50));
-    if(prop.id.startsWith('Star')){tube([...positions.slice(0,50),positions[0]],.012);tube([...positions.slice(50),positions[50]],.012);cylinder(.018,.62,positions[0][0],.31,PROP_LAYOUT.stars.z,mats.frame);box(.45,.07,.32,positions[0][0],.06,PROP_LAYOUT.stars.z,mats.frame);}
-    if(prop.id.startsWith('Pole')){const [x,,z]=positions[0];cylinder(.022,.95,x,.5,z,mats.trim);box(.22,.045,.22,x,.045,z,mats.frame);}
-    if(prop.id.startsWith('Strip'))tube(prop.closed?[...positions,positions[0]]:positions,.012,mats.trim);
+  // Everything so far is the house; overlay mode hides it so only the lights sit over the video.
+  const houseParts=[...scene.children],background=scene.background,fog=scene.fog,BLACK=new THREE.Color('#000');
+  // Wire frames behind each channel's bulbs, posts under the ground strip and a base under the tree.
+  const frameMats={frame:mats.frame,leaf:new THREE.MeshStandardMaterial({color:'#1f3a26',roughness:.8}),cane:new THREE.MeshStandardMaterial({color:'#d9d4cc',roughness:.6})};
+  for(const c of OWN_CHANNELS){
+    const mat=c.kind==='wreath'?frameMats.leaf:c.cane?frameMats.cane:mats.frame,r=c.cane?.014:c.kind==='strip'?.01:.007;
+    for(const points of c.frames)tube(points,r,mat);
+    for(const [x,y,z] of c.posts||[])cylinder(.012,y,x,y/2,z,mats.frame);
   }
-  const wires=new THREE.Group();scene.add(wires);wires.visible=false;
-  const bankPositions=BANK_POSITIONS;
-  const labels=[];
-  function label(text,pos){const el=document.createElement('span');el.className='scene-label';el.textContent=text;host.appendChild(el);labels.push({el,pos:new THREE.Vector3(...pos)});}
-  for(const [bank,pos] of preview?[]:Object.entries(bankPositions)){
-    const cabinet=box(.28,.35,.21,...pos,mats.metal);wires.add(cabinet);
-    label(`${bank} · ${BANKS[bank].count} addresses / ${BANKS[bank].watts.toFixed(1)}W max`,[pos[0],.66,pos[2]]);
-  }
-  let sectionCount=0;
-  for(const prop of preview?[]:[...new Set(pixels.map(p=>p.prop))]) {
-    const pp=pixels.filter(p=>p.prop===prop), source=bankPositions[prop.bank];
-    for(const {start} of powerSections(prop)){const dest=pp[start].position;const path=cableRoute(source,prop,dest).map(p=>new THREE.Vector3(...p));
-      const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(path),new THREE.LineBasicMaterial({color:BANK_COLORS[prop.bank],transparent:true,opacity:.85}));wires.add(line);
-      const marker=new THREE.Mesh(new THREE.SphereGeometry(.038,8,6),new THREE.MeshBasicMaterial({color:BANK_COLORS[prop.bank]}));marker.position.copy(path.at(-1));wires.add(marker);sectionCount++;
-    }
-    const d=pp[0].position;
-    const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(cableRoute([source[0],.3,source[2]],prop,d).map(p=>new THREE.Vector3(...p))),new THREE.LineDashedMaterial({color:'#e9eef5',dashSize:.065,gapSize:.045,transparent:true,opacity:.65}));line.computeLineDistances();wires.add(line);
-  }
-  const core=new THREE.InstancedMesh(new THREE.SphereGeometry(.013,6,4),new THREE.MeshBasicMaterial({toneMapped:false}),pixels.length);core.instanceMatrix.setUsage(THREE.StaticDrawUsage);const dummy=new THREE.Object3D();
-  for(const p of pixels){dummy.position.set(...p.position);dummy.updateMatrix();core.setMatrixAt(p.index,dummy.matrix);core.setColorAt(p.index,new THREE.Color('#111111'));}scene.add(core);
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(pixels.flatMap(p=>p.position),3));const colorArray=new Float32Array(pixels.length*3);geometry.setAttribute('color',new THREE.BufferAttribute(colorArray,3));
-  const glowMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true,uniforms:{ratio:{value:renderer.getPixelRatio()}},vertexShader:'varying vec3 vColor; uniform float ratio; void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=min(48.0,290.0*ratio/-mv.z);gl_Position=projectionMatrix*mv;}',fragmentShader:'varying vec3 vColor; void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;float a=exp(-r*r*7.0)*.58;gl_FragColor=vec4(vColor*1.8,a);}'});
-  const glows=new THREE.Points(geometry,glowMat);scene.add(glows);
+  const tree=PROP_LAYOUT.tree;cylinder(.02,tree.height,tree.x,tree.height/2,tree.z,mats.frame);cylinder(.12,.06,tree.x,.03,tree.z,mats.frame);
+  const bulbs=[],channelBulbs=OWN_CHANNELS.map(()=>[]);
+  OWN_CHANNELS.forEach((c,i)=>{for(const b of c.bulbs){channelBulbs[i].push(bulbs.length);bulbs.push({...b,color:new THREE.Color(b.color)});}});
+  const lights=new THREE.InstancedMesh(new THREE.SphereGeometry(.016,8,6),new THREE.MeshBasicMaterial({toneMapped:false}),bulbs.length),m4=new THREE.Matrix4(),tmp=new THREE.Color();
+  bulbs.forEach((b,i)=>{m4.makeScale(b.size,b.size,b.size).setPosition(...b.pos);lights.setMatrixAt(i,m4);lights.setColorAt(i,tmp.copy(b.color).multiplyScalar(OFF));});
+  lights.instanceMatrix.needsUpdate=true;scene.add(lights);
+  // Soft additive glow around each lit bulb, following its colour.
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(bulbs.flatMap(b=>b.pos),3));const glowColors=new Float32Array(bulbs.length*3);geometry.setAttribute('color',new THREE.BufferAttribute(glowColors,3));
+  const glowMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true,uniforms:{ratio:{value:renderer.getPixelRatio()}},vertexShader:'varying vec3 vColor; uniform float ratio; void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=min(40.0,220.0*ratio/-mv.z);gl_Position=projectionMatrix*mv;}',fragmentShader:'varying vec3 vColor; void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;float a=exp(-r*r*7.0)*.5;gl_FragColor=vec4(vColor,a);}'});
+  scene.add(new THREE.Points(geometry,glowMat));
   const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));composer.addPass(new UnrealBloomPass(new THREE.Vector2(800,600),.35,.45,.82));composer.addPass(new OutputPass());
-  const bounce=new THREE.PointLight('#85aaff',0,8,2);bounce.position.set(7,.45,2.6);scene.add(bounce);
-  const ray=new THREE.Raycaster();let down;
-  renderer.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const rect=renderer.domElement.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);const hit=ray.intersectObject(core)[0];if(hit)onSelect(pixels[hit.instanceId].prop);});
+  const bounce=new THREE.PointLight('#ffd9a0',0,9,2);bounce.position.set(6.5,1.5,2.6);scene.add(bounce);
   let aspectFit=1;
   const resize=()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;camera.aspect=w/h;const fit=Math.max(1,1.4/camera.aspect);camera.position.sub(controls.target).multiplyScalar(fit/aspectFit).add(controls.target);aspectFit=fit;controls.maxDistance=Math.max(35,35*fit);camera.updateProjectionMatrix();renderer.setSize(w,h);composer.setSize(w,h);};new ResizeObserver(resize).observe(host);resize();
-  const color=new THREE.Color();
-  return {sectionCount,core,scene,
-    setWires(value){wires.visible=value;},
-    view(name){const views={front:[[4.25,4.5,14],[4.25,3,0]],orbit:[[12,7,13],[4.25,2.8,-1.5]],overhead:[[4.25,22,6],[4.25,0,-3]]};camera.position.set(...views[name][0]);controls.target.set(...views[name][1]);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();},
-    draw(colors){let sum=0;for(const p of pixels){const i=p.index*3;color.setRGB(colors[i]*2.2,colors[i+1]*2.2,colors[i+2]*2.2);core.setColorAt(p.index,color);colorArray[i]=colors[i];colorArray[i+1]=colors[i+1];colorArray[i+2]=colors[i+2];sum+=colors[i]+colors[i+1]+colors[i+2];}core.instanceColor.needsUpdate=true;geometry.attributes.color.needsUpdate=true;bounce.intensity=sum/pixels.length*1.7;controls.update();for(const {el,pos} of labels){const projected=pos.clone().project(camera);el.style.display=wires.visible&&projected.z<1?'block':'none';el.style.left=`${(projected.x*.5+.5)*host.clientWidth}px`;el.style.top=`${(-projected.y*.5+.5)*host.clientHeight}px`;}composer.render();},
-    snapshot(){return renderer.domElement.toDataURL('image/png');}
-  };
+  const views={video:[[4.25,4.5,14],[4.25,3,0]],orbit:[[12,7,13],[4.25,2.8,-1.5]],yard:[[9.5,1.6,7.5],[6.3,1.3,1.5]],overlay:[[4.25,4.5,14],[4.25,3,0]]};
+  const last=new Uint8Array(OWN_CHANNELS.length).fill(255),lastLevel=new Uint8Array(OWN_CHANNELS.length);
+  let glowSum=0;const channelGlow=new Float32Array(OWN_CHANNELS.length);
+  // values: colour per channel (0 off, multicolour 1 yellow / 2 blue / 3 both); levels: brightness 0–100.
+  function draw(values,levels,brightness=1){
+    let dirty=false;
+    OWN_CHANNELS.forEach((c,i)=>{const v=values[i],l=v?levels[i]:0;if(v===last[i]&&l===lastLevel[i])return;last[i]=v;lastLevel[i]=l;dirty=true;
+      const on=OFF+(brightness*2.2-OFF)*l/100;let sum=0;
+      for(const k of channelBulbs[i]){const b=bulbs[k],lit=v&&(!b.tone||(v&b.tone));lights.setColorAt(k,tmp.copy(b.color).multiplyScalar(lit?on:OFF));const g=lit?brightness*l/100:0;glowColors[k*3]=b.color.r*g;glowColors[k*3+1]=b.color.g*g;glowColors[k*3+2]=b.color.b*g;sum+=g;}
+      glowSum+=sum-channelGlow[i];channelGlow[i]=sum;});
+    if(dirty){lights.instanceColor.needsUpdate=true;geometry.attributes.color.needsUpdate=true;bounce.intensity=glowSum/bulbs.length*2;}
+    controls.update();composer.render();
+  }
+  return {draw,bulbCount:bulbs.length,
+    setBrightness(){last.fill(255);},
+    view(name){const overlay=name==='overlay';for(const o of houseParts)o.visible=!overlay;scene.background=overlay?BLACK:background;scene.fog=overlay?null:fog;camera.position.set(...views[name][0]);controls.target.set(...views[name][1]);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();},
+    snapshot(){return renderer.domElement.toDataURL('image/png');}};
 }

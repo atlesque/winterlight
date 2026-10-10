@@ -8,7 +8,7 @@ const here=dirname(fileURLToPath(import.meta.url));
 const site=process.env.SITE_URL??'http://127.0.0.1:4173/';
 // Each page freezes a colourful moment of its show (seconds on its timeline).
 const pages=[
-  {path:'',at:140,out:'og-image.jpg'},
+  {path:'',at:147.5,out:'og-image.jpg'},
   {path:'original.html',at:180,out:'og-image-original.jpg',eyebrow:'THE ORIGINAL HOUSE',title:'Frame by frame.',subtitle:'The Wizards in Winter house,<br>rebuilt in 3D from the video.'},
 ];
 const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});

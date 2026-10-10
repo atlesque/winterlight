@@ -1,85 +1,112 @@
+import {CHANNELS,COLORS} from './original/layout.js';
 import {HOUSE,PROP_LAYOUT} from './house.js';
-function outline(opening,door=false){
-  const x=opening.x,w=opening.width+.16;
-  const bottom=door?.08:opening.y-opening.height/2-.08;
-  const top=door?opening.height+.08:opening.y+opening.height/2+.08;
-  const vertices=[[x-w/2,bottom,.25],[x-w/2,top,.25],[x+w/2,top,.25],[x+w/2,bottom,.25]];
-  if(!door)vertices.push(vertices[0]);
-  return vertices;
+// Our house carries the original filmed house's props one for one: every
+// channel in src/original/layout.js has a counterpart here with the same id,
+// colours and addressing, so the original's detected timing drives both.
+// This file only says where each channel's bulbs sit on our house.
+const lerp=(a,b,t)=>a.map((v,j)=>v+(b[j]-v)*t);
+const dist=(a,b)=>Math.hypot(...a.map((v,j)=>v-b[j]));
+// Evenly spaced points along a polyline, ends included (a closed one skips the repeat).
+function along(points,step,closed=false){
+  const pts=closed?[...points,points[0]]:points,out=[];
+  for(let i=0;i<pts.length-1;i++){const n=Math.max(1,Math.round(dist(pts[i],pts[i+1])/step));for(let k=0;k<n;k++)out.push(lerp(pts[i],pts[i+1],k/n));}
+  if(!closed)out.push(pts.at(-1));
+  return out;
 }
-function samplePath(vertices,count,closed){
-  const lengths=vertices.slice(1).map((b,i)=>Math.hypot(...b.map((n,j)=>n-vertices[i][j])));
-  const total=lengths.reduce((a,b)=>a+b,0);
-  return Array.from({length:count},(_,i)=>{
-    let distance=i*total/(closed?count:count-1),edge=0;
-    while(edge<lengths.length-1&&distance>lengths[edge])distance-=lengths[edge++];
-    return vertices[edge].map((n,j)=>n+(vertices[edge+1][j]-n)*distance/lengths[edge]);
-  });
+const circle=(cx,cy,z,r,n)=>Array.from({length:n},(_,k)=>{const a=Math.PI/2+2*Math.PI*k/n;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r,z];});
+
+// Stroke font in a unit box (x right, y up) for the letters of HAPPY HOLIDAYS.
+export const GLYPHS={
+  H:[[[0,0],[0,1]],[[1,0],[1,1]],[[0,.5],[1,.5]]],
+  A:[[[0,0],[.5,1],[1,0]],[[.25,.5],[.75,.5]]],
+  P:[[[0,0],[0,1],[.75,1],[1,.85],[1,.65],[.75,.5],[0,.5]]],
+  Y:[[[0,1],[.5,.5],[1,1]],[[.5,.5],[.5,0]]],
+  O:[[[.3,0],[.7,0],[1,.3],[1,.7],[.7,1],[.3,1],[0,.7],[0,.3],[.3,0]]],
+  L:[[[0,1],[0,0],[1,0]]],
+  I:[[[.5,0],[.5,1]],[[.2,1],[.8,1]],[[.2,0],[.8,0]]],
+  D:[[[0,0],[0,1],[.6,1],[1,.7],[1,.3],[.6,0],[0,0]]],
+  S:[[[1,.85],[.8,1],[.2,1],[0,.85],[0,.62],[.2,.5],[.8,.5],[1,.38],[1,.15],[.8,0],[.2,0],[0,.15]]],
+};
+
+// A bulb: position, base colour, multicolour tone (1 yellow, 2 blue, 0 single
+// colour) and relative size. Frames are the wires the scene draws behind them.
+const bulb=(pos,color,tone=0,size=1)=>({pos,color,tone,size});
+const multi=(pos,i,size)=>bulb(pos,i%2?COLORS.blue:COLORS.yellow,i%2?2:1,size);
+// A multicolour run with icicle drops under every other bulb, alternating length.
+function multiRun(path,step,icicles){
+  const bulbs=[];
+  along(path,step).forEach((p,k)=>{bulbs.push(multi(p,k));if(icicles&&k%2===0)for(let d=1;d<=(k%4?2:3);d++)bulbs.push(multi([p[0],p[1]-d*.08,p[2]+.02],k+d,.6));});
+  return bulbs;
 }
-function retainedPositions(prop) {
-  const points=[];
-  if (prop.id.startsWith('Arch')) {
-    const k=+prop.id.slice(4)-1, cx=PROP_LAYOUT.arches.centers[k];
-    for(let i=0;i<100;i++) {
-      const row=Math.floor(i/50), u=(row ? 49-i%50 : i%50)/49, theta=Math.PI*(1-u);
-      points.push([cx+Math.cos(theta)*(PROP_LAYOUT.arches.radius-row*.032), .10+Math.sin(theta)*(PROP_LAYOUT.arches.radius-row*.032), PROP_LAYOUT.arches.z[k]]);
-    }
-  } else if(prop.id.startsWith('Star')) {
-    const cx=PROP_LAYOUT.stars.centers[prop.id==='Star1'?0:1];
-    for(let i=0;i<100;i++) {
-      const ring=Math.floor(i/50), edge=Math.floor((i%50)/5), f=(i%5)/5, r=.37-ring*.09;
-      const vertex=j=>{const a=Math.PI/2+j*Math.PI/5, rad=j%2?r*.43:r;return [Math.cos(a)*rad,Math.sin(a)*rad]};
-      const a=vertex(edge),b=vertex((edge+1)%10);
-      points.push([cx+a[0]+(b[0]-a[0])*f,.79+a[1]+(b[1]-a[1])*f,PROP_LAYOUT.stars.z]);
-    }
-  }
-  return points;
+// Outline just outside an opening; a door or garage leaves the ground side open.
+function outline(o,z,open=false){
+  const w=o.width/2+.12,bottom=open?.05:o.y-o.height/2-.1,top=open?o.height+.1:o.y+o.height/2+.1;
+  return open?[[o.x-w,bottom,z],[o.x-w,top,z],[o.x+w,top,z],[o.x+w,bottom,z]]:[[o.x-w,bottom,z],[o.x-w,top,z],[o.x+w,top,z],[o.x+w,bottom,z],[o.x-w,bottom,z]];
 }
 
-const arch=(id,bank,port)=>({id,name:id.replace('Arch','Arch '),count:100,bank,port,detail:'Existing one-metre arch retained.'});
-const star=(id,bank,port)=>({id,name:id.replace('Star','Star '),count:100,bank,port,detail:'Existing low star retained.'});
-const pole=(i,bank,port)=>({id:`Pole${i}`,name:`Pole ${i}`,count:20,bank,port,detail:'About 0.9 m lit height; slim diffuser on a weighted base.'});
-const definitions=[
-  arch('Arch1','A',1),arch('Arch2','A',2),star('Star1','A',3),pole(1,'A',4),pole(2,'A',5),
-  {id:'StripWC',name:'Small ground-floor window',count:28,bank:'A',port:6,path:outline(HOUSE.windows[3]),closed:true,detail:'Full small-window outline; 2.8 m strip including corner allowance.'},
-  arch('Arch3','B',1),arch('Arch4','B',2),star('Star2','B',3),pole(3,'B',4),pole(4,'B',5),
-  ...Array.from({length:6},(_,i)=>pole(i+5,'C',i+1)),
-  {id:'StripKitchen',name:'Kitchen window',count:64,bank:'C',port:7,path:outline(HOUSE.windows[2]),closed:true,detail:'Full ground-floor window outline; 6.4 m strip including corner allowance.'},
-  {id:'StripDoor',name:'Door frame',count:62,bank:'C',port:8,path:outline(HOUSE.door,true),closed:false,detail:'Sides and lintel only; threshold clear. 6.2 m strip including corner allowance.'},
-];
-let channel=1;const local={A:0,B:0,C:0};
-// Procurement maximum: bullets <=0.72 W/node, facade strip <=7.2 W/m
-// at 10 RGB addresses/m. Higher-power substitutions require a power redesign.
-export const PROPS=definitions.map(p=>{
-  const prop={...p,wattsPerAddress:.72,sections:Math.ceil(p.count/50),channelStart:channel,channelEnd:channel+p.count*3-1,localStart:local[p.bank]};
-  channel+=p.count*3;local[p.bank]+=p.count;return prop;
+const STRIP=.1,L=PROP_LAYOUT;
+const geometry={
+  upper(){const {from,to,y,z}=L.upper;return {bulbs:multiRun([[from,y,z],[to,y,z]],STRIP,true),frames:[[[from,y,z-.02],[to,y,z-.02]]]};},
+  lower(){const {from,to,y}=L.eaves.garage;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],STRIP,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},
+  // The small left window, the door frame, the kitchen window and the garage door.
+  windows(){
+    const z=L.outlines.z,paths=[outline(HOUSE.windows[3],z),outline({...HOUSE.door,y:0},z,true),outline(HOUSE.windows[2],z),outline({...HOUSE.garage,y:0},z,true)];
+    return {bulbs:paths.flatMap(p=>multiRun(p,STRIP,false)),frames:paths};
+  },
+  fence(){const path=L.fence.path;return {bulbs:multiRun(path,STRIP,false),frames:[path.map(p=>[p[0],p[1]-.01,p[2]])],posts:path};},
+  letter(channel,index){
+    const {from,to,y,height,z}=L.letters,slot=(to-from)/L.letters.text.length,width=height*.7;
+    // The channel's own place in HAPPY HOLIDAYS, so the gap between the words stays.
+    const at=[...L.letters.text].reduce((list,ch,i)=>ch===' '?list:[...list,i],[])[index],cx=from+slot*(at+.5),bulbs=[],frames=[];
+    for(const stroke of GLYPHS[channel.model.char]){
+      const points=stroke.map(([u,v])=>[cx+(u-.5)*width,y+(v-.5)*height,z]);
+      for(const p of along(points,.045))bulbs.push(bulb(p,COLORS[channel.palette]));
+      frames.push(points.map(p=>[p[0],p[1],z-.01]));
+    }
+    return {bulbs,frames};
+  },
+  // Two rings of green with a red bow at the bottom, as on the original.
+  wreath(channel){
+    const {x,y,radius:r,z}=L.wreaths[channel.id],bulbs=[...circle(x,y,z,r,24),...circle(x,y,z,r*.6,14)].map(p=>bulb(p,COLORS.green));
+    for(const [dx,dy] of [[-.06,0],[-.1,.03],[-.1,-.03],[.06,0],[.1,.03],[.1,-.03]])bulbs.push(bulb([x+dx*r/.3,y-r+dy*r/.3,z+.02],COLORS.red,0,.9));
+    return {bulbs,frames:[[...circle(x,y,z-.01,r,24),circle(x,y,z-.01,r,24)[0]],[...circle(x,y,z-.01,r*.6,14),circle(x,y,z-.01,r*.6,14)[0]]]};
+  },
+  peace(){
+    const {x,y,radius:r,z}=L.peace,c=[x,y,z],spoke=a=>[x+Math.cos(a)*r,y+Math.sin(a)*r,z];
+    const strokes=[[[x,y+r,z],[x,y-r,z]],[c,spoke(Math.PI*1.25)],[c,spoke(Math.PI*1.75)]];
+    const bulbs=[...circle(x,y,z,r,26),...strokes.flatMap(s=>along(s,.06))].map(p=>bulb(p,COLORS.yellow));
+    return {bulbs,frames:[[...circle(x,y,z-.01,r,26),circle(x,y,z-.01,r,26)[0]],...strokes.map(s=>s.map(p=>[p[0],p[1],z-.01]))]};
+  },
+  cane(channel,index){
+    const {xs,z,height:h,hook:w}=L.canes,x=xs[index],hook=index%2?-1:1,path=[[x,.03,z],[x,h*.78,z]];
+    for(let k=1;k<=6;k++){const a=Math.PI*k/6;path.push([x+hook*(w/2-Math.cos(a)*w/2),h*.78+Math.sin(a)*w*.6,z]);}
+    return {bulbs:along(path,.05).map(p=>bulb(p,COLORS.red,0,.8)),frames:[path],cane:true};
+  },
+  minitree(channel,index){
+    const {xs,z,height,radius:r}=L.minitrees,x=xs[index],top=[x,height,z],bulbs=[],frames=[];
+    for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,.03,z+Math.sin(a)*r];bulbs.push(...along([base,top],.1).map(p=>bulb(p,COLORS.red,0,.75)));frames.push([base,top]);}
+    return {bulbs,frames};
+  },
+  // Strip at angle θ around the cone, from the ground ring to the apex under the star.
+  treeStrip(channel){
+    const {x,z,radius:R,height}=L.tree,theta=channel.model.theta,base=[x+Math.sin(theta)*R,.03,z+Math.cos(theta)*R],apex=[x,height,z];
+    return {bulbs:along([base,apex],.12).slice(0,-1).map(p=>bulb(p,COLORS.yellow,0,.85)),frames:[[base,apex]]};
+  },
+  star(){
+    const {x,z,height,star:{radius:R,gap}}=L.tree,cy=height+gap+R*.81;
+    const outline=Array.from({length:11},(_,k)=>{const a=Math.PI/2+k*Math.PI/5,r=k%2?R*.42:R;return [x+Math.cos(a)*r,cy+Math.sin(a)*r,z];});
+    return {bulbs:along(outline,.05,false).slice(0,-1).map(p=>bulb(p,COLORS.yellow,0,1.1)),frames:[outline,[[x,height,z],[x,cy-R*.81,z]]]};
+  },
+};
+
+function build(channel,index){
+  const kind=channel.kind==='strip'?channel.id:channel.kind;
+  if(!geometry[kind])throw new Error(`No place on our house for ${channel.id}`);
+  return geometry[kind](channel,index);
+}
+// Each channel's bulbs and frames, in the original's channel order.
+export const OWN_CHANNELS=CHANNELS.map(channel=>{
+  const index=CHANNELS.filter(c=>c.kind===channel.kind).indexOf(channel);
+  return {...channel,...build(channel,index)};
 });
-export const PIXEL_COUNT=PROPS.reduce((n,p)=>n+p.count,0);
-export const CHANNEL_COUNT=PIXEL_COUNT*3;
-export const FEED_COUNT=PROPS.reduce((n,p)=>n+p.sections,0);
-export const BANKS=Object.fromEntries(['A','B','C'].map(bank=>{
-  const props=PROPS.filter(p=>p.bank===bank);
-  return [bank,{count:local[bank],channels:local[bank]*3,channelStart:props[0].channelStart,channelEnd:props.at(-1).channelEnd,watts:props.reduce((n,p)=>n+p.count*p.wattsPerAddress,0),sections:props.reduce((n,p)=>n+p.sections,0),ports:props.length}];
-}));
-export function powerSections(prop){
-  return Array.from({length:prop.sections},(_,i)=>({start:Math.floor(i*prop.count/prop.sections),end:Math.floor((i+1)*prop.count/prop.sections)}));
-}
-export function propPositions(prop){
-  const model=PROPS.find(p=>p.id===prop.id);if(!model)throw new Error(`Unknown prop ${prop.id}`);
-  if(prop.count!==model.count)throw new Error(`Pixel count differs for ${prop.id}`);
-  if(model.path)return samplePath(model.path,prop.count,model.closed);
-  if(prop.id.startsWith('Pole')){
-    const [x,z]=PROP_LAYOUT.poles[Number(prop.id.slice(4))-1];
-    return Array.from({length:prop.count},(_,j)=>[x,.1+j/(prop.count-1)*.9,z]);
-  }
-  return retainedPositions(prop);
-}
-// Facade runs rise in the right garden and cross above the door lintel; garden
-// runs past the planting tiles keep to the corridors between them.
-export function cableRoute(source,prop,dest){
-  if(prop.id.startsWith('Strip'))return [source,[source[0],.145,.65],[source[0],.145,.25],[source[0],2.55,.25],[dest[0],2.55,.25],dest];
-  const tiles=HOUSE.planters.tiles,edge=Math.min(...tiles.map(t=>t.z))-HOUSE.planters.size/2;
-  if(dest[2]<=edge)return [source,[source[0],.145,.65],[dest[0],.145,.65],[dest[0],.145,dest[2]],dest];
-  const lane=PROP_LAYOUT.corridors.reduce((a,b)=>Math.abs(b-dest[0])<Math.abs(a-dest[0])?b:a);
-  return [source,[source[0],.145,.65],[lane,.145,.65],[lane,.145,dest[2]],[dest[0],.145,dest[2]],dest];
-}
+export const BULB_COUNT=OWN_CHANNELS.reduce((n,c)=>n+c.bulbs.length,0);

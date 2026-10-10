@@ -3,56 +3,43 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111923">
 <title>Winterlight · 3D Christmas light show synced to Wizards in Winter</title>
-<meta name="description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade, play the show and inspect every light.">
+<meta name="description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade and watch the original show play on it, prop for prop.">
 <link rel="canonical" href="https://winterlight.alexander-df0.workers.dev/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Winterlight"><meta property="og:locale" content="en_GB">
-<meta property="og:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta property="og:description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade, play the show and inspect every light."><meta property="og:url" content="https://winterlight.alexander-df0.workers.dev/">
+<meta property="og:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta property="og:description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade and watch the original show play on it, prop for prop."><meta property="og:url" content="https://winterlight.alexander-df0.workers.dev/">
 <meta property="og:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="3D model of a house with coloured Christmas lights on its windows, door, poles, arches and stars">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta name="twitter:description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade, play the show and inspect every light."><meta name="twitter:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Winterlight","url":"https://winterlight.alexander-df0.workers.dev/","description":"An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade, play the show and inspect every light.","image":"https://winterlight.alexander-df0.workers.dev/og-image.jpg","inLanguage":"en"}</script>
+<meta property="og:image:alt" content="3D model of a house with a wireframe Christmas tree, a peace sign, Christmas circles and HAPPY HOLIDAYS letters lit up">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Winterlight · 3D Christmas light show synced to Wizards in Winter"><meta name="twitter:description" content="An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade and watch the original show play on it, prop for prop."><meta name="twitter:image" content="https://winterlight.alexander-df0.workers.dev/og-image.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Winterlight","url":"https://winterlight.alexander-df0.workers.dev/","description":"An interactive 3D Christmas light show on a Belgian house, synced to Wizards in Winter. Orbit the facade and watch the original show play on it, prop for prop.","image":"https://winterlight.alexander-df0.workers.dev/og-image.jpg","inLanguage":"en"}</script>
 </head>
 <body>
 <div id="app">
-  <header><a class="brand" href="/">✳ <span>Winterlight<small>CHRISTMAS SHOW STUDIO</small></span></a><div class="header-note">A Belgian winter, reimagined.</div><span class="header-links"><a class="guide-link" href="/original.html">Original house ↗</a><a class="guide-link" href="/outputs/christmas-show-project.md" target="_blank">Project guide ↗</a></span></header>
+  <header><a class="brand" href="/">✳ <span>Winterlight<small>CHRISTMAS SHOW STUDIO</small></span></a><div class="header-note">A Belgian winter, reimagined.</div><a class="guide-link" href="/original.html">Original house ↗</a></header>
   <main>
-    <section class="stage" aria-label="Interactive 3D light show">
-      <div id="viewport"></div>
-      <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> THE FACADE EDITION</div><h1>A little winter magic.</h1><p>Ground-floor outlines. Ten poles. One musical clock.</p></div>
-      <div class="scene-controls"><button id="front" class="small-button">Street view</button><button id="orbit" class="small-button">Garden view</button><button id="overhead" class="small-button">Plan view</button></div>
-      <div class="scene-footer"><span>Drag to orbit · Scroll to zoom · Click a light to inspect</span><span class="scale-tag">Concept dimensions · ground-floor facade lights</span></div>
+    <section class="stage" aria-label="3D model of our house with the original show's props">
+      <canvas id="overlay-video" class="overlay-video" hidden></canvas><div id="viewport"></div>
+      <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> OUR HOUSE</div><h1>A little winter magic.</h1><p>The original show, prop for prop, on our own facade.</p></div>
+      <div class="scene-controls"><button id="view-video" class="small-button">Street view</button><button id="view-orbit" class="small-button">Garden view</button><button id="view-yard" class="small-button">Yard view</button><button id="view-overlay" class="small-button" aria-pressed="false">Overlay video</button></div>
+      <div id="overlay-controls" class="overlay-controls" hidden><label for="overlay-mix">Model opacity <input id="overlay-mix" type="range" min="0" max="100" value="70"></label><label><input id="overlay-diff" type="checkbox"> Difference</label><small id="overlay-note">Our lights over the original video.</small></div>
+      <div class="scene-footer"><span>Drag to orbit · Scroll to zoom</span><span class="scale-tag">Concept dimensions · facade and garden props</span></div>
       <div id="scene-error" hidden></div>
     </section>
     <aside>
-      <div class="tabs"><button class="tab active" id="show-tab">The show</button><button class="tab" id="parts-tab">Parts review <span>6</span></button></div>
-      <div id="show-panel">
-        <div class="eyebrow muted">YOUR DISPLAY</div><h2>Small scale.<br>Big atmosphere.</h2>
-        <div class="stats"><div><strong>954</strong><span>RGB addresses</span></div><div><strong>19</strong><span>light props</span></div><div><strong>3</strong><span>power banks</span></div></div>
-        <div class="field-title">Soundtrack</div>
-        <div class="source-card"><span class="music-icon">♫</span><div><strong id="track-name">Winterlight demo</strong><small id="track-info">Original synthetic test score · 3:05</small></div><span class="chip" id="source-chip">DEMO</span></div>
-        <p id="source-note" class="note">The demo is an original test score, not Wizards in Winter. Load your recording for audio-driven accents.</p>
-        <div class="source-buttons"><label class="small-button upload">Load audio<input id="audio-file" type="file" accept="audio/*"></label><button id="youtube-button" class="small-button">YouTube reference</button></div>
-        <button id="demo-button" class="text-button" hidden>Return to original demo</button>
-        <div id="youtube-container" hidden><div id="youtube-player"></div><p class="note">Video-clock choreography is approximate. Embedding depends on YouTube availability.</p></div>
-        <div class="frame-source">
-          <div class="field-title">Wizards in Winter</div><label class="range-label" for="wizards-timing">Light timings</label><select id="wizards-timing" class="timing-select" aria-label="Light timings"><option value="notes">MIDI instrument timings</option><option value="filmed">Original timings (filmed show)</option></select><button class="small-button wizards-play" id="wizards-play">Play Wizards show ♫</button><audio id="hosted-audio" preload="metadata" src="/media/wizards-in-winter.m4a"></audio><p id="hosted-audit" class="note" hidden></p><div class="field-title">Local video comparison</div><button class="small-button" id="extracted-show">Use extracted Wizards show</button>
-          <div class="source-buttons"><label class="small-button upload">Load video<input id="source-video-file" type="file" accept="video/*"></label><label class="small-button upload">Load timing<input id="timing-file" type="file" accept=".wltiming"></label></div>
-          <div id="source-video-container" hidden><video id="source-video" playsinline preload="auto"></video><p id="frame-audit" class="note">A matching source video and timing file are required.</p></div>
-          <p class="note">Reuses stored RGB frames and original timestamps. Exact source recording required; the demo and audio analysis are not a substitute.</p>
-        </div>
-        <div class="settings"><label class="range-label" for="brightness">Light intensity <span id="brightness-value">60%</span></label><input id="brightness" type="range" min="5" max="100" value="60">
-          <label class="switch-row"><span>Show cable routes <small>19 data outputs + 27 isolated power feeds</small></span><input id="wires" type="checkbox"></label>
-          <label class="switch-row"><span>Full-white power test <small>Overrides the show; includes brightness cap</small></span><input id="white-test" type="checkbox"></label>
-        </div>
-        <div class="power-card"><div><span>Estimated pixel load</span><strong id="power-total">— W</strong></div><div id="bank-bars"></div><small>RGB duty estimate · excludes controllers / losses.<br>Design maximum: 686.9 W with specified strip.<br>Excludes controllers, losses and thermal derating.</small></div>
-        <div class="inspector" id="inspector"><span class="eyebrow muted">PROP INSPECTOR</span><p>Click a light to inspect its port, channels and power feeds.</p></div>
-        <label class="range-label" for="prop-select">Inspect a prop</label><select id="prop-select" aria-label="Inspect a prop"><option value="">Choose a prop…</option></select>
-        <button id="export" class="small-button export">Export 40 fps show frames ↓</button><p id="export-note" class="note">Exports RGB channel data and cues. Browser simulation; does not send to real controllers.</p>
+      <div class="eyebrow muted" style="margin-top:26px">ORIGINAL VIDEO TIMING</div><h2>The original show,<br>on our house.</h2>
+      <div class="source-card"><span class="music-icon">♫</span><div><strong>Wizards in Winter</strong><small id="cue-info">Loading detected timing…</small></div><span class="chip" id="cue-chip">VIDEO</span></div>
+      <div class="video-panel"><video id="video" playsinline preload="auto" muted></video><div id="video-empty" class="video-empty" hidden><label class="small-button">Load the original video<input id="video-file" type="file" accept="video/mp4,video/*"></label><small>Your MP4 of the official video. It stays on this computer and is remembered in this browser.</small></div></div>
+      <p class="note video-status"><span id="video-status">Looking for the original video…</span> <button id="video-change" class="text-button inline" hidden>Change video</button></p>
+      <p id="cue-note" class="note">Every prop on our house matches one in the original and runs on its timing: brightness detected from the filmed video, one value per frame, played against that same video (or its soundtrack when the video isn't loaded).</p>
+      <div class="settings">
+        <label class="range-label" for="brightness">Light intensity <span id="brightness-value">60%</span></label><input id="brightness" type="range" min="5" max="100" value="60">
+        <label class="switch-row"><span>All props on <small>Every prop lit at full brightness</small></span><input id="all-on" type="checkbox"></label>
       </div>
-      <div id="parts-panel" hidden><div class="eyebrow muted">BEFORE YOU BUY</div><h2>The missing pieces.</h2><p class="note">The concept holds up. The original shopping list still needs these six decisions closed.</p><div id="review-list"></div><a class="small-button export" href="/outputs/parts-critical-review.md" target="_blank">Read the full review ↗</a><a class="text-button" href="/outputs/revised-bom.csv" download>Download complete parts checklist ↓</a></div>
+      <div class="field-title" style="margin-top:22px">Props <span class="note" id="frame-label"></span></div>
+      <div id="board" class="board"></div>
     </aside>
   </main>
-  <footer class="transport"><button id="play" class="play-button" aria-label="Play show">▶</button><button id="restart" class="restart-button" aria-label="Restart show">↺</button><div class="timeline-wrap"><div class="timeline-top"><strong id="cue-name">Opening · warm call & response</strong><span><b id="time">0:00</b> / <span id="duration">3:05</span></span></div><input id="timeline" type="range" aria-label="Show position" min="0" max="185" step="0.025" value="0"><div class="timeline-labels"><span>OPENING</span><span>CHASE</span><span>EXPAND</span><span>FINALE</span></div></div><label class="volume">♫<input id="volume" type="range" aria-label="Volume" min="0" max="100" value="35"></label></footer>
+  <footer class="transport"><button id="play" class="play-button" aria-label="Play show" disabled>▶</button><button id="restart" class="restart-button" aria-label="Restart show">↺</button><div class="timeline-wrap"><div class="timeline-top"><strong id="range-name">Detected range</strong><span><b id="time">0:00</b> / <span id="duration">3:05</span></span></div><input id="timeline" type="range" aria-label="Show position" min="0" max="185" step="0.01" value="0"><div class="timeline-labels"><span id="range-start">0:00</span><span id="range-end"></span></div></div><label class="volume" aria-label="Volume">♪<input id="volume" type="range" min="0" max="100" value="35"></label></footer>
+  <audio id="audio" preload="metadata" src="/media/wizards-in-winter.m4a"></audio>
 </div><script type="module" src="/src/main.js"></script>
 </body></html>

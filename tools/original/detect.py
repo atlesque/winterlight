@@ -5,6 +5,8 @@ same pixels. For each channel in src/original/layout.js this samples its region
 on every decoded frame, learns that channel's own off and on levels over the
 whole video, and records each frame's brightness in 5% steps so fades survive
 (the wireframe tree, which only switches on and off, is stored at full level).
+The tree's strips are then placed on the front or back of the cone so that its
+light goes round the circle (tools/original/tree_motion.py).
 Multicolour strips are also classified as yellow, blue or both. No smoothing or
 resampling: one value per source frame, timed by the source frame index.
 
@@ -19,6 +21,9 @@ from fractions import Fraction
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import tree_motion
 
 ROOT = Path(__file__).resolve().parents[2]
 W, H = 960, 540
@@ -122,6 +127,14 @@ def brightness(level, channels):
             out[:, c] = level[:, c] > 90; stats.append({**stat, 'static': True}); continue
         n = np.clip((level[:, c] - lo[c]) / span, 0, 1)
         out[:, c] = np.where(n >= channels[c]['detect']['floor'], n, 0); stats.append(stat)
+    # Channels in a group (the wireframe tree's strips) spill onto each other, so
+    # one also has to reach a share of the group's brightest region that frame.
+    groups = {}
+    for c, ch in enumerate(channels):
+        if ch['detect'].get('group'): groups.setdefault(ch['detect']['group'], []).append(c)
+    for members in groups.values():
+        top = level[:, members].max(axis=1)
+        for c in members: out[level[:, c] < channels[c]['detect']['ratio'] * top, c] = 0
     return out, stats
 
 
@@ -164,6 +177,10 @@ def main():
     # Props that only switch on and off (the wireframe tree) are stored at full level.
     for c, ch in enumerate(data['channels']):
         if ch['detect'].get('onOff'): percent[:, c] = np.where(percent[:, c] > 0, 100, 0)
+    # The camera sees the tree side on; put each lit strip on the side of the cone that keeps its light going round.
+    strips = tree_motion.tree_channels(data['channels'])
+    decoded = tree_motion.decode(percent[:, [c for c, _ in strips]] > 0, [ch['model']['theta'] for _, ch in strips])
+    for j, (c, _) in enumerate(strips): percent[:, c] = np.where(decoded[:, j], 100, 0)
     t0 = pts[0] * tb
     first = max(0, int(np.ceil((Fraction(a.start) - t0) * rate - Fraction(1, 1000))))
     last = len(pts) if a.end is None else min(len(pts), int(np.ceil((Fraction(a.end) - t0) * rate - Fraction(1, 1000))))
@@ -182,7 +199,7 @@ def main():
         'source': {'sha256': hashlib.sha256(Path(a.video).read_bytes()).hexdigest(), 'width': stream['width'], 'height': stream['height'], 'frameCount': len(pts),
                    'frameRate': [rate.numerator, rate.denominator], 'firstPtsSeconds': float(t0)},
         'range': {'startFrame': first, 'endFrame': last},
-        'method': 'Per-frame region brightness (top quarter of pixels at 960x540, or the mean for the mini trees) as a share of the channel\'s own 5th-97th percentile range over the whole video, in 5% steps (the wireframe tree only on or off); levels under a per-channel floor count as spill from neighbours. Multicolour strips split by blue share. No smoothing.',
+        'method': 'Per-frame region brightness (top quarter of pixels at 960x540, or the mean for the mini trees) as a share of the channel\'s own 5th-97th percentile range over the whole video, in 5% steps (the wireframe tree only on or off); levels under a per-channel floor count as spill from neighbours, and a tree strip must also reach 60% of the brightest strip in that frame. Multicolour strips split by blue share. No smoothing. ' + tree_motion.METHOD,
         'channels': channels,
         'levels': {ch['id']: s for ch, s in zip(data['channels'], stats)},
     }
