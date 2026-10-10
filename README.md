@@ -74,6 +74,10 @@ npm test
 npm run build
 ```
 
+## LED cost estimate
+
+`/costs.html` recommends LEDs for every prop of our house and prices them in euro per prop, per group and in total, including wiring, power injection, controllers, power supplies, boxes and the show computer. Ticking props or groups off updates every total. Pixel counts, frame lengths and cable runs come from `src/props.js`; parts and prices (with shop links and the date they were checked) live in `src/costs/catalog.js`, the cost model in `src/costs/estimate.js` and the page in `src/costs/page.js`.
+
 ## SEO and sharing preview
 
 `index.html`'s `<head>` carries the title, description, canonical URL, Open Graph and Twitter card tags; the page swaps `document.title` as the house toggle changes. `original.html` is only a redirect to `/?house=original` with a canonical link there. `public/og-image.jpg` (our house) and `public/og-image-original.jpg` (the original house) are 1200×630 renders of the site's own 3D scenes. The pages also share `favicon.svg`, `apple-touch-icon.png`, `robots.txt` and `sitemap.xml`.
