@@ -66,3 +66,10 @@ test('the wireframe tree\'s chase turns round the cone instead of lighting front
  }
  assert.ok(Math.abs(turned)>4*2*Math.PI,`turned ${(turned/2/Math.PI).toFixed(1)} times`);assert.equal(both,0);
 });
+
+test('stepping to a frame lands inside that frame',()=>{
+ const data=JSON.parse(readFileSync(new URL('../outputs/original-house-cues.json',import.meta.url),'utf8'));
+ const cues=prepareOriginalCues(data,CHANNELS);
+ for(const f of [0,1,456,cues.endFrame-1])assert.equal(cues.frameAt(cues.timeOf(f)),f);
+ assert.equal(cues.frameAt(cues.timeOf(456)+.5/cues.rate-1e-4),456);
+});
