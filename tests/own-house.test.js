@@ -24,10 +24,10 @@ test('the original detected timing drives our house unchanged',()=>{
   assert.deepEqual(ours.stateAt(t,a,la),theirs.stateAt(t,b,lb));assert.deepEqual(la,lb);}
 });
 
-test('facade props stay on our frontage and garden props in the garden, off the planting tiles',()=>{
- const {size,tiles}=HOUSE.planters,onTile=(x,z)=>tiles.some(t=>Math.abs(x-t.x)<size/2+.02&&Math.abs(z-t.z)<size/2+.02);
+test('facade props stay on our frontage and garden props in the garden, off the planting tiles or above the bushes',()=>{
+ const {size,bush,tiles}=HOUSE.planters,onTile=(x,z)=>tiles.some(t=>Math.abs(x-t.x)<size/2+.02&&Math.abs(z-t.z)<size/2+.02);
  for(const c of OWN_CHANNELS)for(const {pos:[x,y,z]} of c.bulbs){
-  if(GARDEN.has(c.prop)){assert.ok(x>HOUSE.entry.maxX&&x<=HOUSE.garden.maxX,`${c.id} clear of the entrance`);assert.ok(z>=HOUSE.garden.minZ&&z<=HOUSE.forecourtDepth,`${c.id} in the garden`);assert.ok(!onTile(x,z),`${c.id} over a planter`);}
+  if(GARDEN.has(c.prop)){assert.ok(x>HOUSE.entry.maxX&&x<=HOUSE.garden.maxX,`${c.id} clear of the entrance`);assert.ok(z>=HOUSE.garden.minZ&&z<=HOUSE.forecourtDepth,`${c.id} in the garden`);assert.ok(!onTile(x,z)||y>=bush,`${c.id} inside a bush`);}
   else{assert.ok(x>-.1&&x<HOUSE.width+.1,`${c.id} on this frontage`);assert.ok(y<HOUSE.eaves&&z>=.05&&z<=.3,`${c.id} on the front wall`);}
  }
  // The ground strip runs along the left side of the shrubbery.
@@ -51,6 +51,15 @@ test('the upper strip runs along the top edge of the upper windows, from the lef
  const [left,right]=HOUSE.windows,top=left.y+left.height/2,line=OWN_CHANNELS.find(c=>c.id==='upper').bulbs.filter(b=>b.size===1).map(b=>b.pos);
  assert.ok(line.every(p=>p[1]>top&&p[1]<top+.2),'just above the window tops');
  assert.ok(Math.abs(Math.min(...line.map(p=>p[0]))-(left.x-left.width/2))<.15&&Math.abs(Math.max(...line.map(p=>p[0]))-(right.x+right.width/2))<.15,'window to window');
+});
+
+test('the mini trees stand on the bush tops, where the bushes cannot hide them',()=>{
+ const {size,bush,tiles}=HOUSE.planters,trees=OWN_CHANNELS.filter(c=>c.kind==='minitree');
+ assert.equal(trees.length,11);
+ for(const c of trees){const base=Math.min(...c.bulbs.map(b=>b.pos[1])),[x,,z]=c.bulbs[0].pos;
+  assert.ok(base>=bush&&base<bush+.1,`${c.id} on a bush top`);assert.ok(tiles.some(t=>Math.abs(x-t.x)<size/2&&Math.abs(z-t.z)<size/2),`${c.id} over a bush`);}
+ // Left to right, so chases still run across the garden.
+ const xs=trees.map(c=>Math.min(...c.bulbs.map(b=>b.pos[0])));assert.deepEqual(xs,[...xs].sort((a,b)=>a-b));
 });
 
 test('the star sits just above the tree, with a small gap',()=>{

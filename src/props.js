@@ -84,8 +84,8 @@ const geometry={
     return {bulbs:along(path,.05).map(p=>bulb(p,COLORS.red,0,.8)),frames:[path],cane:true};
   },
   minitree(channel,index){
-    const {xs,z,height,radius:r}=L.minitrees,x=xs[index],top=[x,height,z],bulbs=[],frames=[];
-    for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,.03,z+Math.sin(a)*r];bulbs.push(...along([base,top],.1).map(p=>bulb(p,COLORS.red,0,.75)));frames.push([base,top]);}
+    const {spots,height,radius:r}=L.minitrees,{x,y,z}=spots[index],top=[x,y+height,z],bulbs=[],frames=[];
+    for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,y,z+Math.sin(a)*r];bulbs.push(...along([base,top],.07).map(p=>bulb(p,COLORS.red,0,.75)));frames.push([base,top]);}
     return {bulbs,frames};
   },
   // Strip at angle θ around the cone, from the ground ring to the apex under the star.
