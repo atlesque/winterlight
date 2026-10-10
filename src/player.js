@@ -5,25 +5,34 @@ import {prepareOriginalCues} from './original/cues.js';
 import {createShowClock,HOSTED_VIDEO,SOURCE_RATE,matchesSource,rememberVideo,recallVideo,forgetVideo} from './original/video-clock.js';
 
 // The show player both houses share: the same controls, the same detected cue
-// file and the same video clock. A page only brings its own 3D scene (whose
-// draw() takes per-channel colour states and levels) and its own wording.
+// file and the same video clock, with a toggle between the original house, our
+// house, or both stacked. Each house brings its own 3D scene (whose draw()
+// takes per-channel colour states and levels) and its own wording.
 const format=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
 const SOUNDTRACK_SECONDS=185.875737;
 
-function render(page){
+// The two houses the page can show, in the order the toggle lists them.
+export const MODES=['original','ours','split'];
+const HOUSES=['original','ours'];
+
+function render(houses){
  const stage=document.querySelector('.stage'),aside=document.querySelector('aside');
- stage.insertAdjacentHTML('afterbegin','<canvas id="overlay-video" class="overlay-video" hidden></canvas><div id="viewport"></div>');
- stage.insertAdjacentHTML('beforeend',`<div class="scene-controls"><button id="view-video" class="small-button">${page.videoView}</button><button id="view-orbit" class="small-button">Garden view</button><button id="view-yard" class="small-button">Yard view</button><button id="view-overlay" class="small-button" aria-pressed="false">Overlay video</button></div>
- <div id="overlay-controls" class="overlay-controls" hidden><label for="overlay-mix">Model opacity <input id="overlay-mix" type="range" min="0" max="100" value="70"></label><label><input id="overlay-diff" type="checkbox"> Difference</label><small id="overlay-note"></small></div>
- <div class="scene-footer"><span>Drag to orbit · Scroll to zoom · ← → step one frame</span><span class="scale-tag">${page.scaleTag}</span></div>
+ // One pane per house: its viewport, its heading and, for the original, the overlay video.
+ stage.insertAdjacentHTML('afterbegin',`<div class="panes">${HOUSES.map(id=>{const h=houses[id].page;return `<section class="pane" id="pane-${id}" data-house="${id}" aria-label="${h.label}">
+  ${id==='original'?'<canvas id="overlay-video" class="overlay-video" hidden></canvas>':''}<div class="viewport" id="viewport-${id}"></div>
+  <div class="scene-heading"><div class="eyebrow"><span class="dot"></span> ${h.eyebrow}</div><${h.heading} class="scene-title">${h.title}</${h.heading}><p>${h.subtitle}</p></div>
+  ${id==='original'?'<div id="overlay-controls" class="overlay-controls" hidden><label for="overlay-mix">Model opacity <input id="overlay-mix" type="range" min="0" max="100" value="70"></label><label><input id="overlay-diff" type="checkbox"> Difference</label><small id="overlay-note"></small></div>':''}
+ </section>`;}).join('')}</div>`);
+ stage.insertAdjacentHTML('beforeend',`<div class="scene-controls"><button id="view-video" class="small-button">Front view</button><button id="view-orbit" class="small-button">Garden view</button><button id="view-yard" class="small-button">Yard view</button><button id="view-overlay" class="small-button" aria-pressed="false">Overlay video</button></div>
+ <div class="scene-footer"><span>Drag to orbit · Scroll to zoom · ← → step one frame</span><span class="scale-tag" id="scale-tag"></span></div>
  <div id="scene-error" hidden></div>`);
  aside.insertAdjacentHTML('beforeend',`<div class="source-card"><span class="music-icon">♫</span><div><strong>Wizards in Winter</strong><small id="cue-info">Loading detected timing…</small></div><span class="chip" id="cue-chip">VIDEO</span></div>
  <div class="video-panel"><video id="video" playsinline preload="auto" muted></video><div id="video-empty" class="video-empty" hidden><label class="small-button">Load the original video<input id="video-file" type="file" accept="video/mp4,video/*"></label><small>Your MP4 of the official video. It stays on this computer and is remembered in this browser.</small></div></div>
  <p class="note video-status"><span id="video-status">Looking for the original video…</span> <button id="video-change" class="text-button inline" hidden>Change video</button></p>
- <p id="cue-note" class="note">${page.cueNote}</p>
+ <p id="cue-note" class="note"></p>
  <div class="settings">
   <label class="range-label" for="brightness">Light intensity <span id="brightness-value">100%</span></label><input id="brightness" type="range" min="5" max="100" value="100">
-  <label class="switch-row"><span>All props on <small>${page.allOnHint}</small></span><input id="all-on" type="checkbox"></label>
+  <label class="switch-row"><span>All props on <small id="all-on-hint"></small></span><input id="all-on" type="checkbox"></label>
  </div>
  <div class="field-title" style="margin-top:22px">Props <span class="note" id="frame-label"></span></div>
  <div id="board" class="board"></div>`);
@@ -33,30 +42,53 @@ function render(page){
  <audio id="audio" preload="metadata" src="/media/wizards-in-winter.m4a"></audio>`);
 }
 
-export function startPlayer({createScene,page,debugName}){
- render(page);
+export function startPlayer({houses,modes,debugName='winterlight'}){
+ render(houses);
  const $=id=>document.getElementById(id),audio=$('audio'),video=$('video');
- let scene=null,cues=null,brightness=1,allOn=false;
+ let cues=null,brightness=1,allOn=false;
  const states=new Uint8Array(CHANNELS.length),levels=new Uint8Array(CHANNELS.length),ALL_ON=new Uint8Array(CHANNELS.map(c=>c.palette==='multi'?3:1)),FULL=new Uint8Array(CHANNELS.length).fill(100);
- try{scene=createScene($('viewport'));scene.view('video');}catch(error){$('scene-error').hidden=false;$('scene-error').textContent='The 3D scene needs WebGL. Enable hardware acceleration or try a WebGL-capable browser.';console.error(error);}
- // Overlay mode: the model's lights over the original video, lined up in Video
- // view, so each frame can be compared with what was filmed.
- const stage=document.querySelector('.stage'),overlayCanvas=$('overlay-video'),overlayContext=overlayCanvas.getContext('2d');
- let overlayOn=false;
+ const scenes={};
+ for(const id of HOUSES){try{scenes[id]=houses[id].createScene($('viewport-'+id));scenes[id].view('video');}catch(error){$('scene-error').hidden=false;$('scene-error').textContent='The 3D scene needs WebGL. Enable hardware acceleration or try a WebGL-capable browser.';console.error(error);}}
+ // Which house is on screen: one of them, or both stacked (original on top).
+ const stage=document.querySelector('.stage'),panes={original:$('pane-original'),ours:$('pane-ours')};
+ let mode='ours',viewName='video',overlayOn=false;
+ const shows=id=>mode==='split'||mode===id;
+ // Overlay mode: the original model's lights over the original video, lined up
+ // in Video view, so each frame can be compared with what was filmed. Our house
+ // doesn't line up with the filmed one, so it keeps the front view meanwhile.
+ const overlayCanvas=$('overlay-video'),overlayContext=overlayCanvas.getContext('2d');
  function setView(name){
-  overlayOn=name==='overlay';stage.classList.toggle('overlay',overlayOn);overlayCanvas.hidden=!overlayOn;$('overlay-controls').hidden=!overlayOn;
-  $('view-overlay').setAttribute('aria-pressed',overlayOn);scene?.view(name);
+  if(name==='overlay'&&!shows('original'))name='video';
+  viewName=name;overlayOn=name==='overlay';
+  stage.classList.toggle('overlay',overlayOn);panes.original.classList.toggle('overlay',overlayOn);overlayCanvas.hidden=!overlayOn;$('overlay-controls').hidden=!overlayOn;
+  $('view-overlay').setAttribute('aria-pressed',overlayOn);
+  scenes.original?.view(name);scenes.ours?.view(overlayOn?'video':name);
  }
  for(const name of ['video','orbit','yard','overlay'])$('view-'+name).onclick=()=>setView(name==='overlay'&&overlayOn?'video':name);
- $('overlay-mix').oninput=e=>stage.style.setProperty('--model-mix',+e.target.value/100);
- $('overlay-diff').onchange=e=>stage.classList.toggle('difference',e.target.checked);
- // Draws the frame the video is showing, fitted to the stage the same way the overlay camera is.
+ $('overlay-mix').oninput=e=>panes.original.style.setProperty('--model-mix',+e.target.value/100);
+ $('overlay-diff').onchange=e=>panes.original.classList.toggle('difference',e.target.checked);
+ // The toggle switches houses in place; the choice is kept in the URL (?house=) so it can be shared.
+ const toggles=[...document.querySelectorAll('[data-mode]')];
+ function setMode(next){
+  mode=MODES.includes(next)?next:'ours';const page=modes[mode];
+  stage.dataset.mode=mode;for(const id of HOUSES)panes[id].hidden=!shows(id);
+  for(const b of toggles)b.setAttribute('aria-pressed',b.dataset.mode===mode);
+  $('view-overlay').hidden=!shows('original');$('view-video').textContent=page.videoView;
+  $('scale-tag').textContent=page.scaleTag;$('cue-note').textContent=page.cueNote;$('all-on-hint').textContent=page.allOnHint;$('aside-title').innerHTML=page.asideTitle;
+  document.title=page.title;
+  if(overlayOn&&!shows('original'))setView('video');else setView(viewName);
+  const url=new URL(location.href);if(mode==='ours')url.searchParams.delete('house');else url.searchParams.set('house',mode);
+  if(url.href!==location.href)history.replaceState(null,'',url);
+ }
+ for(const b of toggles)b.onclick=()=>setMode(b.dataset.mode);
+ setMode(new URLSearchParams(location.search).get('house'));
+ // Draws the frame the video is showing, fitted to the original's pane the same way the overlay camera is.
  function paintOverlay(){
-  const dpr=Math.min(devicePixelRatio,2),w=Math.round(stage.clientWidth*dpr),h=Math.round(stage.clientHeight*dpr);
+  const pane=panes.original,dpr=Math.min(devicePixelRatio,2),w=Math.round(pane.clientWidth*dpr),h=Math.round(pane.clientHeight*dpr);
   if(overlayCanvas.width!==w||overlayCanvas.height!==h){overlayCanvas.width=w;overlayCanvas.height=h;}
   overlayContext.fillStyle='#000';overlayContext.fillRect(0,0,w,h);
   const ready=clock.usingVideo&&video.readyState>=2&&video.videoWidth;
-  $('overlay-note').textContent=ready?page.overlayNote:'Load the original video in the sidebar to compare it with the model.';
+  $('overlay-note').textContent=ready?houses.original.page.overlayNote:'Load the original video in the sidebar to compare it with the model.';
   if(!ready)return;
   const k=Math.min(w/video.videoWidth,h/video.videoHeight),vw=video.videoWidth*k,vh=video.videoHeight*k;
   overlayContext.drawImage(video,(w-vw)/2,(h-vh)/2,vw,vh);
@@ -145,7 +177,7 @@ export function startPlayer({createScene,page,debugName}){
   else if(e.key===' '&&tag!=='BUTTON'){e.preventDefault();togglePlay();}
  });
  $('volume').oninput=e=>{audio.volume=video.volume=+e.target.value/100;};audio.volume=video.volume=.35;
- $('brightness').oninput=e=>{brightness=+e.target.value/100;$('brightness-value').textContent=`${e.target.value}%`;scene?.setBrightness();};
+ $('brightness').oninput=e=>{brightness=+e.target.value/100;$('brightness-value').textContent=`${e.target.value}%`;for(const s of Object.values(scenes))s.setBrightness();};
  $('all-on').onchange=e=>{allOn=e.target.checked;};
  for(const m of [audio,video]){m.addEventListener('play',()=>{if(m===media())$('play').textContent='❚❚';});m.addEventListener('pause',()=>{if(m===media())$('play').textContent='▶';});}
 
@@ -154,7 +186,7 @@ export function startPlayer({createScene,page,debugName}){
   requestAnimationFrame(animate);
   const t=clock.time(),d=Number.isFinite(media().duration)?media().duration:SOUNDTRACK_SECONDS;
   const values=allOn?ALL_ON:cues?cues.stateAt(t,states,levels):states.fill(0),level=allOn?FULL:levels;
-  scene?.draw(values,level,brightness);board(values,level);if(overlayOn)paintOverlay();
+  for(const id of HOUSES)if(shows(id))scenes[id]?.draw(values,level,brightness);board(values,level);if(overlayOn)paintOverlay();
   const paused=media().paused;
   if(paused||now-lastUI>80){lastUI=now;$('time').textContent=format(t);$('duration').textContent=format(d);$('timeline').max=d;if(!scrubbing)timeline.value=t;
    const f=frameAt(t);$('frame-number').textContent=`${(f+1).toLocaleString()}`;
@@ -163,5 +195,5 @@ export function startPlayer({createScene,page,debugName}){
  requestAnimationFrame(animate);
 
  // Read-only diagnostics for browser checks.
- window[debugName]={get status(){const t=clock.time();return {time:t,clock:clock.usingVideo?'video':'soundtrack',videoTime:video.currentTime,frame:frameAt(t),channels:CHANNELS.length,bulbs:scene?.bulbCount,lit:[...states].filter(Boolean).length,cues:!!cues};}};
+ window[debugName]={get status(){const t=clock.time();return {time:t,clock:clock.usingVideo?'video':'soundtrack',videoTime:video.currentTime,frame:frameAt(t),channels:CHANNELS.length,mode,view:viewName,bulbs:Object.fromEntries(HOUSES.map(id=>[id,scenes[id]?.bulbCount])),lit:[...states].filter(Boolean).length,cues:!!cues};}};
 }
