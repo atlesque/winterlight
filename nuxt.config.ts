@@ -11,6 +11,8 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: {lang: 'en', class: 'dark'},
+      // viewport-fit=cover exposes the safe-area insets the floating play bar uses on phones.
+      viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
       meta: [{name: 'theme-color', content: '#0a1120'}],
       link: [
         {rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml'},
