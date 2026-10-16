@@ -179,9 +179,12 @@ canvas { display: block; outline: none; }
   .scene-heading { top: 20px; left: 18px; }
   .scene-footer { left: 18px; font-size: 10px; }
   .sidebar { overflow: visible; padding: 20px 18px 24px; }
-  .transport { position: sticky; bottom: 8px; height: 76px; margin: 0 8px 8px; padding: 0 14px; gap: 10px; z-index: 5; }
+  /* The play bar floats over the bottom of the screen; the page leaves room for it to scroll clear. */
+  .show-page { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+  .show-page > .transport { position: fixed; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); height: 76px; margin: 0; padding: 0 14px; gap: 10px; z-index: 5; }
   .volume { display: none; }
   .timeline-top, .timeline-top strong { font-size: 10px; }
+  .timeline-top > span { white-space: nowrap; }
   .timeline-labels { font-size: 7px; letter-spacing: 1px; }
   .frame-number { min-width: 34px; font-size: 10px; }
   .play-button { width: 42px; height: 42px; }
