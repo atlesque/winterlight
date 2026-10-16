@@ -135,6 +135,9 @@ canvas { display: block; outline: none; }
 .load-video input { display: none; }
 .video-empty small { font-size: 10px; line-height: 1.5; color: #7c91a5; max-width: 230px; }
 .video-status { margin: 8px 0 0; }
+.load-row { display: flex; align-items: center; gap: 6px; }
+.label-with-tip { display: inline-flex; align-items: center; gap: 4px; }
+.source-card strong .info-tip { margin-left: 2px; }
 .settings { margin-top: 20px; border-top: 1px solid var(--hairline); padding-top: 18px; }
 .sidebar .field-title { margin-top: 24px; }
 

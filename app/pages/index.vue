@@ -88,25 +88,27 @@ useSeoMeta({
 
         <div class="source-card">
           <span class="music-icon"><UIcon name="i-lucide-music-4" /></span>
-          <div><strong>Wizards in Winter</strong><small id="cue-info">{{ state.cueInfo }}</small></div>
+          <div><strong>Wizards in Winter <InfoTip :text="page.cueNote" label="How the timing works" /></strong><small id="cue-info">{{ state.cueInfo }}</small></div>
           <UBadge id="cue-chip" :label="state.cueChip" color="primary" variant="subtle" size="sm" class="chip" />
         </div>
 
         <div class="video-panel">
           <video id="video" :ref="e=>{el.video.value=e;}" playsinline preload="auto" muted />
           <div v-show="state.videoEmpty" id="video-empty" class="video-empty">
-            <label class="load-video"><UIcon name="i-lucide-upload" /> Load the original video<input id="video-file" :ref="e=>{el.videoFile.value=e;}" type="file" accept="video/mp4,video/*" @change="player.pickVideo"></label>
-            <small>Your MP4 of the official video. It stays on this computer and is remembered in this browser.</small>
+            <div class="load-row">
+              <label class="load-video"><UIcon name="i-lucide-upload" /> Load the original video<input id="video-file" :ref="e=>{el.videoFile.value=e;}" type="file" accept="video/mp4,video/*" @change="player.pickVideo"></label>
+              <InfoTip text="Your MP4 of the official video. It stays on this computer and is remembered in this browser." label="About loading the video" />
+            </div>
           </div>
         </div>
         <p class="note video-status"><span id="video-status">{{ state.videoStatus }}</span> <button v-show="state.videoChange" id="video-change" class="text-button" @click="player.changeVideo">Change video</button></p>
-        <p id="cue-note" class="note">{{ state.playbackError||page.cueNote }}</p>
+        <p v-if="state.playbackError" id="cue-note" class="note">{{ state.playbackError }}</p>
 
         <div class="settings">
           <label class="range-label" for="brightness">Light intensity <span id="brightness-value">{{ state.brightness }}%</span></label>
           <USlider id="brightness" v-model="state.brightness" :min="5" :max="100" size="sm" aria-label="Light intensity" />
           <div class="switch-row">
-            <span>All props on <small id="all-on-hint">{{ page.allOnHint }}</small></span>
+            <span class="label-with-tip">All props on <InfoTip :text="page.allOnHint" label="About all props on" /></span>
             <USwitch id="all-on" v-model="state.allOn" aria-label="All props on" />
           </div>
         </div>

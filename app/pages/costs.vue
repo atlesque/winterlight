@@ -119,7 +119,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
             <USlider id="spare" v-model="options.spare" :min="0" :max="20" :step="1" size="sm" aria-label="Spare pixels" />
             <label class="range-label" for="contingency">Contingency <span id="contingency-value">{{ options.contingency }}%</span></label>
             <USlider id="contingency" v-model="options.contingency" :min="0" :max="30" :step="1" size="sm" aria-label="Contingency" />
-            <div class="switch-row"><span>Music for visitors <small>USB sound card and FM transmitter</small></span><USwitch id="audio" v-model="options.audio" aria-label="Music for visitors" /></div>
+            <div class="switch-row"><span class="label-with-tip">Music for visitors <InfoTip text="Adds a USB sound card and an FM transmitter so visitors hear the music in their car." label="About music for visitors" /></span><USwitch id="audio" v-model="options.audio" aria-label="Music for visitors" /></div>
             <UButton id="reset" block color="neutral" variant="soft" icon="i-lucide-undo-2" label="Back to the full show" class="mt-5" @click="reset" />
           </div>
         </aside>
