@@ -1,5 +1,5 @@
 // Renders each page's 1200x630 share image into public/ from the site's own 3D scenes.
-// Usage: npm run build && npx vite preview --port 4173 &  then  node tools/og-image/render.mjs
+// Usage: npm run build && npm run preview &  then  node tools/og-image/render.mjs
 // Needs Playwright with Chromium (PLAYWRIGHT_BROWSERS_PATH or a local install).
 import {chromium} from 'playwright';
 import {fileURLToPath, pathToFileURL} from 'node:url';
