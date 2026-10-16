@@ -48,9 +48,8 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
     </AppHeader>
     <main class="costs">
       <section class="intro">
-        <div class="eyebrow"><span class="dot" /> LED COST ESTIMATE</div>
-        <h1>What it takes to light our house.</h1>
-        <p>Every prop of the show on our house, priced as 12 V WS2811 pixels with the wiring, controllers and power it needs. Switch props or whole groups off to see what they add. Prices are euro with VAT, from European shops checked on <span id="checked">{{ checked }}</span>; parts marked <UBadge label="estimate" color="primary" variant="subtle" size="sm" /> are rounded guesses.</p>
+        <h1>LED cost estimate</h1>
+        <p>Every prop on our house, priced as 12 V WS2811 pixels with wiring, controllers and power. Untick props or groups to see what they cost. Euro incl. VAT, prices checked <span id="checked">{{ checked }}</span>; <UBadge label="estimate" color="primary" variant="subtle" size="sm" /> marks a rounded guess.</p>
       </section>
 
       <div class="layout">

@@ -9,20 +9,20 @@ import {HOUSES} from '~/composables/useShowPlayer.js';
 const SITE='https://winterlight.alexander-df0.workers.dev';
 const TITLE='Winterlight · 3D Christmas light show synced to Wizards in Winter';
 const DESCRIPTION='An interactive 3D Christmas light show synced to Wizards in Winter. Switch between the original filmed house and a Belgian house running the same show prop for prop, or watch both in split view.';
-const ORIGINAL_CUES="Each prop's brightness is detected from the statically filmed original video, one value per video frame so the fades come through, and played against that same video (or its soundtrack when the video isn't loaded).";
+const ORIGINAL_CUES="Prop brightness is detected from the original video, one value per frame. The lights follow that video, or its soundtrack if the video isn't loaded.";
 const houses={
- original:{createScene:createOriginalScene,page:{label:'3D model of the original filmed house',eyebrow:'THE ORIGINAL HOUSE',heading:'h2',title:'Frame by frame.',subtitle:'Every prop switched exactly as it was filmed.',
+ original:{createScene:createOriginalScene,page:{label:'3D model of the original filmed house',heading:'h2',title:'Original house',subtitle:'3D model traced from the filmed video',
   overlayNote:'Lights from the model over the original video, lined up frame by frame. Difference turns matching light dark.'}},
- ours:{createScene,page:{label:"3D model of our house with the original show's props",eyebrow:'OUR HOUSE',heading:'h1',title:'A little winter magic.',subtitle:'The original show, prop for prop, on our own facade.'}},
+ ours:{createScene,page:{label:"3D model of our house with the original show's props",heading:'h1',title:'Our house',subtitle:'Same props and timing as the original'}},
 };
 const modes={
- ours:{title:TITLE,videoView:'Street view',asideTitle:'The original show,<br>on our house.',scaleTag:'Concept dimensions · facade and garden props',
-  cueNote:"Every prop on our house matches one in the original and runs on its timing: brightness detected from the filmed video, one value per frame, played against that same video (or its soundtrack when the video isn't loaded).",
+ ours:{title:TITLE,videoView:'Street view',scaleTag:'Concept dimensions · facade and garden props',
+  cueNote:`Each prop on our house matches one in the original and uses its timing. ${ORIGINAL_CUES}`,
   allOnHint:'Every prop lit at full brightness'},
- original:{title:'Winterlight · The original Wizards in Winter house in 3D',videoView:'Video view',asideTitle:'Reverse-engineered,<br>one frame at a time.',scaleTag:'Layout traced from the filmed show · dimensions estimated',
+ original:{title:'Winterlight · The original Wizards in Winter house in 3D',videoView:'Video view',scaleTag:'Layout traced from the filmed show · dimensions estimated',
   cueNote:ORIGINAL_CUES,allOnHint:'Reference: compare with the final frame of the video'},
- split:{title:TITLE,videoView:'Front view',asideTitle:'Two houses,<br>one show.',scaleTag:'Original on top · our house below',
-  cueNote:`${ORIGINAL_CUES} Our house runs the very same values, prop for prop.`,allOnHint:'Every prop lit at full brightness on both houses'},
+ split:{title:TITLE,videoView:'Front view',scaleTag:'Original on top · our house below',
+  cueNote:`${ORIGINAL_CUES} Both houses use the same values.`,allOnHint:'Every prop lit at full brightness on both houses'},
 };
 const TOGGLE=[{mode:'ours',label:'Our house',icon:'i-lucide-house'},{mode:'original',label:'Original',icon:'i-lucide-film'},{mode:'split',label:'Split view',icon:'i-lucide-rows-2'}];
 
@@ -45,7 +45,7 @@ useSeoMeta({
 <template>
   <div id="app" class="show-page">
     <FestiveSky />
-    <AppHeader note="A Belgian winter, reimagined.">
+    <AppHeader>
       <div class="house-toggle" role="group" aria-label="House">
         <button v-for="t in TOGGLE" :key="t.mode" :data-mode="t.mode" :aria-pressed="state.mode===t.mode" @click="player.setMode(t.mode)">
           <UIcon :name="t.icon" class="toggle-icon" />{{ t.label }}
@@ -63,8 +63,7 @@ useSeoMeta({
             <canvas v-if="id==='original'" id="overlay-video" :ref="e=>{el.overlayCanvas.value=e;}" class="overlay-video" :hidden="!state.overlayOn" />
             <div :id="`viewport-${id}`" :ref="e=>{el.viewports[id].value=e;}" class="viewport" />
             <div class="scene-heading">
-              <div class="eyebrow"><span class="dot" /> {{ houses[id].page.eyebrow }}</div>
-              <component :is="houses[id].page.heading" class="scene-title">{{ houses[id].page.title }}</component>
+              <component :is="houses[id].page.heading" class="eyebrow scene-title"><span class="dot" /> {{ houses[id].page.title }}</component>
               <p>{{ houses[id].page.subtitle }}</p>
             </div>
             <div v-if="id==='original'" v-show="state.overlayOn" id="overlay-controls" class="overlay-controls">
@@ -85,9 +84,7 @@ useSeoMeta({
       </section>
 
       <aside class="sidebar">
-        <div class="eyebrow muted">ORIGINAL VIDEO TIMING</div>
-        <h2 id="aside-title" class="aside-title" v-html="page.asideTitle" />
-        <a class="cost-link" href="/costs.html"><UIcon name="i-lucide-gift" /> What would the lights cost? See the LED estimate <UIcon name="i-lucide-arrow-right" /></a>
+        <a class="cost-link" href="/costs.html"><UIcon name="i-lucide-gift" /> LED cost estimate <UIcon name="i-lucide-arrow-right" /></a>
 
         <div class="source-card">
           <span class="music-icon"><UIcon name="i-lucide-music-4" /></span>
