@@ -15,3 +15,6 @@ tools/transcription/__pycache__/
 tools/og-image/scene-*.png
 work/original/
 tools/original/__pycache__/
+.nuxt/
+.output/
+.data/
