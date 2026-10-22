@@ -18,6 +18,7 @@ export default defineNuxtConfig({
         {rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml'},
         {rel: 'apple-touch-icon', href: '/apple-touch-icon.png'},
       ],
+      script: [{src: 'https://tools.atlesque.dev/consent.js', defer: true}],
     },
   },
   colorMode: {preference: 'dark', fallback: 'dark'},
