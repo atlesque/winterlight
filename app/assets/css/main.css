@@ -121,9 +121,6 @@ canvas { display: block; outline: none; }
 .sidebar { overflow: auto; padding: 24px 24px 28px; scrollbar-width: thin; scrollbar-color: #344657 transparent;
   background: var(--glass); border: 1px solid var(--hairline); border-radius: 18px; backdrop-filter: blur(16px); box-shadow: 0 20px 60px -30px #000, inset 0 1px 0 #ffffff0a; }
 .aside-title { font-family: var(--font-display); font-size: 27px; line-height: 1.18; letter-spacing: -.6px; font-weight: 500; margin: 12px 0 14px; color: #fbf4e8; }
-.page-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
-.cost-link { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--gold-soft); margin: 0; padding: 7px 12px 7px 10px; border-radius: 999px; background: linear-gradient(90deg, #f43f4514, #efc19714); border: 1px solid #efc19726; transition: color .2s, border-color .2s, box-shadow .2s; }
-.cost-link:hover { color: var(--gold); border-color: #efc19766; box-shadow: 0 0 18px #efc19722; }
 .source-card { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #1b2a40cc, #142033cc); border: 1px solid #ffffff10; border-radius: 14px; padding: 12px 14px; }
 .music-icon { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; font-size: 18px; color: #2a1a0c; background: linear-gradient(135deg, #f6d3a8, #e7a96c); box-shadow: 0 0 16px #efc19744; }
 .source-card strong { font-size: 13px; display: block; font-weight: 600; }
@@ -191,6 +188,10 @@ canvas { display: block; outline: none; }
   .play-button { width: 42px; height: 42px; }
   .toggle-icon { display: none; }
   .house-toggle button { font-size: 11px; padding: 6px 9px; }
+}
+@media (max-width: 480px) {
+  /* The house toggle and menu need the room; the snowflake stays as the brand. */
+  .show-page .app-header .word { display: none; }
 }
 @media (max-width: 420px) {
   .house-toggle button { padding: 6px 7px; font-size: 10px; }
@@ -335,3 +336,15 @@ aside.summary { position: sticky; top: 112px; padding: 22px; }
 @media (prefers-reduced-motion: reduce) {
   .dot, .play-button.playing { animation: none; }
 }
+
+/* ── The site menu (its list opens in a portal, so it is styled here) ── */
+.site-menu { background: linear-gradient(180deg, #13203af5, #0d1628f5); border: 1px solid #efc19733; border-radius: 16px; backdrop-filter: blur(14px); box-shadow: 0 18px 50px -16px #000e, 0 0 26px -8px #efc19733, inset 0 1px 0 #ffffff12; }
+.site-menu-item { border-radius: 11px; padding: 10px 12px; gap: 12px; align-items: center; }
+.site-menu-item::before { border-radius: 11px; }
+.site-menu-item[data-highlighted]::before { background: linear-gradient(90deg, #f43f4518, #efc1971c); }
+.site-menu-item.is-current::before { background: #efc19712; }
+.site-menu-icon { width: 18px; height: 18px; color: var(--gold-soft); }
+.site-menu-item[data-highlighted] .site-menu-icon, .site-menu-item.is-current .site-menu-icon { color: var(--gold); }
+.site-menu-label { font-size: 14px; color: #f6efe2; white-space: normal; }
+.site-menu-desc { font-size: 11px; color: var(--ui-text-muted); white-space: normal; }
+.site-menu-star { width: 14px; height: 14px; margin-left: auto; color: var(--gold); filter: drop-shadow(0 0 6px #efc197aa); }

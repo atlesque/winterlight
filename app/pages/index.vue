@@ -84,11 +84,6 @@ useSeoMeta({
       </section>
 
       <aside class="sidebar">
-        <div class="page-links">
-          <a class="cost-link" href="/costs.html"><UIcon name="i-lucide-gift" /> LED cost estimate <UIcon name="i-lucide-arrow-right" /></a>
-          <a class="cost-link" href="/runbook.html"><UIcon name="i-lucide-list-checks" /> Build runbook <UIcon name="i-lucide-arrow-right" /></a>
-        </div>
-
         <div class="source-card">
           <span class="music-icon"><UIcon name="i-lucide-music-4" /></span>
           <div><strong>Wizards in Winter <InfoTip :text="page.cueNote" label="How the timing works" /></strong><small id="cue-info">{{ state.cueInfo }}</small></div>

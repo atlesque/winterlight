@@ -43,9 +43,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 <template>
   <div class="costs-shell">
     <FestiveSky />
-    <AppHeader>
-      <UButton class="back-link" to="/" external color="primary" variant="ghost" icon="i-lucide-arrow-left" label="Back to the light show" />
-    </AppHeader>
+    <AppHeader />
     <main class="costs">
       <section class="intro">
         <h1>LED cost estimate</h1>
