@@ -28,6 +28,19 @@ export const GLYPHS={
   S:[[[1,.85],[.8,1],[.2,1],[0,.85],[0,.62],[.2,.5],[.8,.5],[1,.38],[1,.15],[.8,0],[.2,0],[0,.15]]],
 };
 
+// Pixels per letter on ProPixeler's 30 cm coro letters, which our letters are.
+export const LETTER_PIXELS={H:46,A:41,P:39,Y:31,O:42,L:28,I:18,D:46,S:40};
+// n points spread evenly over a set of strokes, each stroke keeping both ends.
+function spread(strokes,n){
+  const lens=strokes.map(s=>s.slice(1).reduce((t,p,i)=>t+dist(s[i],p),0)),total=lens.reduce((a,b)=>a+b,0);
+  const counts=lens.map(l=>Math.max(2,Math.floor(n*l/total)));
+  for(let i=0;counts.reduce((a,b)=>a+b,0)<n;i=(i+1)%counts.length)counts[i]++;
+  return strokes.map((s,k)=>{const step=lens[k]/(counts[k]-1),out=[];
+    for(let j=0;j<counts[k];j++){let d=j*step,i=0;while(i<s.length-2&&d>dist(s[i],s[i+1])){d-=dist(s[i],s[i+1]);i++;}
+     const seg=dist(s[i],s[i+1]);out.push(lerp(s[i],s[i+1],seg?Math.min(1,d/seg):0));}
+    return out;});
+}
+
 // A bulb: position, base colour, multicolour tone (1 yellow, 2 blue, 0 single
 // colour) and relative size. Frames are the wires the scene draws behind them.
 const bulb=(pos,color,tone=0,size=1)=>({pos,color,tone,size});
@@ -59,11 +72,9 @@ const geometry={
     const {from,to,y,height,z}=L.letters,slot=(to-from)/L.letters.text.length,width=height*.7;
     // The channel's own place in HAPPY HOLIDAYS, so the gap between the words stays.
     const at=[...L.letters.text].reduce((list,ch,i)=>ch===' '?list:[...list,i],[])[index],cx=from+slot*(at+.5),bulbs=[],frames=[];
-    for(const stroke of GLYPHS[channel.model.char]){
-      const points=stroke.map(([u,v])=>[cx+(u-.5)*width,y+(v-.5)*height,z]);
-      for(const p of along(points,.045))bulbs.push(bulb(p,COLORS[channel.palette]));
-      frames.push(points.map(p=>[p[0],p[1],z-.01]));
-    }
+    const strokes=GLYPHS[channel.model.char].map(stroke=>stroke.map(([u,v])=>[cx+(u-.5)*width,y+(v-.5)*height,z]));
+    for(const p of spread(strokes,LETTER_PIXELS[channel.model.char]).flat())bulbs.push(bulb(p,COLORS[channel.palette]));
+    for(const points of strokes)frames.push(points.map(p=>[p[0],p[1],z-.01]));
     return {bulbs,frames};
   },
   // Two rings of green with a red bow at the bottom, as on the original.

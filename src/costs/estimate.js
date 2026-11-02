@@ -29,7 +29,7 @@ export const GROUPS={
  upper:{zone:'facade',led:'12 mm bullet pixels, icicle drops tied on below the run',why:'One RGB pixel shows yellow, blue or both, so the multicolour strip needs one run instead of two coloured strings on two channels.',mount:strip},
  lower:{zone:'facade',led:'12 mm bullet pixels, icicle drops tied on below the run',why:'Same as the upper strip, under the garage eave.',mount:strip},
  windows:{zone:'facade',led:'12 mm bullet pixels at 10 cm',why:'The string\'s own 10 cm pitch matches the outlines, so no slack to hide.',mount:strip},
- letters:{zone:'facade',led:'12 mm bullet pixels pushed into coro letters',why:'Coro boards keep each letter\'s shape exactly; the 4.5 cm spacing is drilled into the board and the spare wire runs behind it.',mount:coro},
+ letters:{zone:'facade',led:'12 mm bullet pixels in ready-made 30 cm coro letters',why:'ProPixeler\'s 30 cm letters come pre-drilled for the pixels, so the fiddliest props need no cutting; the spare wire runs behind them.',mount:()=>[line('letter30',1),line('stake',2)]},
  wreaths:{zone:'facade',led:'12 mm bullet pixels in a coro ring',why:'Green rings and the red bow come from the same pixels, so no separate bow string.',mount:coro},
  peace:{zone:'facade',led:'12 mm bullet pixels in a coro sign',why:'A coro board holds the circle and the three strokes on the door glass.',mount:coro},
  canes:{zone:'garden',led:'12 mm bullet pixels in coro canes',why:'Coro canes stand on two stakes in the snow and survive wind better than tubes.',mount:coro},
@@ -88,7 +88,7 @@ export function estimate(selected,options={}){
  const ext=items=>round(groups.reduce((s,g)=>s+g.extras.filter(l=>items.includes(l.item)).reduce((t,l)=>t+l.cost,0),0));
  const categories=[
   {id:'leds',name:'Pixels',cost:round(sum(l=>l.item==='pixels')+inf(['spares']))},
-  {id:'mounts',name:'Prop frames and mounts',cost:round(sum(l=>['mountStrip','stake','coro','minitreeFrame'].includes(l.item))+ext(['treeFrame']))},
+  {id:'mounts',name:'Prop frames and mounts',cost:round(sum(l=>['mountStrip','stake','coro','letter30','minitreeFrame'].includes(l.item))+ext(['treeFrame']))},
   {id:'wiring',name:'Wiring and power injection',cost:round(sum(l=>['cable','pigtail','zipTies'].includes(l.item))+ext(['tSplitter','injectWire']))},
   {id:'control',name:'Controllers',cost:inf(['controller'])},
   {id:'power',name:'Power supplies, boxes and mains',cost:inf(['psu','enclosure','fittings','mains'])},

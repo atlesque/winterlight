@@ -13,6 +13,7 @@ const WAVE1='2026-11-06',WAVE2='2026-11-13';
 const FULL=estimate(ALL,DEFAULTS);
 const lines=[...FULL.groups.flatMap(g=>[...g.props.flatMap(p=>p.lines),...g.extras]),...FULL.infra];
 const modelQty=item=>lines.filter(l=>l.item===item).reduce((s,l)=>s+l.qty,0);
+const g0=id=>FULL.groups.find(g=>g.id===id).count;
 const zones=Object.values(FULL.zones),zoneSum=k=>zones.reduce((s,z)=>s+z[k],0);
 const group=id=>FULL.groups.find(g=>g.id===id);
 
@@ -22,6 +23,7 @@ export const SHOPS={
  audiophonics:{name:'Audiophonics',days:[4,7]},
  vekto:{name:'Vekto',days:[3,5]},
  kiwi:{name:'Kiwi Electronics',days:[1,3]},
+ propixeler:{name:'ProPixeler',days:[3,7]},
  bol:{name:'bol.com',days:[1,3]},
 };
 const search=q=>`https://www.bol.com/be/nl/s/?searchtext=${encodeURIComponent(q)}`;
@@ -40,8 +42,9 @@ const ROWS=[
  {id:'zipTies',name:'Cable ties, 100 pieces',qty:Math.ceil(modelQty('zipTies')),unit:'packs',price:P.zipTies.price,url:P.zipTies.url,shop:'ledshows',expense:'private',wave:1},
  {id:'psu',name:'Mean Well LRS-350-12 power supply',qty:zoneSum('psus'),unit:'×',price:P.psu.price,url:P.psu.url,shop:'audiophonics',expense:'private',wave:1,tip:'Two per box, each at no more than 80% load.'},
  {id:'enclosure',name:'IP65 enclosure 280 × 210 × 130 mm',qty:zoneSum('boxes'),unit:'×',price:P.enclosure.price,url:P.enclosure.url,shop:'vekto',expense:'private',wave:1,tip:'Two per zone: one for the controller and a power supply, one for the second power supply.'},
+ {id:'letters',name:'ProPixeler coro letters, 30 cm',qty:g0('letters'),unit:'×',price:P.letter30.price,url:P.letter30.url,shop:'propixeler',expense:'private',wave:1,tip:'H, A, P, P, Y, H, O, L, I, D, A, Y, S. Bare coro, pre-drilled for pixels; ask them to confirm the holes take 12 mm bullets.'},
  {id:'coro',name:'Coro sheet 100 × 200 cm, 3–3.5 mm, blank',qty:Math.ceil(modelQty('coro')*1.4/2),unit:'sheets',price:P.coro.price*2,url:P.coro.url,shop:'bol',expense:'private',wave:1,estimate:true,
-  tip:`${Math.ceil(modelQty('coro'))} m² for the letters, circles, peace sign, candy canes and tree star, plus 40% for offcuts. Any blank white or black sheet works; hardware stores and plastics shops sell them.`},
+  tip:`${Math.ceil(modelQty('coro'))} m² for the circles, peace sign, candy canes and tree star, plus 40% for offcuts. Any blank white or black sheet works; hardware stores and plastics shops sell them.`},
  {id:'cutting',name:'Snap-off knife blades and spray adhesive',qty:1,unit:'set',price:15,url:search('afbreekmesjes 18mm'),shop:'bol',expense:'private',wave:1,estimate:true,tip:'Fresh blades for the coro, and repositionable spray adhesive to hold the paper templates on the sheets.'},
  {id:'player',name:'Raspberry Pi 5, 4 GB',qty:1,unit:'×',price:P.player.price,url:P.player.url,shop:'kiwi',expense:'business',wave:1},
  {id:'playerKit',name:'Pi 5 power supply, case and 32 GB card',qty:1,unit:'set',price:P.playerKit.price,url:P.player.url,shop:'kiwi',expense:'business',wave:1,estimate:true},
@@ -95,11 +98,11 @@ export const CHAPTERS=[
  {id:'build',title:'Build the props',icon:'i-lucide-hammer',due:'2026-11-24',steps:[
   {id:'build-boxes',text:`Build the ${zoneSum('boxes')} boxes: power supplies, controllers, fuses and cable glands`,tip:'Glands at the bottom, with a drip loop on every cable going in.'},
   {id:'build-templates',text:'Print the prop templates 1:1 and stick them on the coro',tip:'Tile them on A4 at home or print them as one A1/A0 sheet at a copy shop. Lay them with the flutes running vertically, so rain drains out and the props stay stiff.'},
-  {id:'build-letters',text:`Cut the ${g.letters.props.length} HAPPY HOLIDAYS letters from coro and drill them`,tip:'On a scrap board: straight edges with a snap-off knife along a steel ruler, in two or three light passes. Curves with the knife in short cuts, or a jigsaw with a fine blade. Holes 4.5 cm apart with the 12 mm step drill, then pull the template off.'},
-  {id:'build-wreaths',text:'Cut and drill the two Christmas circles'},
+  {id:'build-wreaths',text:'Cut and drill the two Christmas circles',tip:'On a scrap board: straight edges with a snap-off knife along a steel ruler, in two or three light passes. Curves with the knife in short cuts, or a jigsaw with a fine blade. Holes with the 12 mm step drill through the template marks, then pull the template off.'},
   {id:'build-peace',text:'Cut and drill the peace sign'},
   {id:'build-canes',text:`Cut and drill the ${g.canes.props.length} candy canes`},
-  {id:'build-push',text:'Push the pixels into the coro props and tie the spare wire behind',tip:'Start each prop at the corner nearest its box, so the data runs the same way as in the model.'},
+  {id:'build-letters',text:`Check the ${g.letters.props.length} letters: ${g.letters.pixels} holes, all taking a 12 mm pixel`},
+  {id:'build-push',text:'Push the pixels into the letters and coro props and tie the spare wire behind',tip:'Start each prop at the corner nearest its box, so the data runs the same way as in the model.'},
   {id:'build-strips',text:`Fix the house strips to mounting strip: upper ${g.upper.pixels}, lower ${g.lower.pixels} pixels with icicle drops`},
   {id:'build-windows',text:`Fix the window outlines to mounting strip: ${g.windows.pixels} pixels at 10 cm`},
   {id:'build-minitrees',text:`Print the frames and string the ${g.minitrees.props.length} mini trees, ${each('minitrees')} pixels each`},

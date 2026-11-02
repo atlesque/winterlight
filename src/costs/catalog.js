@@ -17,6 +17,7 @@ export const PRICES={
  soundCard:{name:'USB sound card, 3.5 mm',price:4.5,url:'https://shop.ledshows.nl/product-categorie/hardware/audio/',shop:'LEDshows.nl'},
  // Blank sheets, not a print shop's cut-to-size price (DrukLAB asks €35.28 per m²);
  // Leroy Merlin sells 100 × 200 cm 3 mm sheets for about €10.
+ letter30:{name:'ProPixeler coro letter, 30 cm, bare (pixels separate)',price:7,url:'https://www.propixeler.nl/product/letters-30-cm-wit',shop:'ProPixeler'},
  coro:{name:'Corrugated polypropylene sheet (coro), 3–3.5 mm, blank, per m²',price:6,estimate:true,url:'https://www.bol.com/be/nl/s/?searchtext=kanaalplaat%20polypropyleen%203mm',shop:'bol.com'},
  cable:{name:'3-core pixel extension cable (18 AWG), per metre',price:.8,estimate:true},
  stake:{name:'Ground stake or wall clip',price:.6,estimate:true},
