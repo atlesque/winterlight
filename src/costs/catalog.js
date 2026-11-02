@@ -15,7 +15,9 @@ export const PRICES={
  injectWire:{name:'4 mm² installation wire, per metre (red or black)',price:2,url:LEDSHOWS,shop:'LEDshows.nl'},
  zipTies:{name:'Cable ties 2.5 × 100 mm, 100 pieces',price:2.5,url:LEDSHOWS,shop:'LEDshows.nl'},
  soundCard:{name:'USB sound card, 3.5 mm',price:4.5,url:'https://shop.ledshows.nl/product-categorie/hardware/audio/',shop:'LEDshows.nl'},
- coro:{name:'Corrugated polypropylene sheet (coro), 3.5 mm, per m²',price:35.28,url:'https://www.druklab.be/product/kanaalplaat-polyprop',shop:'DrukLAB'},
+ // Blank sheets, not a print shop's cut-to-size price (DrukLAB asks €35.28 per m²);
+ // Leroy Merlin sells 100 × 200 cm 3 mm sheets for about €10.
+ coro:{name:'Corrugated polypropylene sheet (coro), 3–3.5 mm, blank, per m²',price:6,estimate:true,url:'https://www.bol.com/be/nl/s/?searchtext=kanaalplaat%20polypropyleen%203mm',shop:'bol.com'},
  cable:{name:'3-core pixel extension cable (18 AWG), per metre',price:.8,estimate:true},
  stake:{name:'Ground stake or wall clip',price:.6,estimate:true},
  minitreeFrame:{name:'Mini-tree frame: printed base and top, six spokes',price:5,estimate:true},
