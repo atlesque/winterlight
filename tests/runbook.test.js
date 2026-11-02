@@ -27,3 +27,11 @@ test('the shopping list covers the full show in the cost model',()=>{
  const total=PURCHASES.reduce((s,p)=>s+p.cost,0);
  assert.ok(total>=e.subtotal*.95,'purchases come close to the cost page before contingency');
 });
+
+test('the runbook links every coro template, and each is made from the model',async()=>{
+ const {existsSync}=await import('node:fs');
+ const {TEMPLATES:made}=await import('../tools/templates/make.mjs');
+ const {TEMPLATES}=await import('../src/runbook/runbook.js');
+ assert.deepEqual(TEMPLATES.map(t=>[t.file,t.cut]),made.map(t=>[t.file,t.cut]));
+ for(const t of TEMPLATES)for(const ext of ['svg','pdf'])assert.ok(existsSync(new URL(`../outputs/templates/${t.file}.${ext}`,import.meta.url)),`${t.file}.${ext}`);
+});

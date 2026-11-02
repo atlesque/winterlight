@@ -26,8 +26,11 @@ const chapters=computed(()=>CHAPTERS.map((c,i)=>({...c,n:i+1,count:c.steps.filte
 const progress=computed(()=>({done:STEP_IDS.filter(id=>done.has(id)).length,of:STEP_IDS.length}));
 const next=computed(()=>{for(const c of chapters.value)for(const s of c.steps)if(!done.has(s.id))return {c,s};return null;});
 const stepText=s=>s.buy?`Order: ${byId[s.buy].name}`:s.text;
-const money=computed(()=>{const t={private:0,business:0,ordered:0,all:0};
- for(const p of PURCHASES){t[kind(p)]+=p.cost;t.all+=p.cost;if(done.has(`buy-${p.id}`))t.ordered+=p.cost;}return t;});
+// Optional items (gear that may already be at hand) stay out of the totals until ticked as ordered.
+const money=computed(()=>{const t={private:0,business:0,ordered:0,all:0,optional:0};
+ for(const p of PURCHASES){const bought=done.has(`buy-${p.id}`);if(bought)t.ordered+=p.cost;
+  if(p.optional&&!bought){t.optional+=p.cost;continue;}t[kind(p)]+=p.cost;t.all+=p.cost;}return t;});
+const links=s=>s.links||(s.link?[s.link]:[]);
 const qty=p=>p.unit==='×'?`${p.qty} ×`:`${p.qty} ${p.unit}`;
 const checked=new Date(CHECKED).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
 
@@ -70,7 +73,8 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
                   <div class="step-body">
                     <span class="step-text">{{ byId[s.buy].name }} <InfoTip v-if="byId[s.buy].tip" :text="byId[s.buy].tip" :label="`About ${byId[s.buy].name}`" /></span>
                     <span class="step-meta">{{ qty(byId[s.buy]) }} · <a :href="byId[s.buy].url" target="_blank" rel="noopener">{{ SHOPS[byId[s.buy].shop].name }}<UIcon name="i-lucide-external-link" /></a>
-                      <template v-if="byId[s.buy].estimate"> · <UBadge label="estimate" color="primary" variant="subtle" size="sm" /></template></span>
+                      <template v-if="byId[s.buy].estimate"> · <UBadge label="estimate" color="primary" variant="subtle" size="sm" /></template>
+                      <template v-if="byId[s.buy].optional"> · <UBadge label="optional" color="neutral" variant="subtle" size="sm" /></template></span>
                   </div>
                   <button type="button" class="expense" :data-kind="kind(byId[s.buy])" :aria-label="`${KIND[kind(byId[s.buy])].label} expense, switch to ${KIND[kind(byId[s.buy])].other}`" @click="flip(byId[s.buy])">{{ KIND[kind(byId[s.buy])].label }}</button>
                   <span class="price">{{ euro(byId[s.buy].cost) }}</span>
@@ -78,7 +82,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
                 <template v-else>
                   <div class="step-body">
                     <span class="step-text">{{ s.text }} <InfoTip v-if="s.tip" :text="s.tip" label="More about this step" /></span>
-                    <span v-if="s.due||s.link" class="step-meta"><template v-if="s.due">Expected {{ day(s.due) }}</template><template v-if="s.due&&s.link"> · </template><a v-if="s.link" :href="s.link.href" target="_blank" rel="noopener">{{ s.link.label }}<UIcon name="i-lucide-external-link" /></a></span>
+                    <span v-if="s.due||links(s).length" class="step-meta"><template v-if="s.due">Expected {{ day(s.due) }}</template><template v-for="(l,i) in links(s)" :key="l.href"><template v-if="s.due||i"> · </template><a :href="l.href" target="_blank" rel="noopener">{{ l.label }}<UIcon name="i-lucide-external-link" /></a></template></span>
                   </div>
                 </template>
               </li>
@@ -93,11 +97,12 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
             <div class="bar progress-bar"><i :style="{width:`${progress.done/progress.of*100}%`}" /></div>
             <div id="next" class="delta">{{ next?`Next: ${stepText(next.s)}`:'Everything done. Enjoy the show.' }}</div>
           </div>
-          <div class="field-title">Spend <InfoTip text="Euro incl. VAT, without the cost page's contingency. Click a Private or Business tag to move an item. Business VAT may be reclaimable." label="About the spend" /></div>
+          <div class="field-title">Spend <InfoTip text="Euro incl. VAT, without the cost page's contingency or the optional items. Click a Private or Business tag to move an item. Business VAT may be reclaimable." label="About the spend" /></div>
           <dl id="money" class="money">
             <div><dt><i class="swatch private" /> Private</dt><dd>{{ euro(money.private) }}</dd></div>
             <div><dt><i class="swatch business" /> Business</dt><dd>{{ euro(money.business) }}</dd></div>
             <div class="grand"><dt>Total</dt><dd>{{ euro(money.all) }}</dd></div>
+            <div><dt>Optional, if not at hand <InfoTip text="A Raspberry Pi and its kit, a switch and network cables. Not in the total until ticked as ordered." label="About optional items" /></dt><dd>{{ euro(money.optional) }}</dd></div>
             <div><dt>Ordered so far</dt><dd>{{ euro(money.ordered) }}</dd></div>
           </dl>
           <nav class="chapter-nav" aria-label="Chapters">

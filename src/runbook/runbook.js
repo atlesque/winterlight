@@ -1,5 +1,10 @@
 import {estimate,ALL,GROUP_LIST,ZONES,DEFAULTS} from '../costs/estimate.js';
 import {PRICES as P,CHECKED} from '../costs/catalog.js';
+// The coro templates made by tools/templates/make.mjs (outputs/templates/).
+export const TEMPLATES=[
+ {file:'christmas-circle',title:'Christmas circle',cut:2},{file:'peace-sign',title:'Peace sign',cut:1},
+ {file:'candy-cane',title:'Candy cane',cut:8},{file:'tree-star',title:'Tree star',cut:1},
+];
 
 // The build runbook (runbook.html): chapters of to-dos from buying the parts
 // to the first test run. Quantities come from the cost model for the full show
@@ -41,13 +46,13 @@ const ROWS=[
  {id:'mountStrip',name:'Pixel mounting strip, 50 m roll',qty:Math.ceil(modelQty('mountStrip')/50),unit:'rolls',price:P.mountStrip.price*50,url:P.mountStrip.url,shop:'ledshows',expense:'private',wave:1,tip:`${Math.ceil(modelQty('mountStrip'))} m for the house strips, window outlines, ground strip and tree strands.`},
  {id:'zipTies',name:'Cable ties, 100 pieces',qty:Math.ceil(modelQty('zipTies')),unit:'packs',price:P.zipTies.price,url:P.zipTies.url,shop:'ledshows',expense:'private',wave:1},
  {id:'psu',name:'Mean Well LRS-350-12 power supply',qty:zoneSum('psus'),unit:'×',price:P.psu.price,url:P.psu.url,shop:'audiophonics',expense:'private',wave:1,tip:'Two per box, each at no more than 80% load.'},
- {id:'enclosure',name:'IP65 enclosure 280 × 210 × 130 mm',qty:zoneSum('boxes'),unit:'×',price:P.enclosure.price,url:P.enclosure.url,shop:'vekto',expense:'private',wave:1,tip:'Two per zone: one for the controller and a power supply, one for the second power supply.'},
+ {id:'enclosure',name:'IP65 enclosure 280 × 210 × 130 mm',qty:zoneSum('boxes'),unit:'×',price:P.enclosure.price,url:P.enclosure.url,shop:'vekto',expense:'private',wave:1,tip:'Two per zone: one for the controller and a power supply, one for the second power supply. In the garage, a cheaper indoor box or a board on the wall will do.'},
  {id:'letters',name:'ProPixeler coro letters, 30 cm',qty:g0('letters'),unit:'×',price:P.letter30.price,url:P.letter30.url,shop:'propixeler',expense:'private',wave:1,tip:'H, A, P, P, Y, H, O, L, I, D, A, Y, S. Bare coro, pre-drilled for pixels; ask them to confirm the holes take 12 mm bullets.'},
  {id:'coro',name:'Coro sheet 100 × 200 cm, 3–3.5 mm, blank',qty:Math.ceil(modelQty('coro')*1.4/2),unit:'sheets',price:P.coro.price*2,url:P.coro.url,shop:'bol',expense:'private',wave:1,estimate:true,
   tip:`${Math.ceil(modelQty('coro'))} m² for the circles, peace sign, candy canes and tree star, plus 40% for offcuts. Any blank white or black sheet works; hardware stores and plastics shops sell them.`},
  {id:'cutting',name:'Snap-off knife blades and spray adhesive',qty:1,unit:'set',price:15,url:search('afbreekmesjes 18mm'),shop:'bol',expense:'private',wave:1,estimate:true,tip:'Fresh blades for the coro, and repositionable spray adhesive to hold the paper templates on the sheets.'},
- {id:'player',name:'Raspberry Pi 5, 4 GB',qty:1,unit:'×',price:P.player.price,url:P.player.url,shop:'kiwi',expense:'business',wave:1},
- {id:'playerKit',name:'Pi 5 power supply, case and 32 GB card',qty:1,unit:'set',price:P.playerKit.price,url:P.player.url,shop:'kiwi',expense:'business',wave:1,estimate:true},
+ {id:'player',name:'Raspberry Pi 5, 4 GB',qty:1,unit:'×',price:P.player.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,tip:'Optional: skip it if a spare Raspberry Pi 4 or a mini PC can run Falcon Player.'},
+ {id:'playerKit',name:'Pi 5 power supply, case and 32 GB card',qty:1,unit:'set',price:P.playerKit.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,estimate:true},
  {id:'fittings',name:'Cable glands, terminal blocks and fuses',qty:zoneSum('boxes'),unit:'sets',price:P.fittings.price,url:search('kabelwartel IP68'),shop:'bol',expense:'private',wave:1,estimate:true,tip:'One set per enclosure.'},
  {id:'minitreeFrame',name:'Filament for the mini-tree frames',qty:1,unit:'×',price:Math.round(modelQty('minitreeFrame')*P.minitreeFrame.price),url:search('PETG filament 1kg'),shop:'bol',expense:'private',wave:1,estimate:true,
   tip:`Printed base and top for ${modelQty('minitreeFrame')} mini trees; the six spokes are mounting strip.`},
@@ -55,8 +60,8 @@ const ROWS=[
  // Wave 2: only needed when hanging and placing.
  {id:'stake',name:'Ground stakes and wall clips',qty:modelQty('stake'),unit:'×',price:P.stake.price,url:search('grondpennen kunststof'),shop:'bol',expense:'private',wave:2,estimate:true},
  {id:'mains',name:'Outdoor 230 V cable, plug and socket per box',qty:zones.length,unit:'sets',price:P.mains.price,url:search('verlengkabel buiten IP44'),shop:'bol',expense:'private',wave:2,estimate:true},
- {id:'network',name:'Outdoor Cat5e cable to each box',qty:zones.length,unit:'×',price:P.network.price,url:P.network.url,shop:'ledshows',expense:'business',wave:1,estimate:true,tip:'LEDshows makes them to length, so they go in the first basket; measure the run from the switch to each box first.'},
- {id:'switch',name:'5-port network switch',qty:1,unit:'×',price:P.switch.price,url:search('5 poort switch gigabit'),shop:'bol',expense:'business',wave:2,estimate:true},
+ {id:'network',name:'Outdoor Cat5e cable to each box',qty:zones.length,unit:'×',price:P.network.price,url:P.network.url,shop:'ledshows',expense:'business',optional:true,wave:1,estimate:true,tip:'Optional: with the boxes in the garage, ordinary patch cables you already have will do. Outside, LEDshows makes outdoor ones to length; measure the run from the switch to each box first.'},
+ {id:'switch',name:'5-port network switch',qty:1,unit:'×',price:P.switch.price,url:search('5 poort switch gigabit'),shop:'bol',expense:'business',optional:true,wave:2,estimate:true,tip:'Optional: skip it if a spare switch is at hand.'},
  {id:'soundCard',name:'USB sound card',qty:1,unit:'×',price:P.soundCard.price,url:P.soundCard.url,shop:'ledshows',expense:'business',wave:1},
  {id:'fm',name:'FM transmitter',qty:1,unit:'×',price:P.fm.price,url:search('fm transmitter 3.5 mm'),shop:'bol',expense:'private',wave:2,estimate:true},
 ];
@@ -76,10 +81,11 @@ export const CHAPTERS=[
  {id:'plan',title:'Plan and measure',icon:'i-lucide-ruler',due:'2026-11-05',steps:[
   {id:'measure-facade',text:'Measure the upper floor, garage eave and window frames',tip:'Compare with the model: if a run is longer, the pixel and strip quantities go up.'},
   {id:'measure-garden',text:'Measure the tree spot, mini-tree row, cane line and ground strip'},
-  {id:'box-spots',text:`Pick the box spots: ${ZONES.facade.where}, and ${ZONES.garden.where}`,tip:'Each box needs an outdoor socket within reach and a network cable route.'},
+  {id:'box-spots',text:'Decide where the boxes go: in the garage, or outside on the facade and in the garden',tip:'In the garage the boxes stay dry, so they need no IP65 enclosures, outdoor mains or outdoor network cables. The pixel cables to the garden props get longer: measure the longest run from the garage; past about 15 m of data cable, add a null pixel or a differential receiver.'},
   {id:'rcd',text:'Check the outdoor sockets are on a 30 mA RCD',tip:'Aardlekschakelaar. Ask an electrician if a new outdoor socket is needed.'},
   {id:'accountant',text:'Confirm the business purchases with the accountant',tip:'The business tags below are a suggestion: show hardware and network gear. Business orders go on a separate invoice in the company name with its VAT number.'},
   {id:'network-runs',text:'Measure the network cable runs from the switch to each box'},
+  {id:'spare-gear',text:'Check for a spare Raspberry Pi or mini PC, a switch and patch cables',tip:'Skip the items marked optional that you already have.'},
   {id:'tools',text:'Get the tools ready: multimeter, wire stripper, crimp pliers, step drill bit, drill'},
   {id:'ip-plan',text:'Reserve IP addresses for the Pi and both controllers'},
  ]},
@@ -97,7 +103,7 @@ export const CHAPTERS=[
  ]},
  {id:'build',title:'Build the props',icon:'i-lucide-hammer',due:'2026-11-24',steps:[
   {id:'build-boxes',text:`Build the ${zoneSum('boxes')} boxes: power supplies, controllers, fuses and cable glands`,tip:'Glands at the bottom, with a drip loop on every cable going in.'},
-  {id:'build-templates',text:'Print the prop templates 1:1 and stick them on the coro',tip:'Tile them on A4 at home or print them as one A1/A0 sheet at a copy shop. Lay them with the flutes running vertically, so rain drains out and the props stay stiff.'},
+  {id:'build-templates',text:'Print the prop templates 1:1 and stick them on the coro',links:TEMPLATES.map(t=>({href:`/outputs/templates/${t.file}.pdf`,label:`${t.title} (cut ${t.cut})`})),tip:'Tile them on A4 at home or print them as one A1/A0 sheet at a copy shop. Lay them with the flutes running vertically, so rain drains out and the props stay stiff.'},
   {id:'build-wreaths',text:'Cut and drill the two Christmas circles',tip:'On a scrap board: straight edges with a snap-off knife along a steel ruler, in two or three light passes. Curves with the knife in short cuts, or a jigsaw with a fine blade. Holes with the 12 mm step drill through the template marks, then pull the template off.'},
   {id:'build-peace',text:'Cut and drill the peace sign'},
   {id:'build-canes',text:`Cut and drill the ${g.canes.props.length} candy canes`},
