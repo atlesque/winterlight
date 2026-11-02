@@ -46,9 +46,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 <template>
   <div class="costs-shell">
     <FestiveSky />
-    <AppHeader>
-      <UButton class="back-link" to="/" external color="primary" variant="ghost" icon="i-lucide-arrow-left" label="Back to the light show" />
-    </AppHeader>
+    <AppHeader />
     <main class="costs runbook">
       <section class="intro">
         <h1>Build runbook</h1>
