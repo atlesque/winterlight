@@ -1,24 +1,26 @@
 // Parts and prices behind the LED cost page (costs.html). Prices are euro,
-// VAT included, from European shops checked on 10 October 2026; a part marked
+// VAT included, from European shops checked on 6 November 2026; a part marked
 // `estimate` has no single shop price behind it and is a rounded guess.
-export const CHECKED='2026-10-10';
+export const CHECKED='2026-11-06';
 const LEDSHOWS='https://shop.ledshows.nl/';
 export const PRICES={
- pixels50:{name:'12 V WS2811 12 mm bullet pixels, string of 50 (10 cm pitch, X-con plugs)',price:12,url:'https://shop.ledshows.nl/shop/ws2811-rgb-pixels-12v-xcon/',shop:'LEDshows.nl'},
+ // LEDshows sold out of pixels in November; Pixel-Imperium had 24 standard
+ // strings in stock and makes up the rest with its regulated strings.
+ pixels50:{name:'12 V WS2811 12 mm bullet pixels, string of 50 (10 cm pitch, xConnect plugs)',price:12.19,url:'https://pixel-imperium.de/ws2811-pixel-string-12mm-12v-ip68-50px-xconnect-black',shop:'Pixel-Imperium'},
+ pixels50reg:{name:'Regulated 12 V WS2811 12 mm bullet pixels, string of 50 (10 cm pitch, xConnect plugs)',price:17.18,url:'https://pixel-imperium.de/regulated-ws2811-pixel-string-12mm-12v-ip68-50px-xconnect-black',shop:'Pixel-Imperium'},
  controller:{name:'Baldrick 8 pixel controller (8 ports, 750 pixels per port at 40 fps, E1.31/DDP)',price:70,url:'https://shop.ledshows.nl/product/baldrick-8/',shop:'LEDshows.nl'},
  psu:{name:'Mean Well LRS-350-12 power supply (12 V, 29 A, 348 W)',price:39.9,url:'https://www.audiophonics.fr/en/smps-power-supply/mean-well-lrs-350-12-switch-power-supply-12v-29a-348w-p-17203.html',shop:'Audiophonics'},
  enclosure:{name:'IP65 enclosure 280 × 210 × 130 mm with mounting plate',price:47.9,url:'https://www.vekto.nl/kunststofkast-280x210x130mm-ip65',shop:'Vekto'},
  player:{name:'Raspberry Pi 5 4 GB running Falcon Player (FPP)',price:120.99,url:'https://www.kiwi-electronics.com/nl/raspberry-pi-boards-behuizingen-uitbreidingen-en-accessoires-59/raspberry-pi-boards-363',shop:'Kiwi Electronics (€99.99 excl. VAT)'},
  mountStrip:{name:'Pixel mounting strip, per metre (50 m roll €60)',price:1.2,url:LEDSHOWS,shop:'LEDshows.nl'},
- pigtail:{name:'X-con pigtail set, 50 cm',price:1.5,url:'https://shop.ledshows.nl/product-categorie/kabels/',shop:'LEDshows.nl'},
+ pigtail:{name:'xConnect pigtail pair (male + female), 50 cm',price:1.679,url:'https://www.aliexpress.com/w/wholesale-xconnect-pigtail-18awg.html',shop:'AliExpress (Shenzhen Rita Lighting, €16.79 per 10 pairs)'},
  tSplitter:{name:'X-con T-splitter with pigtail (power injection)',price:3,url:'https://shop.ledshows.nl/product-categorie/kabels/',shop:'LEDshows.nl'},
  injectWire:{name:'4 mm² installation wire, per metre (red or black)',price:2,url:LEDSHOWS,shop:'LEDshows.nl'},
  zipTies:{name:'Cable ties 2.5 × 100 mm, 100 pieces',price:2.5,url:LEDSHOWS,shop:'LEDshows.nl'},
  soundCard:{name:'USB sound card, 3.5 mm',price:4.5,url:'https://shop.ledshows.nl/product-categorie/hardware/audio/',shop:'LEDshows.nl'},
- // Blank sheets, not a print shop's cut-to-size price (DrukLAB asks €35.28 per m²);
- // Leroy Merlin sells 100 × 200 cm 3 mm sheets for about €10.
  letter30:{name:'ProPixeler coro letter, 30 cm, bare (pixels separate)',price:7,url:'https://www.propixeler.nl/product/letters-30-cm-wit',shop:'ProPixeler'},
- coro:{name:'Corrugated polypropylene sheet (coro), 3–3.5 mm, blank, per m²',price:6,estimate:true,url:'https://www.bol.com/be/nl/s/?searchtext=kanaalplaat%20polypropyleen%203mm',shop:'bol.com'},
+ // Blank white 3 mm sheets of 140 × 100 cm at €12.50, not a print shop's cut-to-size price.
+ coro:{name:'Corrugated polypropylene sheet (coro), 3 mm, blank white, per m²',price:8.93,url:'https://kunststofshop.nl/',shop:'kunststofshop.nl'},
  cable:{name:'3-core pixel extension cable (18 AWG), per metre',price:.8,estimate:true},
  stake:{name:'Ground stake or wall clip',price:.6,estimate:true},
  minitreeFrame:{name:'Mini-tree frame: printed base and top, six spokes',price:5,estimate:true},
