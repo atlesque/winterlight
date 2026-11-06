@@ -40,7 +40,7 @@ const ROWS=[
  // Wave 1: parts with the longest delivery or needed first on the bench.
  {id:'pixels',name:'12 V WS2811 bullet pixels, strings of 50',qty:Math.ceil(FULL.pixels*(1+DEFAULTS.spare/100)/50),unit:'strings',price:P.pixels50.price,url:P.pixels50.url,shop:'ledshows',expense:'private',wave:1,
   tip:`${FULL.pixels.toLocaleString('en')} pixels in the props plus ${DEFAULTS.spare}% spare, rounded up to whole strings.`},
- {id:'controller',name:'Baldrick 8 pixel controller',qty:zoneSum('controllers'),unit:'×',price:P.controller.price,url:P.controller.url,shop:'ledshows',expense:'business',wave:1,tip:'One for the facade box, one for the garden box.'},
+ {id:'controller',name:'Baldrick 8 pixel controller',qty:zoneSum('controllers'),unit:'×',price:P.controller.price,url:P.controller.url,shop:'ledshows',expense:'private',wave:1,tip:'One for the facade box, one for the garden box. Private: LEDshows doesn\'t sell to businesses.'},
  {id:'pigtail',name:'X-con pigtails, 50 cm',qty:modelQty('pigtail'),unit:'×',price:P.pigtail.price,url:P.pigtail.url,shop:'ledshows',expense:'private',wave:1,tip:'One per prop.'},
  {id:'tSplitter',name:'X-con T-splitters for power injection',qty:modelQty('tSplitter'),unit:'×',price:P.tSplitter.price,url:P.tSplitter.url,shop:'ledshows',expense:'private',wave:1,tip:`One every ${150} pixels along a run.`},
  {id:'cable',name:'3-core pixel extension cable',qty:Math.ceil(modelQty('cable')),unit:'m',price:P.cable.price,url:'https://shop.ledshows.nl/product-categorie/kabels/',shop:'ledshows',expense:'private',wave:1,estimate:true,tip:'From each box to the first prop and prop to prop. Buy as ready-made X-con extensions in the nearest lengths.'},
@@ -64,7 +64,7 @@ const ROWS=[
  {id:'mains',name:'Outdoor 230 V cable, plug and socket per box',qty:zones.length,unit:'sets',price:P.mains.price,url:search('verlengkabel buiten IP44'),shop:'bol',expense:'private',wave:2,estimate:true},
  {id:'network',name:'Outdoor Cat5e cable to each box',qty:zones.length,unit:'×',price:P.network.price,url:P.network.url,shop:'ledshows',expense:'business',optional:true,wave:1,estimate:true,tip:'Optional: with the boxes in the garage, ordinary patch cables you already have will do. Outside, LEDshows makes outdoor ones to length; measure the run from the switch to each box first.'},
  {id:'switch',name:'5-port network switch',qty:1,unit:'×',price:P.switch.price,url:search('5 poort switch gigabit'),shop:'bol',expense:'business',optional:true,wave:2,estimate:true,tip:'Optional: skip it if a spare switch is at hand.'},
- {id:'soundCard',name:'USB sound card',qty:1,unit:'×',price:P.soundCard.price,url:P.soundCard.url,shop:'ledshows',expense:'business',wave:1},
+ {id:'soundCard',name:'USB sound card',qty:1,unit:'×',price:P.soundCard.price,url:P.soundCard.url,shop:'ledshows',expense:'private',wave:1,tip:'Private: LEDshows doesn\'t sell to businesses.'},
  {id:'fm',name:'FM transmitter',qty:1,unit:'×',price:P.fm.price,url:search('fm transmitter 3.5 mm'),shop:'bol',expense:'private',wave:2,estimate:true},
 ];
 export const PURCHASES=ROWS.map(r=>({...r,cost:Math.round(r.qty*r.price*100)/100,orderBy:r.wave===1?WAVE1:WAVE2}));
