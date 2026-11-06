@@ -25,7 +25,7 @@ export const PRICES={
  stake:{name:'Ground stake or wall clip',price:.6,estimate:true},
  minitreeFrame:{name:'Mini-tree frame: printed base and top, six spokes',price:5,estimate:true},
  treeFrame:{name:'Tree centre pole, top ring and guy lines',price:30,estimate:true},
- fittings:{name:'Cable glands, terminal blocks and fuses per enclosure',price:15,estimate:true},
+ fittings:{name:'Wall board, terminal blocks and fuses per box',price:15,estimate:true},
  mains:{name:'Outdoor 230 V feed per box (cable, plug, socket)',price:25,estimate:true},
  network:{name:'Outdoor Cat5e run per box (LEDshows makes them to length for €2 to €45)',price:15,estimate:true,url:LEDSHOWS,shop:'LEDshows.nl'},
  switch:{name:'5-port network switch',price:20,estimate:true},

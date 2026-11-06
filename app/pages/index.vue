@@ -77,6 +77,7 @@ useSeoMeta({
           <UButton id="view-video" size="xs" color="neutral" variant="soft" icon="i-lucide-scan-eye" :label="page.videoView" @click="player.pressView('video')" />
           <UButton id="view-orbit" size="xs" color="neutral" variant="soft" icon="i-lucide-trees" label="Garden view" @click="player.pressView('orbit')" />
           <UButton id="view-yard" size="xs" color="neutral" variant="soft" icon="i-lucide-footprints" label="Yard view" @click="player.pressView('yard')" />
+          <UButton v-show="state.mode==='ours'&&state.wiring" id="view-garage" size="xs" color="neutral" variant="soft" icon="i-lucide-warehouse" label="Garage view" @click="player.pressView('garage')" />
           <UButton v-show="player.shows('original')" id="view-overlay" size="xs" :color="state.overlayOn?'primary':'neutral'" :variant="state.overlayOn?'subtle':'soft'" icon="i-lucide-layers" label="Overlay video" :aria-pressed="state.overlayOn" @click="player.pressView('overlay')" />
         </div>
         <div class="scene-footer"><span>Drag to orbit · Scroll to zoom · ← → step one frame</span><span id="scale-tag" class="scale-tag">{{ page.scaleTag }}</span></div>
@@ -110,7 +111,7 @@ useSeoMeta({
             <USwitch id="all-on" v-model="state.allOn" aria-label="All props on" />
           </div>
           <div v-show="player.shows('ours')" class="switch-row">
-            <span class="label-with-tip">Wiring <InfoTip text="Shows how our house is wired: each controller port's data cable in its own colour, running from the garage where both boxes sit, and the power injection points in red with their 12 V feeds. The wiring plan page has the full diagram." label="About the wiring" /></span>
+            <span class="label-with-tip">Wiring <InfoTip text="Shows how our house is wired: the garage door opens on both controller boxes, and each port's data cable runs out in its own colour, with the power injection points in red and their 12 V feeds. The wiring plan page has the full diagram." label="About the wiring" /></span>
             <USwitch id="wiring" v-model="state.wiring" aria-label="Show wiring" />
           </div>
           <p v-show="player.shows('ours')&&state.wiring" class="note wiring-note"><a href="/wiring.html">Open the wiring plan</a></p>

@@ -34,8 +34,10 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
  // doesn't line up with the filmed one, so it keeps the front view meanwhile.
  function setView(name){
   if(name==='overlay'&&!shows('original'))name='video';
+  // The garage view looks into our house's open garage; the original house has none.
+  if(name==='garage'&&state.mode!=='ours')name='orbit';
   state.view=name;state.overlayOn=name==='overlay';
-  scenes.original?.view(name);scenes.ours?.view(state.overlayOn?'video':name);
+  scenes.original?.view(name==='garage'?'orbit':name);scenes.ours?.view(state.overlayOn?'video':name);
  }
  const pressView=name=>setView(name==='overlay'&&state.overlayOn?'video':name);
 

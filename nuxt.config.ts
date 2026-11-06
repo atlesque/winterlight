@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   ui: {fonts: false, theme: {colors: ['primary', 'secondary', 'success', 'info', 'warning', 'error', 'neutral']}},
   // Icons are bundled into the client, so the static site never asks an icon API.
   // The runbook's chapter icons come from src/runbook/runbook.js, which the scan doesn't see.
-  icon: {provider: 'none', clientBundle: {scan: true, icons: ['lucide:play', 'lucide:pause', 'lucide:ruler', 'lucide:shopping-cart', 'lucide:package-plus', 'lucide:truck', 'lucide:cpu', 'lucide:hammer', 'lucide:map-pin', 'lucide:monitor-cog', 'lucide:circle-check']}},
+  icon: {provider: 'none', clientBundle: {scan: true, icons: ['lucide:play', 'lucide:pause', 'lucide:ruler', 'lucide:shopping-cart', 'lucide:package-plus', 'lucide:truck', 'lucide:cpu', 'lucide:hammer', 'lucide:map-pin', 'lucide:monitor-cog', 'lucide:circle-check', 'lucide:warehouse']}},
   nitro: {
     preset: 'static',
     output: {publicDir: fileURLToPath(new URL('./dist', import.meta.url))},
