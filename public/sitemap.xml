@@ -3,4 +3,5 @@
   <url><loc>https://winterlight.alexander-df0.workers.dev/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://winterlight.alexander-df0.workers.dev/costs.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://winterlight.alexander-df0.workers.dev/runbook.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://winterlight.alexander-df0.workers.dev/wiring.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>

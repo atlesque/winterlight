@@ -7,6 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { HOUSE, PROP_LAYOUT } from './house.js';
 import { OWN_CHANNELS } from './props.js';
 import { HOUSE_STRIPS } from './original/layout.js';
+import { WIRING, WIRE_COLORS } from './wiring/plan.js';
 
 // Our house with the original house's props. Bulbs are one instanced mesh; each
 // channel owns a range of bulbs with their base colours, and draw() takes the
@@ -38,14 +39,21 @@ export function createScene(host) {
   const mainWidth=HOUSE.width-HOUSE.garageWidth;
   box(mainWidth,HOUSE.eaves,HOUSE.depth,HOUSE.garageWidth+mainWidth/2,HOUSE.eaves/2,-HOUSE.depth/2,brick);
   roof(HOUSE.garageWidth,mainWidth,HOUSE.depth,HOUSE.eaves,HOUSE.ridge);
-  box(HOUSE.garageWidth,HOUSE.garageHeight,HOUSE.garageDepth,HOUSE.garageWidth/2,HOUSE.garageHeight/2,-HOUSE.garageDepth/2,brick);
+  // The garage is a hollow shell behind its door, so the door can open onto the show's boxes inside.
+  {const W=HOUSE.garageWidth,H=HOUSE.garageHeight,D=HOUSE.garageDepth,T=.12,g=HOUSE.garage,left=g.x-g.width/2,right=g.x+g.width/2;
+    box(T,H,D,T/2,H/2,-D/2,brick);box(T,H,D,W-T/2,H/2,-D/2,brick);box(W,H,T,W/2,H/2,-D+T/2,brick);box(W,T,D,W/2,H-T/2,-D/2,brick);
+    box(left,H,T,left/2,H/2,-T/2,brick);box(W-right,H,T,(W+right)/2,H/2,-T/2,brick);box(g.width,H-g.height,T,g.x,(H+g.height)/2,-T/2,brick);
+    box(W-2*T,.02,D-2*T,W/2,.012,-D/2,new THREE.MeshStandardMaterial({color:'#6d6a64',roughness:.95}));}
   roof(0,HOUSE.garageWidth,HOUSE.garageDepth,HOUSE.garageHeight,4.25);
   for(const [x,w,h,d] of [[HOUSE.garageWidth+mainWidth/2,mainWidth,HOUSE.eaves,HOUSE.depth],[HOUSE.garageWidth/2,HOUSE.garageWidth,HOUSE.garageHeight,HOUSE.garageDepth]]){
     box(w+.12,.16,d+.14,x,h,-d/2,mats.trim);
   }
   const garage=HOUSE.garage;
-  box(garage.width,garage.height,.09,garage.x,garage.height/2,.01,mats.dark);
-  for(let j=0;j<12;j++)box(garage.width-.06,.018,.025,garage.x,.12+j*.18,.071,mats.metal);
+  // An up-and-over door: it swings up about its top edge to lie under the garage ceiling.
+  const garageDoor=new THREE.Group();garageDoor.position.set(garage.x,garage.height,.01);scene.add(garageDoor);
+  const doorPanel=(w,h,d,y,z,mat)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(0,y-garage.height,z);m.castShadow=true;m.receiveShadow=true;garageDoor.add(m);};
+  doorPanel(garage.width,garage.height,.09,garage.height/2,0,mats.dark);
+  for(let j=0;j<12;j++)doorPanel(garage.width-.06,.018,.025,.12+j*.18,.061,mats.metal);
   const glass=new THREE.MeshStandardMaterial({color:'#4c4032',emissive:'#e6aa58',emissiveIntensity:.1,roughness:.4,metalness:.15});
   function window(x,y,w,h){box(w+.17,h+.17,.15,x,y,.025,mats.dark);box(w,h,.07,x,y,.12,glass);if(w>.5)box(.05,h,.08,x,y,.175,mats.dark);box(w+.25,.08,.26,x,y-h/2-.07,.12,mats.trim);}
   for(const opening of HOUSE.windows)window(opening.x,opening.y,opening.width,opening.height);
@@ -97,6 +105,47 @@ export function createScene(host) {
     for(const [x,y,z] of c.posts||[])cylinder(.012,y,x,y/2,z,mats.frame);
   }
   const tree=PROP_LAYOUT.tree;cylinder(.02,tree.height,tree.x,tree.height/2,tree.z,mats.frame);cylinder(.12,.06,tree.x,.03,tree.z,mats.frame);
+  // The wiring layer, hidden until switched on: each controller port's data
+  // cable in its own colour from the garage, and the power injection points
+  // with their feeds (src/wiring/plan.js).
+  const wiring=new THREE.Group();wiring.visible=false;scene.add(wiring);
+  const wireMat=color=>new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(.38)});
+  function wire(points,r,mat){const curve=new THREE.CurvePath(),v=points.map(p=>new THREE.Vector3(...p));for(let i=1;i<v.length;i++)curve.add(new THREE.LineCurve3(v[i-1],v[i]));wiring.add(new THREE.Mesh(new THREE.TubeGeometry(curve,(v.length-1)*4,r,5,false),mat));}
+  function tag(text,pos,color='#f6efe2'){
+    const canvas=document.createElement('canvas'),c=canvas.getContext('2d'),font='600 30px system-ui, sans-serif';c.font=font;
+    canvas.width=Math.ceil(c.measureText(text).width)+28;canvas.height=46;c.font=font;c.fillStyle='rgba(8,14,26,.82)';c.beginPath();c.roundRect(0,0,canvas.width,canvas.height,12);c.fill();
+    c.fillStyle=color;c.textBaseline='middle';c.fillText(text,14,24);
+    const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:'#a3a3a3',depthTest:false}));sprite.renderOrder=10;
+    sprite.scale.set(canvas.width/canvas.height*.3,.3,1);sprite.position.set(...pos);wiring.add(sprite);
+  }
+  const powerMat=wireMat(WIRE_COLORS.power),node=new THREE.SphereGeometry(.045,10,8),injectMat=new THREE.MeshBasicMaterial({color:WIRE_COLORS.power});
+  for(const z of WIRING.zones){
+    for(const port of z.ports){const mat=wireMat(port.color);for(const seg of port.segments)wire(seg,.01,mat);}
+    for(const port of z.ports)for(const inj of port.injections){wire(inj.path,.008,powerMat);const m=new THREE.Mesh(node,injectMat);m.position.set(...inj.pos);wiring.add(m);}
+  }
+  // Inside the garage: a wall board on the left wall with both controllers and
+  // their power supplies, the show computer on a shelf, and every cable going
+  // up, across the ceiling and out through the right jamb (src/wiring/plan.js).
+  // Cables run along the inside of the front wall, just under the door's header, so they show through the opening.
+  const IN_X=.12,CEIL=HOUSE.garage.height-.12,FRONT=-.2,[ex,ey,ez]=WIRING.hub.exit;
+  const ply=new THREE.MeshStandardMaterial({color:'#8a6b4a',roughness:.9}),ctrlMat=new THREE.MeshStandardMaterial({color:'#24303f',roughness:.5}),psuMat=new THREE.MeshStandardMaterial({color:'#9aa3ad',metalness:.5,roughness:.4});
+  const part=(w,h,d,x,y,z,mat)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);wiring.add(m);return m;};
+  part(.02,1.1,1.6,IN_X+.01,1.4,-1.25,ply);
+  WIRING.zones.forEach((z,k)=>{
+    const zc=-.85-k*.75,cx=IN_X+.05;
+    part(.07,.3,.22,cx,1.55,zc,ctrlMat);
+    z.psus.forEach((s,n)=>part(.05,.21,.11,IN_X+.045,1.05,zc-.17+n*.34,psuMat));
+    z.ports.forEach((port,i)=>{const start=port.segments[0][0],y=1.6+(i-z.ports.length/2)*.035,o=(k*6+i)*.018;
+      wire([[cx+.035,y,zc],[cx+.08+o,y,zc],[cx+.08+o,CEIL-o*.3,zc],[cx+.08+o,CEIL-o*.3,FRONT-o*.3],[ex-.06,CEIL-o*.3,FRONT-o*.3],[ex-.06,start[1],FRONT-o*.3],[ex-.06,start[1],start[2]],start],.009,wireMat(port.color));});
+    for(const port of z.ports)for(const inj of port.injections){const start=inj.path[0];
+      wire([[IN_X+.07,1.05,zc],[IN_X+.3,1.05,zc],[IN_X+.3,CEIL-.12,zc],[IN_X+.3,CEIL-.12,FRONT-.3],[ex-.1,CEIL-.12,FRONT-.3],[ex-.1,start[1],FRONT-.3],[ex-.1,start[1],start[2]],start],.007,powerMat);}
+  });
+  part(.3,.02,.4,IN_X+.15,.95,-2.35,ply);part(.1,.03,.07,IN_X+.1,.975,-2.3,ctrlMat);part(.08,.03,.16,IN_X+.2,.975,-2.45,ctrlMat);
+  tag('Controllers, power supplies, show computer',[IN_X+.55,.6,-1.3]);
+  const gland=part(.08,.08,.04,ex,ey,ez,new THREE.MeshStandardMaterial({color:'#3a4350',roughness:.6}));
+  // A work light in the garage, on with the wiring so the boards read through the open door.
+  const garageLight=new THREE.PointLight('#ffd9a8',0,9,1.2);garageLight.position.set(1.1,1.9,-1.3);scene.add(garageLight);
   const bulbs=[],channelBulbs=OWN_CHANNELS.map(()=>[]);
   OWN_CHANNELS.forEach((c,i)=>{for(const b of c.bulbs){channelBulbs[i].push(bulbs.length);bulbs.push({...b,color:new THREE.Color(b.color)});}});
   const lights=new THREE.InstancedMesh(new THREE.SphereGeometry(.029,8,6),new THREE.MeshBasicMaterial({toneMapped:false}),bulbs.length),m4=new THREE.Matrix4(),tmp=new THREE.Color();
@@ -111,9 +160,9 @@ export function createScene(host) {
   const bounce=new THREE.PointLight('#ffd9a0',0,9,2);bounce.position.set(6.5,1.5,2.6);scene.add(bounce);
   let aspectFit=1;
   const resize=()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;camera.aspect=w/h;const fit=Math.max(1,1.4/camera.aspect);camera.position.sub(controls.target).multiplyScalar(fit/aspectFit).add(controls.target);aspectFit=fit;controls.maxDistance=Math.max(35,35*fit);camera.updateProjectionMatrix();renderer.setSize(w,h);composer.setSize(w,h);};new ResizeObserver(resize).observe(host);resize();
-  const views={video:[[4.25,4.5,14],[4.25,3,0]],orbit:[[12,7,13],[4.25,2.8,-1.5]],yard:[[9.5,1.6,7.5],[6.3,1.3,1.5]],overlay:[[4.25,4.5,14],[4.25,3,0]]};
+  const views={video:[[4.25,4.5,14],[4.25,3,0]],orbit:[[12,7,13],[4.25,2.8,-1.5]],yard:[[9.5,1.6,7.5],[6.3,1.3,1.5]],overlay:[[4.25,4.5,14],[4.25,3,0]],garage:[[2.1,1.45,4.4],[.5,1.3,-1.3]]};
   const last=new Uint8Array(OWN_CHANNELS.length).fill(255),lastLevel=new Uint8Array(OWN_CHANNELS.length);
-  let glowSum=0;const channelGlow=new Float32Array(OWN_CHANNELS.length);
+  let glowSum=0,doorOpen=0;const channelGlow=new Float32Array(OWN_CHANNELS.length);
   // values: colour per channel (0 off, multicolour 1 yellow / 2 blue / 3 both); levels: brightness 0–100.
   function draw(values,levels,brightness=1){
     let dirty=false;
@@ -122,10 +171,13 @@ export function createScene(host) {
       for(const k of channelBulbs[i]){const b=bulbs[k],lit=v&&(!b.tone||(v&b.tone));lights.setColorAt(k,tmp.copy(b.color).multiplyScalar(lit?on:OFF));if(lit)sum+=brightness*l/100;}
       glowSum+=sum-channelGlow[i];channelGlow[i]=sum;});
     if(dirty){lights.instanceColor.needsUpdate=true;bounce.intensity=glowSum/bulbs.length*2;}
+    const open=wiring.visible?1:0;doorOpen+=(open-doorOpen)*.12;if(Math.abs(open-doorOpen)<.002)doorOpen=open;
+    garageDoor.rotation.x=doorOpen*Math.PI/2*.98;garageLight.intensity=doorOpen*5;
     controls.update();composer.render();
   }
   return {draw,bulbCount:bulbs.length,
     setBrightness(){last.fill(255);},
+    setWiring(on){wiring.visible=on;},
     view(name){const overlay=name==='overlay';for(const o of houseParts)o.visible=!overlay;scene.background=overlay?BLACK:background;scene.fog=overlay?null:fog;camera.position.set(...views[name][0]);controls.target.set(...views[name][1]);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();},
     snapshot(){return renderer.domElement.toDataURL('image/png');}};
 }
