@@ -22,7 +22,7 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
   ready:false,playing:false,time:'0:00',duration:'3:05',frame:'–',frameLabel:'',
   cueInfo:'Loading detected timing…',cueChip:'VIDEO',rangeName:'Detected range',rangeStart:'0:00',rangeEnd:'',
   videoStatus:'Looking for the original video…',videoEmpty:false,videoChange:false,playbackError:'',
-  brightness:100,allOn:false,volume:35,sceneError:'',
+  brightness:100,allOn:false,wiring:false,volume:35,sceneError:'',
  });
  const page=computed(()=>modes[state.mode]);
  const shows=id=>state.mode==='split'||state.mode===id;
@@ -132,6 +132,8 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
 
  watch(()=>state.volume,v=>{if(el.audio.value)el.audio.value.volume=el.video.value.volume=v/100;});
  watch(()=>state.brightness,()=>{for(const s of Object.values(scenes))s.setBrightness();});
+ // Our house's wiring layer, off by default; ?wiring=1 (the wiring page's link) opens with it on.
+ watch(()=>state.wiring,on=>scenes.ours?.setWiring?.(on));
 
  const states=new Uint8Array(CHANNELS.length),levels=new Uint8Array(CHANNELS.length),ALL_ON=new Uint8Array(CHANNELS.map(c=>c.palette==='multi'?3:1)),FULL=new Uint8Array(CHANNELS.length).fill(100);
  let lastUI=0;
@@ -150,7 +152,9 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
   const audio=el.audio.value,video=el.video.value;
   for(const id of HOUSES){try{scenes[id]=houses[id].createScene(el.viewports[id].value);scenes[id].view('video');}catch(error){state.sceneError='The 3D scene needs WebGL. Enable hardware acceleration or try a WebGL-capable browser.';console.error(error);}}
   clock=createShowClock(audio,video);
-  setMode(new URLSearchParams(location.search).get('house'));
+  const query=new URLSearchParams(location.search);
+  setMode(query.get('house'));
+  if(query.get('wiring')==='1')state.wiring=true;
   // During hydration the router briefly reports the prerendered path without its query; follow it once it settles.
   watch(()=>route.query.house,house=>{if((house||'ours')!==state.mode)setMode(house);});
   load();

@@ -109,6 +109,11 @@ useSeoMeta({
             <span class="label-with-tip">All props on <InfoTip :text="page.allOnHint" label="About all props on" /></span>
             <USwitch id="all-on" v-model="state.allOn" aria-label="All props on" />
           </div>
+          <div v-show="player.shows('ours')" class="switch-row">
+            <span class="label-with-tip">Wiring <InfoTip text="Shows how our house is wired: the two boxes, each controller port's data cable in its own colour, power injection points in red, and the network (blue) and 230 V (orange) feeds from indoors. The wiring plan page has the full diagram." label="About the wiring" /></span>
+            <USwitch id="wiring" v-model="state.wiring" aria-label="Show wiring" />
+          </div>
+          <p v-show="player.shows('ours')&&state.wiring" class="note wiring-note"><a href="/wiring.html">Open the wiring plan</a></p>
         </div>
         <div class="field-title">Props <span id="frame-label" class="note">{{ state.frameLabel }}</span></div>
         <PropBoard :ref="e=>{el.board.value=e;}" />
