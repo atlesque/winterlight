@@ -46,9 +46,10 @@ const ROWS=[
  // Wave 1: parts with the longest delivery or needed first on the bench.
  // Pixel-Imperium had 24 standard strings; the regulated strings make up the rest.
  {id:'pixels',name:'12 V WS2811 bullet pixels, strings of 50',qty:STANDARD_STRINGS,unit:'strings',price:P.pixels50.price,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,
-  tip:`${FULL.pixels.toLocaleString('en')} pixels in the props plus ${DEFAULTS.spare}% spare make ${STRINGS} strings of 50. Only ${STANDARD_STRINGS} standard strings were in stock.`},
+  tip:`${FULL.pixels.toLocaleString('en')} pixels in the props plus ${DEFAULTS.spare}% spare make ${STRINGS} strings of 50. Only ${STANDARD_STRINGS} standard strings were in stock. Ordered 6 Nov with the regulated strings: €820.47 including shipping.`},
  {id:'pixelsRegulated',name:'Regulated 12 V WS2811 bullet pixels, strings of 50',qty:STRINGS-STANDARD_STRINGS,unit:'strings',price:P.pixels50reg.price,url:P.pixels50reg.url,shop:'pixelimperium',expense:'private',wave:1,
-  tip:'The same pixels with a constant-current driver, so they stay evenly bright along a run. Same xConnect plugs and 10 cm pitch.'},
+  tip:'The same pixels with a constant-current driver, so they stay evenly bright along a run. Same xConnect plugs and 10 cm pitch. Ordered 6 Nov with the standard strings.'},
+ {id:'pixelShipping',name:'Pixel-Imperium shipping to Belgium',qty:1,unit:'×',price:63.9,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,tip:'Paid with the pixel order on 6 Nov: €820.47 in all for 24 standard and 27 regulated strings plus shipping. Delivery in 3 to 7 days.'},
  {id:'controller',name:'Baldrick 8 pixel controller',qty:zoneSum('controllers'),unit:'×',price:P.controller.price,url:P.controller.url,shop:'ledshows',expense:'private',wave:1,tip:'One for the facade box, one for the garden box. Private: LEDshows doesn\'t sell to businesses.'},
  {id:'pigtail',name:'xConnect pigtail pairs, 50 cm, packs of 10',qty:Math.ceil(modelQty('pigtail')/10),unit:'packs',price:Math.round(P.pigtail.price*10*100)/100,url:P.pigtail.url,shop:'aliexpress',expense:'private',wave:1,tip:`One pair per prop, ${modelQty('pigtail')} in all. LEDshows and Pixel-Imperium had none in stock. Ordered 6 Nov with the extension cables: €407.46 for both.`},
  {id:'tSplitter',name:'X-con T-splitters for power injection',qty:modelQty('tSplitter'),unit:'×',price:P.tSplitter.price,url:P.tSplitter.url,shop:'ledshows',expense:'private',wave:1,tip:`One every ${150} pixels along a run.`},
