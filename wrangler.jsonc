@@ -10,7 +10,7 @@
     "run_worker_first": ["/api/*"]
   },
   // Runbook ticks and expense switches. Schema in migrations/.
-  // Writes need the RUNBOOK_KEY secret (wrangler secret put RUNBOOK_KEY).
+  // /runbook and /api/runbook sit behind Cloudflare Access (Alex only).
   "d1_databases": [
     {
       "binding": "RUNBOOK_DB",

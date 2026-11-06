@@ -4,12 +4,12 @@ import {CHAPTERS,PURCHASES,SHOPS,STEP_IDS,SHOW_DATE,CHECKED,PRESET} from '~~/src
 // The build runbook: chapters of to-dos from ordering to the first test run.
 // Ticks and private/business switches are shared through the site's Worker
 // (worker/index.js, a D1 database), so every device sees the same runbook.
-// Anyone can read it; ticking needs the runbook key, kept in this browser.
+// The page and its API sit behind Cloudflare Access, so only Alex gets here.
 // Steps in PRESET (orders already placed, decisions made) start ticked, and
 // the database only holds changes to those defaults. Without the Worker (npm
 // run dev, previews) the page falls back to this browser's storage.
 definePageMeta({alias:['/runbook.html']});
-const API='/api/runbook',KEY='winterlight-runbook-key',LOCAL='winterlight-runbook-v2',OLD='winterlight-runbook';
+const API='/api/runbook',LOCAL='winterlight-runbook-v2',OLD='winterlight-runbook';
 const euro=v=>new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR',minimumFractionDigits:v>=1000?0:2,maximumFractionDigits:v>=1000?0:2}).format(v);
 const day=d=>new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 const KIND={private:{label:'Private',other:'business'},business:{label:'Business',other:'private'}};
@@ -21,18 +21,17 @@ const over=reactive({done:{},expense:{}});
 const done=computed(()=>new Set(STEP_IDS.filter(id=>over.done[id]??DEFAULT.has(id))));
 const kind=p=>over.expense[p.id]||p.expense;
 // 'loading', 'shared' (the database), or 'local' (this browser only).
-const mode=ref('loading'),key=ref(''),status=ref('');
-const canEdit=computed(()=>mode.value==='local'||(mode.value==='shared'&&!!key.value));
+const mode=ref('loading'),status=ref('');
+const canEdit=computed(()=>mode.value!=='loading');
 const store=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}catch{}};
 const load=k=>{try{return localStorage.getItem(k);}catch{return null;}};
 const apply=s=>{over.done={...s.done};over.expense={...s.expense};};
 
 async function send(change){
  if(mode.value==='local'){store(LOCAL,over);return true;}
- try{const r=await fetch(API,{method:'PATCH',headers:{'content-type':'application/json',authorization:`Bearer ${key.value}`},body:JSON.stringify(change)});
-  if(r.status===401){key.value='';store(KEY,null);status.value='That key was not accepted. Unlock again to keep ticking.';return false;}
+ try{const r=await fetch(API,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify(change),redirect:'manual'});
   if(!r.ok)throw new Error(r.status);apply(await r.json());status.value='';return true;
- }catch{status.value='Could not save that change. Check the connection and try again.';return false;}
+ }catch{status.value='Could not save that change. Reload the page (you may need to sign in again) and try again.';return false;}
 }
 // Change locally first, so the tick feels instant, and undo it if saving fails.
 async function change(c){
@@ -54,16 +53,10 @@ async function migrate(){
  if(Object.keys(d).length||Object.keys(e).length){await change({done:d,expense:e});if(status.value)return;}
  store(OLD,null);
 }
-async function unlock(){
- const k=prompt('Runbook key');if(!k)return;
- key.value=k.trim();if(await send({})){store(KEY,key.value);status.value='';await migrate();}
-}
-function lock(){key.value='';store(KEY,null);}
 
 onMounted(async()=>{
- key.value=load(KEY)||'';
- try{const r=await fetch(API,{headers:{accept:'application/json'}});if(!r.ok)throw new Error(r.status);
-  apply(await r.json());mode.value='shared';if(key.value)await migrate();
+ try{const r=await fetch(API,{headers:{accept:'application/json'},redirect:'manual'});if(!r.ok)throw new Error(r.status);
+  apply(await r.json());mode.value='shared';await migrate();
  }catch{
   mode.value='local';
   try{const s=JSON.parse(load(LOCAL)||'null');if(s)apply({done:Object.fromEntries(Object.entries(s.done||{}).filter(([id])=>STEP_IDS.includes(id))),
@@ -88,7 +81,7 @@ const SITE='https://winterlight.alexander-df0.workers.dev';
 const TITLE='Winterlight · Build runbook';
 const DESCRIPTION='Step-by-step runbook for building the Winterlight show on our house: what to order and when, building the props, hanging them, setting up the software and the first test run.';
 useHead({title:TITLE,link:[{rel:'canonical',href:`${SITE}/runbook.html`}],bodyAttrs:{class:'runbook-page'}});
-useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',ogLocale:'en_GB',ogTitle:TITLE,ogDescription:DESCRIPTION,ogUrl:`${SITE}/runbook.html`,
+useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',ogLocale:'en_GB',ogTitle:TITLE,ogDescription:DESCRIPTION,ogUrl:`${SITE}/runbook.html`,
  ogImage:`${SITE}/og-image.jpg`,ogImageType:'image/jpeg',ogImageWidth:1200,ogImageHeight:630,ogImageAlt:'3D model of a house with a wireframe Christmas tree, a peace sign, Christmas circles and HAPPY HOLIDAYS letters lit up',
  twitterCard:'summary_large_image',twitterTitle:TITLE,twitterDescription:DESCRIPTION,twitterImage:`${SITE}/og-image.jpg`});
 </script>
@@ -164,14 +157,11 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
           </nav>
           <div id="sync" class="sync" :data-mode="mode">
             <p class="note">
-              <template v-if="mode==='shared'&&key">Ticks are saved to the shared runbook.</template>
-              <template v-else-if="mode==='shared'">Read only. Unlock with the runbook key to tick.</template>
+              <template v-if="mode==='shared'">Ticks are saved to the shared runbook.</template>
               <template v-else-if="mode==='local'">The shared runbook is out of reach, so ticks are saved in this browser only.</template>
               <template v-else>Loading the shared runbook…</template>
             </p>
             <p v-if="status" class="note sync-error" role="alert">{{ status }}</p>
-            <UButton v-if="mode==='shared'&&!key" id="unlock-runbook" block color="primary" variant="soft" icon="i-lucide-lock-open" label="Unlock editing" @click="unlock" />
-            <UButton v-if="mode==='shared'&&key" block color="neutral" variant="ghost" size="sm" icon="i-lucide-lock" label="Lock on this device" @click="lock" />
           </div>
           <UButton id="reset-runbook" block color="neutral" variant="soft" icon="i-lucide-undo-2" label="Reset ticks" class="mt-3" :disabled="!canEdit" @click="reset" />
           <p class="note"><a href="/costs.html">LED cost estimate</a></p>

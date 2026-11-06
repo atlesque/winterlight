@@ -3,20 +3,13 @@ import {STEP_IDS,PURCHASES} from '../src/runbook/runbook.js';
 // The site is static (nuxt generate into dist/), served as Workers Static
 // Assets. Only /api/* reaches this Worker (run_worker_first in wrangler.jsonc):
 // the runbook's ticks and expense switches, kept in D1 so every device sees
-// the same state. Anyone may read them; writing needs the RUNBOOK_KEY secret
-// as a bearer token.
+// the same state. Cloudflare Access ("Winterlight runbook": /runbook,
+// /runbook.html and /api/runbook, Alex only) signs people in before a request
+// gets here. As a second check, a request without the identity header Access
+// adds is refused, unless RUNBOOK_OPEN=1 (local wrangler dev, in .dev.vars).
 const STEPS=new Set(STEP_IDS),BUYS=new Set(PURCHASES.map(p=>p.id)),KINDS=new Set(['private','business']);
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
-
-// Compare digests in constant time, so the key can't be guessed one character at a time.
-async function same(a,b){
- const enc=new TextEncoder(),[x,y]=await Promise.all([a,b].map(s=>crypto.subtle.digest('SHA-256',enc.encode(s))));
- const u=new Uint8Array(x),v=new Uint8Array(y);let diff=0;for(let i=0;i<u.length;i++)diff|=u[i]^v[i];return diff===0;
-}
-async function authorised(request,env){
- const key=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
- return Boolean(env.RUNBOOK_KEY&&key&&await same(key,env.RUNBOOK_KEY));
-}
+const signedIn=(request,env)=>env.RUNBOOK_OPEN==='1'||Boolean(request.headers.get('cf-access-authenticated-user-email'));
 
 export async function readState(db){
  const {results}=await db.prepare('SELECT kind,id,value FROM runbook_state').all();
@@ -41,9 +34,9 @@ export default {
   const {pathname}=new URL(request.url);
   if(pathname!=='/api/runbook')return json({error:'not found'},404);
   if(!env.RUNBOOK_DB)return json({error:'no database bound'},503);
+  if(!signedIn(request,env))return json({error:'sign in through Cloudflare Access'},401);
   if(request.method==='GET')return json(await readState(env.RUNBOOK_DB));
   if(request.method!=='PATCH')return json({error:'method not allowed'},405);
-  if(!await authorised(request,env))return json({error:'wrong or missing key'},401);
   let stmts;
   try{stmts=statements(env.RUNBOOK_DB,await request.json());}catch(e){return json({error:e.message},400);}
   if(stmts.length)await env.RUNBOOK_DB.batch(stmts);

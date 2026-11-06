@@ -61,7 +61,7 @@ test('the orders placed on 6 Nov start ticked and add up to what was paid',async
  assert.ok(!PRESET.includes('buy-treeFrame'),'the tree pole is still to buy locally');
 });
 
-test('the runbook API reads defaults, refuses writes without the key and validates changes',async()=>{
+test('the runbook API needs an Access sign-in, reads defaults and validates changes',async()=>{
  const {default:worker,statements}=await import('../worker/index.js');
  const rows=new Map();
  const select={all:async()=>({results:[...rows].map(([k,value])=>{const [kind,id]=k.split(':');return {kind,id,value};})})};
@@ -69,16 +69,17 @@ test('the runbook API reads defaults, refuses writes without the key and validat
   prepare:sql=>sql.startsWith('SELECT')?select:{bind:(...a)=>({sql,a})},
   batch:async list=>{for(const {sql,a} of list){if(sql.startsWith('DELETE'))rows.delete(`expense:${a[0]}`);else rows.set(`${a[0]}:${a[1]}`,a[2]);}},
  };
- const env={RUNBOOK_DB:db,RUNBOOK_KEY:'sesame'};
- const call=(method,body,key)=>worker.fetch(new Request('https://x/api/runbook',{method,headers:{'content-type':'application/json',...(key&&{authorization:`Bearer ${key}`})},body:body&&JSON.stringify(body)}),env);
- assert.deepEqual(await (await call('GET')).json(),{done:{},expense:{}});
+ const env={RUNBOOK_DB:db};
+ const call=(method,body,user)=>worker.fetch(new Request('https://x/api/runbook',{method,headers:{'content-type':'application/json',...(user&&{'cf-access-authenticated-user-email':user})},body:body&&JSON.stringify(body)}),env);
+ const me='alex@example.com';
+ assert.equal((await call('GET')).status,401);
  assert.equal((await call('PATCH',{done:{'buy-pixels':false}})).status,401);
- assert.equal((await call('PATCH',{done:{'buy-pixels':false}},'wrong')).status,401);
- assert.equal((await call('PATCH',{done:{'not-a-step':true}},'sesame')).status,400);
- assert.equal((await call('PATCH',{expense:{pixels:'gift'}},'sesame')).status,400);
- const ok=await call('PATCH',{done:{'buy-pixels':false,'rcd':true},expense:{pixels:'business'}},'sesame');
+ assert.deepEqual(await (await call('GET',null,me)).json(),{done:{},expense:{}});
+ assert.equal((await call('PATCH',{done:{'not-a-step':true}},me)).status,400);
+ assert.equal((await call('PATCH',{expense:{pixels:'gift'}},me)).status,400);
+ const ok=await call('PATCH',{done:{'buy-pixels':false,'rcd':true},expense:{pixels:'business'}},me);
  assert.deepEqual(await ok.json(),{done:{'buy-pixels':false,rcd:true},expense:{pixels:'business'}});
- const back=await call('PATCH',{expense:{pixels:null}},'sesame');
+ const back=await call('PATCH',{expense:{pixels:null}},me);
  assert.deepEqual((await back.json()).expense,{});
  assert.equal((await worker.fetch(new Request('https://x/api/other'),env)).status,404);
  assert.throws(()=>statements(db,{done:{rcd:'yes'}}));
