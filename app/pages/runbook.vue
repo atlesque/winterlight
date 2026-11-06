@@ -21,7 +21,7 @@ const over=reactive({done:{},expense:{}});
 const done=computed(()=>new Set(STEP_IDS.filter(id=>over.done[id]??DEFAULT.has(id))));
 const kind=p=>over.expense[p.id]||p.expense;
 // 'loading', 'shared' (the database), or 'local' (this browser only).
-const mode=ref('loading'),status=ref('');
+const mode=ref('loading'),status=ref(''),why=ref('');
 const canEdit=computed(()=>mode.value!=='loading');
 const store=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}catch{}};
 const load=k=>{try{return localStorage.getItem(k);}catch{return null;}};
@@ -55,9 +55,10 @@ async function migrate(){
 }
 
 onMounted(async()=>{
- try{const r=await fetch(API,{headers:{accept:'application/json'},redirect:'manual'});if(!r.ok)throw new Error(r.status);
+ try{const r=await fetch(API,{headers:{accept:'application/json'},redirect:'manual'});if(!r.ok)throw new Error(r.type==='opaqueredirect'?'sign-in redirect':`HTTP ${r.status}`);
   apply(await r.json());mode.value='shared';await migrate();
- }catch{
+ }catch(e){
+  why.value=e?.message||'no connection';
   mode.value='local';
   try{const s=JSON.parse(load(LOCAL)||'null');if(s)apply({done:Object.fromEntries(Object.entries(s.done||{}).filter(([id])=>STEP_IDS.includes(id))),
    expense:Object.fromEntries(Object.entries(s.expense||{}).filter(([id,k])=>byId[id]&&KIND[k]))});}catch{}
@@ -158,7 +159,7 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
           <div id="sync" class="sync" :data-mode="mode">
             <p class="note">
               <template v-if="mode==='shared'">Ticks are saved to the shared runbook.</template>
-              <template v-else-if="mode==='local'">The shared runbook is out of reach, so ticks are saved in this browser only.</template>
+              <template v-else-if="mode==='local'">The shared runbook is out of reach, so ticks are saved in this browser only ({{ why }}).</template>
               <template v-else>Loading the shared runbook…</template>
             </p>
             <p v-if="status" class="note sync-error" role="alert">{{ status }}</p>

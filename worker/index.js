@@ -5,11 +5,13 @@ import {STEP_IDS,PURCHASES} from '../src/runbook/runbook.js';
 // the runbook's ticks and expense switches, kept in D1 so every device sees
 // the same state. Cloudflare Access ("Winterlight runbook": /runbook,
 // /runbook.html and /api/runbook, Alex only) signs people in before a request
-// gets here. As a second check, a request without the identity header Access
-// adds is refused, unless RUNBOOK_OPEN=1 (local wrangler dev, in .dev.vars).
+// gets here. As a second check, a request with no sign-in from Access at all
+// (its JWT header, identity header or CF_Authorization cookie) is refused,
+// unless RUNBOOK_OPEN=1 (local wrangler dev, in .dev.vars). On workers.dev the
+// identity header alone isn't always passed on, so any of the three will do.
 const STEPS=new Set(STEP_IDS),BUYS=new Set(PURCHASES.map(p=>p.id)),KINDS=new Set(['private','business']);
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
-const signedIn=(request,env)=>env.RUNBOOK_OPEN==='1'||Boolean(request.headers.get('cf-access-authenticated-user-email'));
+const signedIn=(request,env)=>{const h=request.headers;return env.RUNBOOK_OPEN==='1'||Boolean(h.get('cf-access-jwt-assertion')||h.get('cf-access-authenticated-user-email')||/(?:^|;\s*)CF_Authorization=/.test(h.get('cookie')||''));};
 
 export async function readState(db){
  const {results}=await db.prepare('SELECT kind,id,value FROM runbook_state').all();
@@ -34,7 +36,7 @@ export default {
   const {pathname}=new URL(request.url);
   if(pathname!=='/api/runbook')return json({error:'not found'},404);
   if(!env.RUNBOOK_DB)return json({error:'no database bound'},503);
-  if(!signedIn(request,env))return json({error:'sign in through Cloudflare Access'},401);
+  if(!signedIn(request,env)){console.warn('runbook API refused: no Access sign-in',[...request.headers.keys()].filter(k=>k.startsWith('cf-')));return json({error:'sign in through Cloudflare Access'},401);}
   if(request.method==='GET')return json(await readState(env.RUNBOOK_DB));
   if(request.method!=='PATCH')return json({error:'method not allowed'},405);
   let stmts;
