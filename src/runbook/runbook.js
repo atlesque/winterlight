@@ -26,42 +26,49 @@ const group=id=>FULL.groups.find(g=>g.id===id);
 
 // Shops, with a rough delivery time in days from ordering to the door.
 export const SHOPS={
- ledshows:{name:'LEDshows.nl',days:[5,10],tip:'Pixels, controllers and X-con cables in one basket. Large pixel orders can take longer when strings need restocking; ask when ordering.'},
+ ledshows:{name:'LEDshows.nl',days:[5,10],tip:'Controllers, mounting strip and X-con splitters in one basket. LEDshows sells to private buyers only, and its pixels were sold out in November.'},
+ pixelimperium:{name:'Pixel-Imperium',days:[3,7],tip:'Ships from Germany; Belgian VAT is charged in the basket. Same stock as Xmas-Land.'},
+ aliexpress:{name:'AliExpress',days:[9,16],tip:'Under €150, so VAT is paid at checkout and nothing is due on delivery.'},
+ kunststofshop:{name:'kunststofshop.nl',days:[5,8],tip:'Sheets ship in 3 to 5 working days; shipping to Belgium shows at checkout.'},
  audiophonics:{name:'Audiophonics',days:[4,7]},
  vekto:{name:'Vekto',days:[3,5]},
  kiwi:{name:'Kiwi Electronics',days:[1,3]},
  propixeler:{name:'ProPixeler',days:[3,7]},
  bol:{name:'bol.com',days:[1,3]},
 };
+const STRINGS=Math.ceil(FULL.pixels*(1+DEFAULTS.spare/100)/50),STANDARD_STRINGS=Math.min(24,STRINGS);
 const search=q=>`https://www.bol.com/be/nl/s/?searchtext=${encodeURIComponent(q)}`;
 
 // Everything to buy for the full show. qty is in the shop's own units.
 const ROWS=[
  // Wave 1: parts with the longest delivery or needed first on the bench.
- {id:'pixels',name:'12 V WS2811 bullet pixels, strings of 50',qty:Math.ceil(FULL.pixels*(1+DEFAULTS.spare/100)/50),unit:'strings',price:P.pixels50.price,url:P.pixels50.url,shop:'ledshows',expense:'private',wave:1,
-  tip:`${FULL.pixels.toLocaleString('en')} pixels in the props plus ${DEFAULTS.spare}% spare, rounded up to whole strings.`},
+ // Pixel-Imperium had 24 standard strings; the regulated strings make up the rest.
+ {id:'pixels',name:'12 V WS2811 bullet pixels, strings of 50',qty:STANDARD_STRINGS,unit:'strings',price:P.pixels50.price,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,
+  tip:`${FULL.pixels.toLocaleString('en')} pixels in the props plus ${DEFAULTS.spare}% spare make ${STRINGS} strings of 50. Only ${STANDARD_STRINGS} standard strings were in stock.`},
+ {id:'pixelsRegulated',name:'Regulated 12 V WS2811 bullet pixels, strings of 50',qty:STRINGS-STANDARD_STRINGS,unit:'strings',price:P.pixels50reg.price,url:P.pixels50reg.url,shop:'pixelimperium',expense:'private',wave:1,
+  tip:'The same pixels with a constant-current driver, so they stay evenly bright along a run. Same xConnect plugs and 10 cm pitch.'},
  {id:'controller',name:'Baldrick 8 pixel controller',qty:zoneSum('controllers'),unit:'×',price:P.controller.price,url:P.controller.url,shop:'ledshows',expense:'private',wave:1,tip:'One for the facade box, one for the garden box. Private: LEDshows doesn\'t sell to businesses.'},
- {id:'pigtail',name:'X-con pigtails, 50 cm',qty:modelQty('pigtail'),unit:'×',price:P.pigtail.price,url:P.pigtail.url,shop:'ledshows',expense:'private',wave:1,tip:'One per prop.'},
+ {id:'pigtail',name:'xConnect pigtail pairs, 50 cm, packs of 10',qty:Math.ceil(modelQty('pigtail')/10),unit:'packs',price:Math.round(P.pigtail.price*10*100)/100,url:P.pigtail.url,shop:'aliexpress',expense:'private',wave:1,tip:`One pair per prop, ${modelQty('pigtail')} in all. LEDshows and Pixel-Imperium had none in stock.`},
  {id:'tSplitter',name:'X-con T-splitters for power injection',qty:modelQty('tSplitter'),unit:'×',price:P.tSplitter.price,url:P.tSplitter.url,shop:'ledshows',expense:'private',wave:1,tip:`One every ${150} pixels along a run.`},
  {id:'cable',name:'3-core pixel extension cable',qty:Math.ceil(modelQty('cable')),unit:'m',price:P.cable.price,url:'https://shop.ledshows.nl/product-categorie/kabels/',shop:'ledshows',expense:'private',wave:1,estimate:true,tip:'From each box to the first prop and prop to prop. Buy as ready-made X-con extensions in the nearest lengths.'},
  {id:'injectWire',name:'4 mm² installation wire, red and black',qty:modelQty('injectWire'),unit:'m',price:P.injectWire.price,url:P.injectWire.url,shop:'ledshows',expense:'private',wave:1},
  {id:'mountStrip',name:'Pixel mounting strip, 50 m roll',qty:Math.ceil(modelQty('mountStrip')/50),unit:'rolls',price:P.mountStrip.price*50,url:P.mountStrip.url,shop:'ledshows',expense:'private',wave:1,tip:`${Math.ceil(modelQty('mountStrip'))} m for the house strips, window outlines, ground strip and tree strands.`},
  {id:'zipTies',name:'Cable ties, 100 pieces',qty:Math.ceil(modelQty('zipTies')),unit:'packs',price:P.zipTies.price,url:P.zipTies.url,shop:'ledshows',expense:'private',wave:1},
  {id:'psu',name:'Mean Well LRS-350-12 power supply',qty:zoneSum('psus'),unit:'×',price:P.psu.price,url:P.psu.url,shop:'audiophonics',expense:'private',wave:1,tip:'Two per box, each at no more than 80% load.'},
- {id:'enclosure',name:'IP65 enclosure 280 × 210 × 130 mm',qty:zoneSum('boxes'),unit:'×',price:P.enclosure.price,url:P.enclosure.url,shop:'vekto',expense:'private',wave:1,tip:'Two per zone: one for the controller and a power supply, one for the second power supply. In the garage, a cheaper indoor box or a board on the wall will do.'},
+ {id:'enclosure',name:'IP65 enclosure 280 × 210 × 130 mm',qty:zoneSum('boxes'),unit:'×',price:P.enclosure.price,url:P.enclosure.url,shop:'vekto',expense:'private',optional:true,wave:1,tip:'Not needed: the boxes go in the garage. '+'Two per zone: one for the controller and a power supply, one for the second power supply. In the garage, a cheaper indoor box or a board on the wall will do.'},
  {id:'letters',name:'ProPixeler coro letters, 30 cm',qty:g0('letters'),unit:'×',price:P.letter30.price,url:P.letter30.url,shop:'propixeler',expense:'private',wave:1,tip:'H, A, P, P, Y, H, O, L, I, D, A, Y, S. Bare coro, pre-drilled for pixels; ask them to confirm the holes take 12 mm bullets.'},
- {id:'coro',name:'Coro sheet 100 × 200 cm, 3–3.5 mm, blank',qty:Math.ceil(modelQty('coro')*1.4/2),unit:'sheets',price:P.coro.price*2,url:P.coro.url,shop:'bol',expense:'private',wave:1,estimate:true,
-  tip:`${Math.ceil(modelQty('coro'))} m² for the circles, peace sign, candy canes and tree star, plus 40% for offcuts. Any blank white or black sheet works; hardware stores and plastics shops sell them.`},
+ {id:'coro',name:'Coro sheet 140 × 100 cm, 3 mm, blank white',qty:Math.ceil(modelQty('coro')*1.4/1.4),unit:'sheets',price:12.5,url:P.coro.url,shop:'kunststofshop',expense:'private',wave:1,
+  tip:`${Math.ceil(modelQty('coro'))} m² for the circles, peace sign, candy canes and tree star, plus 40% for offcuts. No piece is bigger than about 65 × 65 cm, so these sheets ship as a normal parcel.`},
  {id:'cutting',name:'Snap-off knife blades and spray adhesive',qty:1,unit:'set',price:15,url:search('afbreekmesjes 18mm'),shop:'bol',expense:'private',wave:1,estimate:true,tip:'Fresh blades for the coro, and repositionable spray adhesive to hold the paper templates on the sheets.'},
  {id:'player',name:'Raspberry Pi 5, 4 GB',qty:1,unit:'×',price:P.player.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,tip:'Optional: skip it if a spare Raspberry Pi 4 or a mini PC can run Falcon Player.'},
  {id:'playerKit',name:'Pi 5 power supply, case and 32 GB card',qty:1,unit:'set',price:P.playerKit.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,estimate:true},
- {id:'fittings',name:'Cable glands, terminal blocks and fuses',qty:zoneSum('boxes'),unit:'sets',price:P.fittings.price,url:search('kabelwartel IP68'),shop:'bol',expense:'private',wave:1,estimate:true,tip:'One set per enclosure.'},
+ {id:'fittings',name:'Cable glands, terminal blocks and fuses',qty:zoneSum('boxes'),unit:'sets',price:P.fittings.price,url:search('kabelwartel IP68'),shop:'bol',expense:'private',optional:true,wave:1,estimate:true,tip:'Not needed in the garage: fuses and terminal blocks on a wall board will do. One set per enclosure outside.'},
  {id:'minitreeFrame',name:'Filament for the mini-tree frames',qty:1,unit:'×',price:Math.round(modelQty('minitreeFrame')*P.minitreeFrame.price),url:search('PETG filament 1kg'),shop:'bol',expense:'private',wave:1,estimate:true,
   tip:`Printed base and top for ${modelQty('minitreeFrame')} mini trees; the six spokes are mounting strip.`},
  {id:'treeFrame',name:'Tree centre pole, top ring and guy lines',qty:1,unit:'set',price:P.treeFrame.price,url:search('aluminium buis 2 meter'),shop:'bol',expense:'private',wave:1,estimate:true},
  // Wave 2: only needed when hanging and placing.
  {id:'stake',name:'Ground stakes and wall clips',qty:modelQty('stake'),unit:'×',price:P.stake.price,url:search('grondpennen kunststof'),shop:'bol',expense:'private',wave:2,estimate:true},
- {id:'mains',name:'Outdoor 230 V cable, plug and socket per box',qty:zones.length,unit:'sets',price:P.mains.price,url:search('verlengkabel buiten IP44'),shop:'bol',expense:'private',wave:2,estimate:true},
+ {id:'mains',name:'Outdoor 230 V cable, plug and socket per box',qty:zones.length,unit:'sets',price:P.mains.price,url:search('verlengkabel buiten IP44'),shop:'bol',expense:'private',optional:true,wave:2,estimate:true,tip:'Not needed: the boxes go in the garage, on an indoor power strip.'},
  {id:'network',name:'Outdoor Cat5e cable to each box',qty:zones.length,unit:'×',price:P.network.price,url:P.network.url,shop:'ledshows',expense:'business',optional:true,wave:1,estimate:true,tip:'Optional: with the boxes in the garage, ordinary patch cables you already have will do. Outside, LEDshows makes outdoor ones to length; measure the run from the switch to each box first.'},
  {id:'switch',name:'5-port network switch',qty:1,unit:'×',price:P.switch.price,url:search('5 poort switch gigabit'),shop:'bol',expense:'business',optional:true,wave:2,estimate:true,tip:'Optional: skip it if a spare switch is at hand.'},
  {id:'soundCard',name:'USB sound card',qty:1,unit:'×',price:P.soundCard.price,url:P.soundCard.url,shop:'ledshows',expense:'private',wave:1,tip:'Private: LEDshows doesn\'t sell to businesses.'},
@@ -126,7 +133,7 @@ export const CHAPTERS=[
  {id:'plan',title:'Plan and measure',icon:'i-lucide-ruler',due:'2026-11-05',steps:[
   {id:'measure-facade',text:'Measure the upper floor, garage eave and window frames',tip:'The plan gives every length along the facade; measure the heights. If a run is longer than below, the pixel and strip quantities go up (the 5% spare covers about 120 pixels).',measures:MEASURES.facade},
   {id:'measure-garden',text:'Measure the tree spot, mini-tree row, cane line and ground strip',tip:'The plan gives the garden\'s width; its depth, the planting tiles and the bushes need a tape.',measures:MEASURES.garden},
-  {id:'box-spots',text:'Decide where the boxes go: in the garage, or outside on the facade and in the garden',tip:'In the garage the boxes stay dry, so they need no IP65 enclosures, outdoor mains or outdoor network cables. The pixel cables to the garden props get longer: measure the longest run from the garage; past about 15 m of data cable, add a null pixel or a differential receiver.',measures:MEASURES.boxes},
+  {id:'box-spots',text:'Decide where the boxes go: in the garage (chosen), or outside on the facade and in the garden',tip:'Chosen: the garage. There the boxes stay dry, so they need no IP65 enclosures, outdoor mains or outdoor network cables. The pixel cables to the garden props get longer: measure the longest run from the garage; past about 15 m of data cable, add a null pixel or a differential receiver.',measures:MEASURES.boxes},
   {id:'rcd',text:'Check the outdoor sockets are on a 30 mA RCD',tip:'Aardlekschakelaar. Ask an electrician if a new outdoor socket is needed.'},
   {id:'accountant',text:'Confirm the business purchases with the accountant',tip:'The business tags below are a suggestion: show hardware and network gear. Business orders go on a separate invoice in the company name with its VAT number.'},
   {id:'network-runs',text:'Measure the network cable runs from the switch to each box',measures:MEASURES.network},

@@ -19,7 +19,7 @@ test('every purchase is ordered once, links to a shop and has an expense tag',()
 
 test('the shopping list covers the full show in the cost model',()=>{
  const e=estimate(ALL),get=id=>PURCHASES.find(p=>p.id===id);
- assert.ok(get('pixels').qty*50>=e.pixels);
+ assert.ok((get('pixels').qty+get('pixelsRegulated').qty)*50>=e.pixels);
  const z=Object.values(e.zones);
  assert.equal(get('controller').qty,z.reduce((s,x)=>s+x.controllers,0));
  assert.equal(get('psu').qty,z.reduce((s,x)=>s+x.psus,0));
