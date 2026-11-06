@@ -30,7 +30,7 @@ export const SHOPS={
  pixelimperium:{name:'Pixel-Imperium',days:[3,7],tip:'Ships from Germany; Belgian VAT is charged in the basket. Same stock as Xmas-Land.'},
  aliexpress:{name:'AliExpress',days:[9,16],tip:'Under €150, so VAT is paid at checkout and nothing is due on delivery.'},
  local:{name:'Local DIY store',days:[0,1]},
- bambu:{name:'Bambu Lab store',days:[3,7],tip:'Bought as a business; wait for a sale, but order in time to print the mini-tree frames before the build.'},
+ bambu:{name:'Bambu Lab store',days:[3,7],tip:'Bought as a business. 6 rolls get 35% off in the Black Friday bulk deal.'},
  kunststofshop:{name:'kunststofshop.nl',days:[5,8],tip:'Sheets ship in 3 to 5 working days; shipping to Belgium shows at checkout.'},
  audiophonics:{name:'Audiophonics',days:[4,7]},
  vekto:{name:'Vekto',days:[3,5]},
@@ -65,7 +65,7 @@ const ROWS=[
  {id:'player',name:'Raspberry Pi 5, 4 GB',qty:1,unit:'×',price:P.player.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,tip:'Optional: skip it if a spare Raspberry Pi 4 or a mini PC can run Falcon Player.'},
  {id:'playerKit',name:'Pi 5 power supply, case and 32 GB card',qty:1,unit:'set',price:P.playerKit.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,estimate:true},
  {id:'fittings',name:'Cable glands, terminal blocks and fuses',qty:zoneSum('boxes'),unit:'sets',price:P.fittings.price,url:search('kabelwartel IP68'),shop:'bol',expense:'private',optional:true,wave:1,estimate:true,tip:'Not needed in the garage: fuses and terminal blocks on a wall board will do. One set per enclosure outside.'},
- {id:'minitreeFrame',name:'Bambu Lab PETG, black, 1 kg',qty:4,unit:'×',price:20,url:'https://eu.store.bambulab.com/',shop:'bambu',expense:'business',wave:1,estimate:true,
+ {id:'minitreeFrame',name:'Bambu Lab PETG Basic, black, 1 kg',qty:6,unit:'×',price:12.34,url:'https://eu.store.bambulab.com/',shop:'bambu',expense:'business',wave:1,estimate:true,
   tip:`Printed base and top for ${modelQty('minitreeFrame')} mini trees; the six spokes are mounting strip.`},
  {id:'treeFrame',name:'Tree centre pole (about 3 m), top ring and guy lines',qty:1,unit:'set',price:P.treeFrame.price,url:'https://www.gamma.be/',shop:'local',tip:'Bought locally: the tree is 2.5 m tall and the pole goes about 40 cm into the ground.',expense:'private',wave:1,estimate:true},
  // Wave 2: only needed when hanging and placing.
