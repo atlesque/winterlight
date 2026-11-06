@@ -81,6 +81,12 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
                   <div class="step-body">
                     <span class="step-text">{{ s.text }} <InfoTip v-if="s.tip" :text="s.tip" label="More about this step" /></span>
                     <span v-if="s.due||links(s).length" class="step-meta"><template v-if="s.due">Expected {{ day(s.due) }}</template><template v-for="(l,i) in links(s)" :key="l.href"><template v-if="s.due||i"> · </template><a :href="l.href" target="_blank" rel="noopener">{{ l.label }}<UIcon name="i-lucide-external-link" /></a></template></span>
+                    <dl v-if="s.measures" class="measures">
+                      <div v-for="x in s.measures" :key="x.what" :data-from="x.from">
+                        <dt><span class="from">{{ x.from==='plan'?'Plan':'Tape' }}</span> {{ x.what }}</dt>
+                        <dd><strong>{{ x.value }}</strong> <span>{{ x.how }}</span></dd>
+                      </div>
+                    </dl>
                   </div>
                 </template>
               </li>
