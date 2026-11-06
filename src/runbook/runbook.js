@@ -66,8 +66,8 @@ const ROWS=[
  {id:'player',name:'Raspberry Pi 5, 4 GB',qty:1,unit:'×',price:P.player.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,tip:'Optional: skip it if a spare Raspberry Pi 4 or a mini PC can run Falcon Player.'},
  {id:'playerKit',name:'Pi 5 power supply, case and 32 GB card',qty:1,unit:'set',price:P.playerKit.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,estimate:true},
  {id:'fittings',name:'Cable glands, terminal blocks and fuses',qty:zoneSum('boxes'),unit:'sets',price:P.fittings.price,url:search('kabelwartel IP68'),shop:'bol',expense:'private',optional:true,wave:1,estimate:true,tip:'Not needed in the garage: fuses and terminal blocks on a wall board will do. One set per enclosure outside.'},
- {id:'minitreeFrame',name:'Bambu Lab PETG Basic, black, 1 kg',qty:6,unit:'×',price:12.34,url:'https://eu.store.bambulab.com/',shop:'bambu',expense:'business',wave:1,estimate:true,
-  tip:`Printed base and top for ${modelQty('minitreeFrame')} mini trees; the six spokes are mounting strip.`},
+ {id:'minitreeFrame',name:'Bambu Lab PETG Basic, black, 1 kg',qty:6,unit:'×',price:62.24/6,url:'https://eu.store.bambulab.com/',shop:'bambu',expense:'business',wave:1,
+  tip:`Printed base and top for ${modelQty('minitreeFrame')} mini trees; the six spokes are mounting strip. Ordered 6 Nov as a business purchase: €62.24 for six rolls with spool, excluding VAT, free shipping.`},
  {id:'treeFrame',name:'Tree centre pole (about 3 m), top ring and guy lines',qty:1,unit:'set',price:P.treeFrame.price,url:'https://www.gamma.be/',shop:'local',tip:'Bought locally: the tree is 2.5 m tall and the pole goes about 40 cm into the ground.',expense:'private',wave:1,estimate:true},
  // Wave 2: only needed when hanging and placing.
  {id:'stake',name:'Ground stakes and wall clips',qty:modelQty('stake'),unit:'×',price:P.stake.price,url:search('grondpennen kunststof'),shop:'bol',expense:'private',wave:2,estimate:true},
