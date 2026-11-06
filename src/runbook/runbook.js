@@ -37,6 +37,7 @@ export const SHOPS={
  kiwi:{name:'Kiwi Electronics',days:[1,3]},
  propixeler:{name:'ProPixeler',days:[3,7]},
  bol:{name:'bol.com',days:[1,3]},
+ elektramat:{name:'Elektramat.nl',days:[1,3],tip:'Electrical wholesaler; check shipping to Belgium at checkout.'},
 };
 const STRINGS=Math.ceil(FULL.pixels*(1+DEFAULTS.spare/100)/50),STANDARD_STRINGS=Math.min(24,STRINGS);
 const search=q=>`https://www.bol.com/be/nl/s/?searchtext=${encodeURIComponent(q)}`;
@@ -64,6 +65,8 @@ const ROWS=[
  {id:'letterShipping',name:'ProPixeler shipping to Belgium',qty:1,unit:'×',price:12,url:P.letter30.url,shop:'propixeler',expense:'private',wave:1,tip:'Paid with the letters on 6 Nov: €103 in all.'},
  {id:'coro',name:'Coro sheet 140 × 100 cm, 3 mm, blank white',qty:Math.ceil(modelQty('coro')*1.4/1.4),unit:'sheets',price:12.5,url:P.coro.url,shop:'kunststofshop',expense:'private',wave:1,
   tip:`${Math.ceil(modelQty('coro'))} m² for the circles, peace sign, candy canes and tree star, plus 40% for offcuts. No piece is bigger than about 65 × 65 cm, so these sheets ship as a normal parcel.`},
+ {id:'gelbox',name:'WAGO Gelbox 207-1332 (IPX8, takes 221 Wagos), pack of 4',qty:1,unit:'pack',price:16.5,url:search('wago gelbox 207-1332'),shop:'bol',expense:'private',wave:1,tip:'Waterproofs the Wago joint between each T-splitter pigtail and the 4 mm² run. Bol caps it at one pack, so the other six come from Elektramat.'},
+ {id:'gelboxMore',name:'WAGO Gelbox 207-1432 (IPX8, takes 221 Wagos)',qty:6,unit:'×',price:8.07,url:'https://www.elektramat.nl/',shop:'elektramat',expense:'private',wave:1,estimate:true,tip:'The other six of the ten injection joints. Or seal the least exposed joints with glue-lined heat-shrink instead.'},
  {id:'cutting',name:'Snap-off knife blades and spray adhesive',qty:1,unit:'set',price:15,url:search('afbreekmesjes 18mm'),shop:'bol',expense:'private',wave:1,estimate:true,tip:'Fresh blades for the coro, and repositionable spray adhesive to hold the paper templates on the sheets.'},
  {id:'player',name:'Raspberry Pi 5, 4 GB',qty:1,unit:'×',price:P.player.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,tip:'Optional: skip it if a spare Raspberry Pi 4 or a mini PC can run Falcon Player.'},
  {id:'playerKit',name:'Pi 5 power supply, case and 32 GB card',qty:1,unit:'set',price:P.playerKit.price,url:P.player.url,shop:'kiwi',expense:'business',optional:true,wave:1,estimate:true},
