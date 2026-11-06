@@ -18,3 +18,4 @@ tools/original/__pycache__/
 .nuxt/
 .output/
 .data/
+.dev.vars
