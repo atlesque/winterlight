@@ -35,3 +35,14 @@ test('the runbook links every coro template, and each is made from the model',as
  assert.deepEqual(TEMPLATES.map(t=>[t.file,t.cut]),made.map(t=>[t.file,t.cut]));
  for(const t of TEMPLATES)for(const ext of ['svg','pdf'])assert.ok(existsSync(new URL(`../outputs/templates/${t.file}.${ext}`,import.meta.url)),`${t.file}.${ext}`);
 });
+
+test('the measuring steps say what the plan gives and what needs a tape',async()=>{
+ const {MEASURES}=await import('../src/runbook/runbook.js');
+ const rows=Object.values(MEASURES).flat();
+ for(const r of rows){assert.ok(['plan','tape'].includes(r.from),r.what);assert.ok(r.value&&r.how,r.what);assert.doesNotMatch(r.value+r.how,/NaN|undefined/,r.what);}
+ assert.equal(MEASURES.facade[0].value,'3.93 m');
+ assert.ok(rows.some(r=>r.from==='tape'&&/height/i.test(r.what)),'heights are not on the plan');
+ const lead=+MEASURES.boxes[0].value.match(/\d+/)[0];assert.ok(lead<15,'garden lead stays under 15 m');
+ const steps=CHAPTERS[0].steps.filter(s=>s.measures).map(s=>s.id);
+ assert.deepEqual(steps,['measure-facade','measure-garden','box-spots','network-runs']);
+});

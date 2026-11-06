@@ -1,5 +1,7 @@
 import {estimate,ALL,GROUP_LIST,ZONES,DEFAULTS} from '../costs/estimate.js';
 import {PRICES as P,CHECKED} from '../costs/catalog.js';
+import {HOUSE,PROP_LAYOUT as L} from '../house.js';
+import {OWN_CHANNELS} from '../props.js';
 // The coro templates made by tools/templates/make.mjs (outputs/templates/).
 export const TEMPLATES=[
  {file:'christmas-circle',title:'Christmas circle',cut:2},{file:'peace-sign',title:'Peace sign',cut:1},
@@ -75,16 +77,59 @@ const deliveries=[1,2].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const 
 const g=Object.fromEntries(GROUP_LIST.map(x=>[x.id,{...x,pixels:group(x.id).pixels}]));
 const each=id=>Math.round(g[id].pixels/g[id].props.length);
 
+// What the measuring steps need, read off the house model. Its frontage,
+// opening widths and window positions come from the 2021 plan (src/house.js);
+// the plan has no heights and doesn't dimension the forecourt, so those are
+// the model's guesses and need a tape measure. Each line is either 'plan' (the
+// plan answers it) or 'tape' (measure it; the model's guess is shown).
+const cm=v=>`${Math.round(v*100)} cm`,m=v=>`${(Math.round(v*100)/100).toFixed(2)} m`;
+const run=f=>f.slice(1).reduce((t,p,i)=>t+Math.hypot(...p.map((v,j)=>v-f[i][j])),0);
+const vertical=f=>f.slice(1).reduce((t,p,i)=>t+(p[0]===f[i][0]?Math.abs(p[1]-f[i][1]):0),0);
+const outlines=OWN_CHANNELS.find(c=>c.id==='windows').frames,fence=L.fence.path;
+const [left,right,kitchen,small]=HOUSE.windows;
+const OPENINGS=[['small window',small],['front door',HOUSE.door],['kitchen window',kitchen],['garage door',HOUSE.garage]];
+const outlineRun=outlines.reduce((t,f)=>t+run(f),0),outlineUp=outlines.reduce((t,f)=>t+vertical(f),0);
+const caneGap=L.canes.xs[1]-L.canes.xs[0],treeTop=L.tree.height+L.tree.star.gap+L.tree.star.radius*1.81;
+// Garage boxes: the lead to the garden goes up the wall inside the garage,
+// over the front door at the facade route's 2.55 m and down into the garden,
+// so the farthest first prop of a garden chain sets the longest data cable.
+const ROUTE_Y=2.55,GARAGE_BOX=[HOUSE.garageWidth-.1,1,0],gardenX=HOUSE.entry.maxX+.1;
+const gardenLead=Math.max(...GROUP_LIST.filter(x=>x.zone==='garden').map(x=>{const [px,y,z]=x.props[0].start;
+ return ROUTE_Y-GARAGE_BOX[1]+(gardenX-GARAGE_BOX[0])+ROUTE_Y+Math.abs(px-gardenX)+z+y;}));
+export const MEASURES={
+ facade:[
+  {from:'plan',what:'Upper floor strip',value:m(L.upper.to-L.upper.from),how:`From 9 cm left of the left upstairs window to 9 cm right of the right one. Both are ${cm(left.width)} wide, ${m(right.x-left.x)} apart centre to centre.`},
+  {from:'plan',what:'Garage eave strip',value:m(L.eaves.garage.to-L.eaves.garage.from),how:`The garage is ${m(HOUSE.garageWidth)} wide; the strip runs 5 cm past each side.`},
+  {from:'plan',what:'Opening widths',value:OPENINGS.map(([,o])=>cm(o.width)).join(', '),how:`${OPENINGS.map(([n],i)=>i?n:n[0].toUpperCase()+n.slice(1)).join(', ')}. Each outline sits 12 cm outside the opening.`},
+  {from:'tape',what:'Opening heights',value:OPENINGS.map(([,o])=>cm(o.height)).join(', '),how:`Same order. The plan has no heights, so these are guesses, and they make up ${m(outlineUp)} of the ${m(outlineRun)} of outline: every 10 cm more is one more pixel on each side.`},
+  {from:'tape',what:'Mounting heights',value:`${m(L.upper.y)} and ${m(L.eaves.garage.y)}`,how:'Upper strip and garage eave, guessed. They don\'t change the pixel count, but they set the ladder you need and the length of the lead up from the box.'},
+  {from:'tape',what:'Letter band',value:cm(left.y-left.height/2-HOUSE.door.height),how:`Between the top of the front door and the sill of the upstairs windows, for the 30 cm letters. The ${m(L.letters.to-L.letters.from)} width comes from the plan; the height is a guess.`},
+ ],
+ garden:[
+  {from:'plan',what:'Garden width',value:m(fence[2][0]-fence[1][0]),how:'From the entrance path to the boundary on the right: the front run of the ground strip.'},
+  {from:'plan',what:'Cane line',value:m(L.canes.xs.at(-1)-L.canes.xs[0]),how:`${L.canes.xs.length} canes along the street edge, ${cm(caneGap)} apart.`},
+  {from:'tape',what:'Garden depth',value:m(fence[1][2]-fence[0][2]),how:'From the facade to the street edge, along the entrance path: the side run of the ground strip. The plan doesn\'t dimension the forecourt.'},
+  {from:'tape',what:'Tree spot',value:`${cm(2*L.tree.radius)} across`,how:`Between the planting tiles, about ${m(HOUSE.width-L.tree.x)} from the right boundary and ${m(L.tree.z)} out from the facade, ${m(treeTop)} high with the star. The tiles' positions come from the street photo.`},
+  {from:'tape',what:'Bush tops',value:`${cm(HOUSE.planters.bush)} cubes`,how:`The mini trees stand three across each bush (two on the back right one), so each top needs about 60 cm of flat width. Bush sizes are guessed from the photo.`},
+ ],
+ boxes:[
+  {from:'plan',what:'Longest garden lead from the garage',value:`about ${Math.ceil(gardenLead)} m`,how:`Up inside the garage, over the front door at ${m(ROUTE_Y)} and down into the garden to the farthest first prop of a chain (the candy canes and the tree). Under 15 m, so no null pixel is needed; the heights on the way are guesses, so check it once the boxes have a spot.`},
+ ],
+ network:[
+  {from:'tape',what:'Switch to each box',value:'not on the plan',how:'The plan doesn\'t show where the switch is. With both boxes in the garage this is one run to the garage, and patch cables will do.'},
+ ],
+};
+
 const FPP='https://github.com/FalconChristmas/fpp/releases',XLIGHTS='https://xlights.org/releases/',BALDRICK='https://www.baldrickboard.com/en/boards/baldrick8/manual';
 
 export const CHAPTERS=[
  {id:'plan',title:'Plan and measure',icon:'i-lucide-ruler',due:'2026-11-05',steps:[
-  {id:'measure-facade',text:'Measure the upper floor, garage eave and window frames',tip:'Compare with the model: if a run is longer, the pixel and strip quantities go up.'},
-  {id:'measure-garden',text:'Measure the tree spot, mini-tree row, cane line and ground strip'},
-  {id:'box-spots',text:'Decide where the boxes go: in the garage, or outside on the facade and in the garden',tip:'In the garage the boxes stay dry, so they need no IP65 enclosures, outdoor mains or outdoor network cables. The pixel cables to the garden props get longer: measure the longest run from the garage; past about 15 m of data cable, add a null pixel or a differential receiver.'},
+  {id:'measure-facade',text:'Measure the upper floor, garage eave and window frames',tip:'The plan gives every length along the facade; measure the heights. If a run is longer than below, the pixel and strip quantities go up (the 5% spare covers about 120 pixels).',measures:MEASURES.facade},
+  {id:'measure-garden',text:'Measure the tree spot, mini-tree row, cane line and ground strip',tip:'The plan gives the garden\'s width; its depth, the planting tiles and the bushes need a tape.',measures:MEASURES.garden},
+  {id:'box-spots',text:'Decide where the boxes go: in the garage, or outside on the facade and in the garden',tip:'In the garage the boxes stay dry, so they need no IP65 enclosures, outdoor mains or outdoor network cables. The pixel cables to the garden props get longer: measure the longest run from the garage; past about 15 m of data cable, add a null pixel or a differential receiver.',measures:MEASURES.boxes},
   {id:'rcd',text:'Check the outdoor sockets are on a 30 mA RCD',tip:'Aardlekschakelaar. Ask an electrician if a new outdoor socket is needed.'},
   {id:'accountant',text:'Confirm the business purchases with the accountant',tip:'The business tags below are a suggestion: show hardware and network gear. Business orders go on a separate invoice in the company name with its VAT number.'},
-  {id:'network-runs',text:'Measure the network cable runs from the switch to each box'},
+  {id:'network-runs',text:'Measure the network cable runs from the switch to each box',measures:MEASURES.network},
   {id:'spare-gear',text:'Check for a spare Raspberry Pi or mini PC, a switch and patch cables',tip:'Skip the items marked optional that you already have.'},
   {id:'tools',text:'Get the tools ready: multimeter, wire stripper, crimp pliers, step drill bit, drill'},
   {id:'ip-plan',text:'Reserve IP addresses for the Pi and both controllers'},
