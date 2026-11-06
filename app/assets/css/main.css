@@ -334,6 +334,9 @@ aside.summary { position: sticky; top: 112px; padding: 22px; }
 .chapter-nav a b { font-weight: 400; color: var(--ui-text-muted); font-variant-numeric: tabular-nums; }
 .chapter-nav a.complete b { color: var(--pine); }
 .summary .note a { color: var(--gold-soft); }
+.sync { margin-top: 16px; }
+.sync .note { margin: 0 0 8px; }
+.sync .sync-error { color: var(--ui-error); }
 @media (max-width: 720px) {
   .chapter { padding: 16px 14px 8px; }
   .steps { padding-left: 0; }

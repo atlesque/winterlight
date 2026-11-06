@@ -23,9 +23,12 @@ test('the shopping list covers the full show in the cost model',()=>{
  const z=Object.values(e.zones);
  assert.equal(get('controller').qty,z.reduce((s,x)=>s+x.controllers,0));
  assert.equal(get('psu').qty,z.reduce((s,x)=>s+x.psus,0));
- assert.equal(get('enclosure').qty,z.reduce((s,x)=>s+x.boxes,0));
+ assert.equal(get('fittings').qty,z.length,'one wall board per garage box');
+ // The Pi, its kit and the switch are at hand, so they are left off the list.
+ const owned=e.infra.filter(l=>['player','playerKit','switch'].includes(l.item)).reduce((s,l)=>s+l.cost,0);
  const total=PURCHASES.reduce((s,p)=>s+p.cost,0);
- assert.ok(total>=e.subtotal*.95,'purchases come close to the cost page before contingency');
+ assert.ok(total>=(e.subtotal-owned)*.95,'purchases come close to the cost page before contingency');
+ for(const id of ['enclosure','mains','network','switch','player','playerKit'])assert.ok(!get(id),`${id} is no longer bought`);
 });
 
 test('the runbook links every coro template, and each is made from the model',async()=>{
@@ -44,5 +47,40 @@ test('the measuring steps say what the plan gives and what needs a tape',async()
  assert.ok(rows.some(r=>r.from==='tape'&&/height/i.test(r.what)),'heights are not on the plan');
  const lead=+MEASURES.boxes[0].value.match(/\d+/)[0];assert.ok(lead<15,'garden lead stays under 15 m');
  const steps=CHAPTERS[0].steps.filter(s=>s.measures).map(s=>s.id);
- assert.deepEqual(steps,['measure-facade','measure-garden','box-spots','network-runs']);
+ assert.deepEqual(steps,['measure-facade','measure-garden','box-spots']);
+});
+
+test('the orders placed on 6 Nov start ticked and add up to what was paid',async()=>{
+ const {PRESET}=await import('../src/runbook/runbook.js');
+ const ordered=PURCHASES.filter(p=>p.ordered);
+ assert.equal(Math.round(ordered.reduce((s,p)=>s+p.cost,0)*100)/100,2133.1);
+ const shop=id=>Math.round(ordered.filter(p=>p.shop===id).reduce((s,p)=>s+p.cost,0)*100)/100;
+ assert.deepEqual(['pixelimperium','ledshows','aliexpress','audiophonics','propixeler','bol','elektramat','bambu','kunststofshop'].map(shop),[820.47,391,407.46,140.96,103,61.94,33.58,62.24,112.45]);
+ for(const p of ordered)assert.ok(PRESET.includes(`buy-${p.id}`),p.id);
+ for(const id of PRESET)assert.ok(STEP_IDS.includes(id),id);
+ assert.ok(!PRESET.includes('buy-treeFrame'),'the tree pole is still to buy locally');
+});
+
+test('the runbook API needs an Access sign-in, reads defaults and validates changes',async()=>{
+ const {default:worker,statements}=await import('../worker/index.js');
+ const rows=new Map();
+ const select={all:async()=>({results:[...rows].map(([k,value])=>{const [kind,id]=k.split(':');return {kind,id,value};})})};
+ const db={
+  prepare:sql=>sql.startsWith('SELECT')?select:{bind:(...a)=>({sql,a})},
+  batch:async list=>{for(const {sql,a} of list){if(sql.startsWith('DELETE'))rows.delete(`expense:${a[0]}`);else rows.set(`${a[0]}:${a[1]}`,a[2]);}},
+ };
+ const env={RUNBOOK_DB:db};
+ const call=(method,body,user)=>worker.fetch(new Request('https://x/api/runbook',{method,headers:{'content-type':'application/json',...(user&&{'cf-access-authenticated-user-email':user})},body:body&&JSON.stringify(body)}),env);
+ const me='alex@example.com';
+ assert.equal((await call('GET')).status,401);
+ assert.equal((await call('PATCH',{done:{'buy-pixels':false}})).status,401);
+ assert.deepEqual(await (await call('GET',null,me)).json(),{done:{},expense:{}});
+ assert.equal((await call('PATCH',{done:{'not-a-step':true}},me)).status,400);
+ assert.equal((await call('PATCH',{expense:{pixels:'gift'}},me)).status,400);
+ const ok=await call('PATCH',{done:{'buy-pixels':false,'rcd':true},expense:{pixels:'business'}},me);
+ assert.deepEqual(await ok.json(),{done:{'buy-pixels':false,rcd:true},expense:{pixels:'business'}});
+ const back=await call('PATCH',{expense:{pixels:null}},me);
+ assert.deepEqual((await back.json()).expense,{});
+ assert.equal((await worker.fetch(new Request('https://x/api/other'),env)).status,404);
+ assert.throws(()=>statements(db,{done:{rcd:'yes'}}));
 });
