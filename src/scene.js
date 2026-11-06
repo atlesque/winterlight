@@ -98,9 +98,9 @@ export function createScene(host) {
     for(const [x,y,z] of c.posts||[])cylinder(.012,y,x,y/2,z,mats.frame);
   }
   const tree=PROP_LAYOUT.tree;cylinder(.02,tree.height,tree.x,tree.height/2,tree.z,mats.frame);cylinder(.12,.06,tree.x,.03,tree.z,mats.frame);
-  // The wiring layer, hidden until switched on: the boxes, each controller port's
-  // data cable in its own colour, power injection points and the network and
-  // 230 V feeds from indoors (src/wiring/plan.js).
+  // The wiring layer, hidden until switched on: each controller port's data
+  // cable in its own colour from the garage, and the power injection points
+  // with their feeds (src/wiring/plan.js).
   const wiring=new THREE.Group();wiring.visible=false;scene.add(wiring);
   const wireMat=color=>new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(.38)});
   function wire(points,r,mat){const curve=new THREE.CurvePath(),v=points.map(p=>new THREE.Vector3(...p));for(let i=1;i<v.length;i++)curve.add(new THREE.LineCurve3(v[i-1],v[i]));wiring.add(new THREE.Mesh(new THREE.TubeGeometry(curve,(v.length-1)*4,r,5,false),mat));}
@@ -112,16 +112,14 @@ export function createScene(host) {
     const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:'#a3a3a3',depthTest:false}));sprite.renderOrder=10;
     sprite.scale.set(canvas.width/canvas.height*.3,.3,1);sprite.position.set(...pos);wiring.add(sprite);
   }
-  const boxMat=new THREE.MeshStandardMaterial({color:'#3a4350',roughness:.6}),powerMat=wireMat(WIRE_COLORS.power),netMat=wireMat(WIRE_COLORS.network),mainsMat=wireMat(WIRE_COLORS.mains);
-  const node=new THREE.SphereGeometry(.045,10,8),injectMat=new THREE.MeshBasicMaterial({color:WIRE_COLORS.power});
+  const powerMat=wireMat(WIRE_COLORS.power),node=new THREE.SphereGeometry(.045,10,8),injectMat=new THREE.MeshBasicMaterial({color:WIRE_COLORS.power});
   for(const z of WIRING.zones){
-    const [x,y,zz]=z.box,b=new THREE.Mesh(new THREE.BoxGeometry(.28,.21,.13),boxMat);b.position.set(x,y,zz+.065);wiring.add(b);
-    tag(z.name,[x,y+.38,zz+.1]);
     for(const port of z.ports){const mat=wireMat(port.color);for(const seg of port.segments)wire(seg,.01,mat);}
     for(const port of z.ports)for(const inj of port.injections){wire(inj.path,.008,powerMat);const m=new THREE.Mesh(node,injectMat);m.position.set(...inj.pos);wiring.add(m);}
-    wire(z.network.path,.01,netMat);wire(z.mains.path,.01,mainsMat);
   }
-  tag('Indoors: show computer, switch, 230 V',[WIRING.hub.entry[0]-1.1,WIRING.hub.entry[1]+.3,.15]);
+  // Both controller boxes sit in the garage; every cable leaves it through one gland next to the facade.
+  const [gx,gy,gz]=WIRING.hub.exit,gland=new THREE.Mesh(new THREE.BoxGeometry(.16,.3,.06),new THREE.MeshStandardMaterial({color:'#3a4350',roughness:.6}));gland.position.set(gx,gy+.02,gz);wiring.add(gland);
+  tag('Garage: both controllers, power, show computer',[gx-.9,gy-.3,.2]);
   const bulbs=[],channelBulbs=OWN_CHANNELS.map(()=>[]);
   OWN_CHANNELS.forEach((c,i)=>{for(const b of c.bulbs){channelBulbs[i].push(bulbs.length);bulbs.push({...b,color:new THREE.Color(b.color)});}});
   const lights=new THREE.InstancedMesh(new THREE.SphereGeometry(.029,8,6),new THREE.MeshBasicMaterial({toneMapped:false}),bulbs.length),m4=new THREE.Matrix4(),tmp=new THREE.Color();

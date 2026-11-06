@@ -1,4 +1,4 @@
-import {estimate,ALL,ZONES,GROUP_LIST,DEFAULTS} from '../costs/estimate.js';
+import {estimate,ALL,GROUP_LIST,DEFAULTS} from '../costs/estimate.js';
 import {PRICES as P,WATTS_PER_PIXEL,PSU_WATTS,PSU_LOAD,PORT_PIXELS,PORTS_PER_CONTROLLER,INJECT_EVERY} from '../costs/catalog.js';
 import {OWN_CHANNELS} from '../props.js';
 import {HOUSE} from '../house.js';
@@ -8,8 +8,9 @@ import {HOUSE} from '../house.js';
 // the shopping list all agree. Each zone has one box with a controller and its
 // power supplies; every prop group is one chain on one controller port, wired
 // from the box to the first prop and prop to prop; a chain gets power injected
-// every INJECT_EVERY pixels. The show computer and switch sit indoors, and a
-// network cable and a 230 V feed run from there to each box.
+// every INJECT_EVERY pixels. Both boxes sit in the garage with the show
+// computer and switch (the runbook's choice), so every chain leaves the garage
+// through one hole next to the facade, and network and mains stay indoors.
 const FULL=estimate(ALL,DEFAULTS);
 const byId=Object.fromEntries(OWN_CHANNELS.map(c=>[c.id,c]));
 const round1=v=>Math.round(v*10)/10;
@@ -18,8 +19,9 @@ const round1=v=>Math.round(v*10)/10;
 export const PORT_COLORS=['#f6c75a','#5ec8f0','#b48cff','#ff8fb1','#7ee081','#ff9d4d','#4fd1c5','#e6e96b','#9fb4ff','#f07167'];
 export const WIRE_COLORS={power:'#ff4d3d',network:'#4a9dff',mains:'#ff9a2e'};
 // Where the cables leave the house: the garage, at the corner next to the facade box.
-export const HUB={name:'Indoors',where:'in the garage (the plan has no spot for it yet)',entry:[HOUSE.garageWidth+.05,.25,.03],
- parts:[`Raspberry Pi 5 with Falcon Player (FPP)`,'5-port network switch','230 V sockets for the boxes']};
+// Where the cables leave the garage: through the wall just right of it, at the
+// runbook's box height (GARAGE_BOX in src/runbook/runbook.js).
+export const HUB={name:'Garage',where:'both boxes, the show computer and the switch',exit:[HOUSE.garageWidth+.05,1,.03]};
 
 // Cables follow the walls and the ground in straight runs: on the facade they
 // go up first, then across; in the garden they drop to the ground, run along
@@ -32,32 +34,36 @@ export function route(a,b){
  return clean([a,[a[0],GROUND_Y,a[2]],[a[0],GROUND_Y,b[2]],[b[0],GROUND_Y,b[2]],b]);
 }
 const pathLength=points=>points.slice(1).reduce((s,p,i)=>s+Math.hypot(...p.map((v,j)=>v-points[i][j])),0);
-// The garden box is reached over the front door, as the runbook's lead from the garage is.
+// Garden cables go over the front door and down beside it, as the runbook's
+// lead from the garage does, so the door and the path stay clear.
 const OVER_DOOR=2.55,GARDEN_X=HOUSE.entry.maxX+.1;
-function feed(zone,offset=0){
- const e=[HUB.entry[0]+offset,HUB.entry[1],HUB.entry[2]],box=ZONES[zone].box;
- if(zone==='facade')return clean([e,[e[0],box[1]+offset,WALL_Z],[box[0],box[1]+offset,WALL_Z],box]);
- return clean([e,[e[0],OVER_DOOR+offset,WALL_Z],[GARDEN_X+offset,OVER_DOOR+offset,WALL_Z],[GARDEN_X+offset,GROUND_Y,WALL_Z],[GARDEN_X+offset,GROUND_Y,box[2]],box]);
+function fromGarage(zone,to,offset=0){
+ const e=[HUB.exit[0],HUB.exit[1]+offset,HUB.exit[2]];
+ if(zone==='facade')return route(e,to);
+ const down=[GARDEN_X+offset,GROUND_Y,WALL_Z];
+ return clean([e,[e[0],OVER_DOOR+offset,WALL_Z],[down[0],OVER_DOOR+offset,WALL_Z],down,...route(down,to).slice(1)]);
 }
 
 function buildZone(id,firstColor){
- const zone=ZONES[id],z=FULL.zones[id],box=zone.box;
+ const z=FULL.zones[id],box=HUB.exit;
  const groups=FULL.groups.filter(g=>g.zone===id&&g.props.length);
  // Each group is one chain on its own port, in the order the cost page lists them.
  const ports=groups.map((g,i)=>{
   const meta=GROUP_LIST.find(x=>x.id===g.id);
-  let from=box,index=0;const segments=[],props=[];
-  for(const p of g.props){
-   const c=byId[p.id];
-   segments.push(route(from,c.bulbs[0].pos));from=c.bulbs.at(-1).pos;
-   props.push({id:p.id,name:p.name,pixels:p.pixels,run:p.run,first:index});index+=p.pixels;
+  let from=null,index=0;const segments=[],props=[];
+  // The first hop is the lead from the garage; the cost model's runs still
+  // start at its outdoor box spots, so that one is measured along the route.
+  for(const [k,p] of g.props.entries()){
+   const c=byId[p.id],seg=from?route(from,c.bulbs[0].pos):fromGarage(id,c.bulbs[0].pos,i*.035);
+   segments.push(seg);from=c.bulbs.at(-1).pos;
+   props.push({id:p.id,name:p.name,pixels:p.pixels,run:k?p.run:Math.ceil(pathLength(seg)+.5),first:index});index+=p.pixels;
   }
   // Power is injected at every INJECT_EVERY-th pixel along the chain.
   const bulbs=g.props.flatMap(p=>byId[p.id].bulbs.map(b=>b.pos));
   const injections=Array.from({length:Math.floor((g.pixels-1)/INJECT_EVERY)},(_,k)=>{
    const at=(k+1)*INJECT_EVERY,prop=props.findLast(p=>p.first<=at);return {at,pos:bulbs[at],prop:prop.name};});
   return {n:i+1,group:g.id,name:meta.name,color:PORT_COLORS[(firstColor+i)%PORT_COLORS.length],pixels:g.pixels,
-   load:g.pixels/PORT_PIXELS,cable:g.props.reduce((s,p)=>s+p.run,0),props,segments,injections,watts:round1(g.pixels*WATTS_PER_PIXEL)};
+   load:g.pixels/PORT_PIXELS,cable:props.reduce((s,p)=>s+p.run,0),props,segments,injections,watts:round1(g.pixels*WATTS_PER_PIXEL)};
  });
  // Power supplies share the ports: the biggest chain goes to the least loaded supply.
  const psus=Array.from({length:z.psus},(_,i)=>({n:i+1,ports:[],pixels:0}));
@@ -65,11 +71,10 @@ function buildZone(id,firstColor){
   const psu=psus.reduce((m,s)=>s.pixels<m.pixels?s:m);psu.ports.push(port.n);psu.pixels+=port.pixels;port.psu=psu.n;
  }
  for(const s of psus){s.ports.sort((a,b)=>a-b);s.watts=round1(s.pixels*WATTS_PER_PIXEL);s.load=s.watts/PSU_WATTS;}
- for(const port of ports)for(const inj of port.injections){inj.psu=port.psu;inj.path=route(box,inj.pos);}
- const network=feed(id),mains=feed(id,.06);
- return {id,name:zone.name,where:zone.where,box,pixels:z.pixels,watts:round1(z.pixels*WATTS_PER_PIXEL),
-  controllers:z.controllers,portsFree:z.controllers*PORTS_PER_CONTROLLER-ports.length,boxes:z.boxes,
-  ports,psus,network:{path:network,length:Math.ceil(pathLength(network)+1)},mains:{path:mains,length:Math.ceil(pathLength(mains)+1)}};
+ // The 4 mm² injection runs come from the supplies in the garage along the same way out.
+ for(const port of ports)for(const inj of port.injections){inj.psu=port.psu;inj.path=fromGarage(id,inj.pos,-.04);}
+ return {id,name:id==='facade'?'Facade controller':'Garden controller',feeds:id==='facade'?'the facade props':'the garden props',pixels:z.pixels,watts:round1(z.pixels*WATTS_PER_PIXEL),
+  controllers:z.controllers,portsFree:z.controllers*PORTS_PER_CONTROLLER-ports.length,ports,psus};
 }
 
 const facade=buildZone('facade',0);

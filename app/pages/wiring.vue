@@ -2,45 +2,46 @@
 import {WIRING,WIRE_COLORS,LONGEST_RUN} from '~~/src/wiring/plan.js';
 
 // The wiring plan: one diagram of how the full show is connected, from the
-// show computer indoors to every prop, and a table per box. Everything comes
+// garage, where both boxes and the show computer sit, to every prop, and a
+// table per controller. Everything comes
 // from src/wiring/plan.js, which reads the cost model.
 definePageMeta({alias:['/wiring.html']});
 const {hub,zones,parts}=WIRING;
 const pct=v=>`${Math.round(v*100)}%`;
-const W=1180,RH=58,TOP=20,GAP=28,HEAD=56;
+const W=1180,RH=58,TOP=50,GAP=28,HEAD=56;
 // Short chip labels: the letter, the tree or strand number, a star for the tree star.
 const short=(port,p)=>port.props.length===1?port.name:p.name.includes('·')?p.name.split('·').pop().trim():p.name.endsWith('star')?'★':p.name.split(' ').pop();
 
-// Diagram geometry: the indoor hub on the left, a block per box with its power
-// supplies and controller, and one row per controller port with the chain of
-// props drawn to scale against the port's pixel limit.
+// Diagram geometry: the garage on the left (show computer, then a block per box with its power
+// supplies and controller), and outside its wall one row per controller port
+// with the chain of props drawn to scale against the port's pixel limit.
 const BOX={x:340,w:300},CTRL={x:504,w:120},PSU={x:356,w:136},TRACK={x:680,w:W-680-16};
 let y=TOP;
 const blocks=zones.map(z=>{
  const h=HEAD+z.ports.length*RH+14,top=y;y+=h+GAP;
  const rows=z.ports.map((port,i)=>{
   const ry=top+HEAD+i*RH,scale=TRACK.w/parts.portPixels;let x=TRACK.x;
-  const chips=port.props.map(p=>{const w=p.pixels*scale,c={x,w,label:short(port,p),title:`${p.name}: ${p.pixels} pixels, ${p.run} m of cable from the ${p===port.props[0]?'box':'previous prop'}`};x+=w;return c;});
+  const chips=port.props.map(p=>{const w=p.pixels*scale,c={x,w,label:short(port,p),title:`${p.name}: ${p.pixels} pixels, ${p.run} m of cable from the ${p===port.props[0]?'garage':'previous prop'}`};x+=w;return c;});
   return {port,y:ry,pin:ry+38,chips,injections:port.injections.map(j=>({x:TRACK.x+j.at*scale,title:`Power injection at pixel ${j.at} (${j.prop}), fed from power supply ${j.psu}`}))};
  });
  const psuH=40,psus=z.psus.map((s,i)=>({...s,y:top+HEAD+i*(psuH+12),h:psuH}));
  return {z,top,h,rows,psus,ctrl:{y:top+HEAD-6,h:z.ports.length*RH+2}};
 });
-const H=y-GAP+TOP;
-const HUB={x:16,w:200,y:H/2-78,h:156};
+const H=y-GAP+20;
+const HUB={x:24,w:210,y:(TOP+H)/2-78,h:156},GARAGE={x:8,y:8,w:BOX.x+BOX.w+16-8,h:H-16};
 const curve=(x1,y1,x2,y2)=>{const m=(x1+x2)/2;return `M${x1},${y1} C${m},${y1} ${m},${y2} ${x2},${y2}`;};
 const links=blocks.flatMap(b=>[
- {d:curve(HUB.x+HUB.w,HUB.y+64,BOX.x,b.top+30),color:WIRE_COLORS.network,label:`Cat5e · ~${b.z.network.length} m`,lx:BOX.x-8,ly:b.top+24},
+ {d:curve(HUB.x+HUB.w,HUB.y+64,BOX.x,b.top+30),color:WIRE_COLORS.network,label:'Patch cable',lx:BOX.x-8,ly:b.top+24},
  ...b.psus.map(s=>({d:curve(HUB.x+HUB.w,HUB.y+112,PSU.x,s.y+s.h/2),color:WIRE_COLORS.mains,dash:'5 4'})),
 ]);
-const mainsLabels=blocks.map(b=>({x:BOX.x-8,y:b.psus.at(-1).y+b.psus.at(-1).h+16,text:`230 V · ~${b.z.mains.length} m`}));
+const mainsLabels=blocks.map(b=>({x:BOX.x-8,y:b.psus.at(-1).y+b.psus.at(-1).h+16,text:'Power strip'}));
 
 const totals={ports:zones.reduce((s,z)=>s+z.ports.length,0),injections:zones.reduce((s,z)=>s+z.ports.reduce((t,p)=>t+p.injections.length,0),0),
  cable:zones.reduce((s,z)=>s+z.ports.reduce((t,p)=>t+p.cable,0),0),psus:zones.reduce((s,z)=>s+z.psus.length,0)};
 
 const SITE='https://winterlight.alexander-df0.workers.dev';
 const TITLE='Winterlight · Wiring plan';
-const DESCRIPTION='How the Winterlight show on our house is wired: the show computer and switch, the two controller boxes with their power supplies, every controller port and its chain of props, power injection, network and mains.';
+const DESCRIPTION='How the Winterlight show on our house is wired: the show computer and the two controller boxes in the garage, their power supplies, every controller port and its chain of props, and power injection.';
 useHead({title:TITLE,link:[{rel:'canonical',href:`${SITE}/wiring.html`}],bodyAttrs:{class:'wiring-page'}});
 useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',ogLocale:'en_GB',ogTitle:TITLE,ogDescription:DESCRIPTION,ogUrl:`${SITE}/wiring.html`,
  ogImage:`${SITE}/og-image.jpg`,ogImageType:'image/jpeg',ogImageWidth:1200,ogImageHeight:630,ogImageAlt:'3D model of a house with a wireframe Christmas tree, a peace sign, Christmas circles and HAPPY HOLIDAYS letters lit up',
@@ -54,13 +55,13 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
     <main class="costs wiring">
       <section class="intro">
         <h1>Wiring plan</h1>
-        <p>How the full show is connected: {{ WIRING.pixels.toLocaleString('en') }} pixels on {{ totals.ports }} controller ports in two boxes, fed from indoors.
+        <p>How the full show is connected: {{ WIRING.pixels.toLocaleString('en') }} pixels on {{ totals.ports }} controller ports, with both boxes and the show computer in the garage.
           Numbers come from the LED cost estimate. <a href="/?wiring=1">See the wiring in the 3D model</a>.</p>
       </section>
 
       <section class="diagram glass" aria-label="Wiring diagram">
         <div class="legend">
-          <span><i class="swatch-line" :style="{background:WIRE_COLORS.network}" /> Network (Cat5e)</span>
+          <span><i class="swatch-line" :style="{background:WIRE_COLORS.network}" /> Network</span>
           <span><i class="swatch-line dashed" :style="{color:WIRE_COLORS.mains}" /> 230 V mains</span>
           <span><i class="swatch-line" :style="{background:WIRE_COLORS.power}" /> 12 V power</span>
           <span><i class="swatch-line" style="background:linear-gradient(90deg,#f6c75a,#5ec8f0,#b48cff)" /> Pixel data, one colour per port</span>
@@ -68,25 +69,28 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
         </div>
         <div class="diagram-scroll">
           <svg id="wiring-diagram" :viewBox="`0 0 ${W} ${H}`" role="img" aria-labelledby="diagram-title">
-            <title id="diagram-title">Wiring diagram: show computer and switch indoors, network and mains to the facade box and the garden box, and each controller port's chain of props</title>
+            <title id="diagram-title">Wiring diagram: the garage with the show computer, switch and both controller boxes, and each controller port's chain of props outside</title>
+            <rect :x="GARAGE.x" :y="GARAGE.y" :width="GARAGE.w" :height="GARAGE.h" rx="18" class="garage" />
+            <text :x="GARAGE.x+16" :y="GARAGE.y+26" class="t-room">GARAGE</text>
+            <text :x="GARAGE.x+GARAGE.w-8" :y="GARAGE.y+26" class="t-dim" text-anchor="end">through the wall to the props →</text>
             <path v-for="(l,i) in links" :key="i" :d="l.d" fill="none" :stroke="l.color" stroke-width="2" :stroke-dasharray="l.dash" opacity=".85" />
             <text v-for="(l,i) in links.filter(l=>l.label)" :key="`n${i}`" :x="l.lx" :y="l.ly" class="t-wire" :fill="WIRE_COLORS.network" text-anchor="end">{{ l.label }}</text>
             <text v-for="(m,i) in mainsLabels" :key="`m${i}`" :x="m.x" :y="m.y" class="t-wire" :fill="WIRE_COLORS.mains" text-anchor="end">{{ m.text }}</text>
 
             <g class="hub">
               <rect :x="HUB.x" :y="HUB.y" :width="HUB.w" :height="HUB.h" rx="14" class="card" />
-              <text :x="HUB.x+16" :y="HUB.y+28" class="t-title">{{ hub.name }}</text>
-              <text :x="HUB.x+16" :y="HUB.y+44" class="t-dim">{{ hub.where.split(' (')[0] }}</text>
+              <text :x="HUB.x+16" :y="HUB.y+28" class="t-title">Show computer</text>
+              <text :x="HUB.x+16" :y="HUB.y+44" class="t-dim">on a shelf next to the boxes</text>
               <text :x="HUB.x+16" :y="HUB.y+70" class="t-body">Raspberry Pi 5 · Falcon Player</text>
               <text :x="HUB.x+16" :y="HUB.y+90" class="t-body">5-port switch</text>
-              <text :x="HUB.x+16" :y="HUB.y+116" class="t-body">230 V sockets</text>
-              <text :x="HUB.x+16" :y="HUB.y+136" class="t-dim">FM transmitter for the music</text>
+              <text :x="HUB.x+16" :y="HUB.y+116" class="t-body">Power strip on a 30 mA RCD</text>
+              <text :x="HUB.x+16" :y="HUB.y+136" class="t-dim">FM transmitter on 12 V</text>
             </g>
 
             <g v-for="b in blocks" :key="b.z.id" class="zone" :data-zone="b.z.id">
               <rect :x="BOX.x" :y="b.top" :width="BOX.w" :height="b.h" rx="14" class="card" />
               <text :x="BOX.x+16" :y="b.top+26" class="t-title">{{ b.z.name }}</text>
-              <text :x="BOX.x+16" :y="b.top+42" class="t-dim">{{ b.z.pixels.toLocaleString('en') }} px · {{ b.z.watts }} W max · {{ b.z.boxes }} enclosures</text>
+              <text :x="BOX.x+16" :y="b.top+42" class="t-dim">{{ b.z.pixels.toLocaleString('en') }} px · {{ b.z.watts }} W max · {{ b.z.feeds }}</text>
 
               <g v-for="s in b.psus" :key="s.n">
                 <rect :x="PSU.x" :y="s.y" :width="PSU.w" :height="s.h" rx="8" class="psu" />
@@ -130,7 +134,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 
       <section v-for="z in zones" :id="z.id" :key="z.id" class="glass box-card">
         <h2>{{ z.name }}</h2>
-        <p class="led">{{ z.where[0].toUpperCase()+z.where.slice(1) }}. One {{ parts.controller.split(' (')[0] }} and {{ z.psus.length }} power supplies in {{ z.boxes }} IP65 enclosures; Cat5e (~{{ z.network.length }} m) and 230 V (~{{ z.mains.length }} m) from indoors.</p>
+        <p class="led">In the garage, for {{ z.feeds }}: one {{ parts.controller.split(' (')[0] }} and {{ z.psus.length }} power supplies on a wall board, a patch cable to the switch and a plug in the power strip. Cable lengths run from the garage.</p>
         <div class="table-scroll">
           <table>
             <thead><tr><th>Port</th><th>Chain, in data order</th><th class="num">Pixels</th><th class="num">Cable</th><th>Power injection</th><th class="num">Supply</th></tr></thead>
@@ -156,10 +160,10 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
       </section>
 
       <section class="wiring-notes">
-        <div class="glass"><UIcon name="i-lucide-cable" class="card-icon" /><h3>Data</h3><p>Each prop group is one chain on one port: from the box to the first prop, then prop to prop, with a 3-core X-con extension and a pigtail per prop. Start each prop at its corner nearest the box. The longest single run is {{ LONGEST_RUN }} m; past about 15 m, add a null pixel.</p></div>
-        <div class="glass"><UIcon name="i-lucide-zap" class="card-icon" /><h3>Power</h3><p>12 V, two supplies per box, each kept under {{ pct(parts.psuLoad) }} load. A T-splitter feeds 4 mm² wire from the chain's supply into the run every {{ parts.injectEvery }} pixels. Fuse every output on the terminal block.</p></div>
-        <div class="glass"><UIcon name="i-lucide-network" class="card-icon" /><h3>Network</h3><p>The Pi runs Falcon Player and sends E1.31/DDP to both controllers through the switch. Reserve fixed IP addresses for the Pi and both controllers.</p></div>
-        <div class="glass"><UIcon name="i-lucide-shield-alert" class="card-icon" /><h3>Mains</h3><p>230 V only reaches the supply terminals inside the enclosures. Cable glands at the bottom, a drip loop on every cable, and the plug out while wiring.</p></div>
+        <div class="glass"><UIcon name="i-lucide-cable" class="card-icon" /><h3>Data</h3><p>Each prop group is one chain on one port: out of the garage to the first prop, then prop to prop, on xConnect 18 AWG extensions with a pigtail pair per prop. Facade chains go up the wall; garden chains go over the front door at 2.55 m and down beside it, so the door and the path stay clear. The longest lead is about {{ LONGEST_RUN }} m, under the 15 m where a null pixel is needed. Start each prop at its corner nearest the garage.</p></div>
+        <div class="glass"><UIcon name="i-lucide-zap" class="card-icon" /><h3>Power</h3><p>12 V, two Mean Well supplies per controller, each kept under {{ pct(parts.psuLoad) }} load. Every {{ parts.injectEvery }} pixels a T-splitter takes a red and black 4 mm² run from the chain's supply, joined with Wagos in a gel box outside. Regulated strings go on the long runs (tree, eaves, windows) so they stay evenly bright; the small props use the standard strings.</p></div>
+        <div class="glass"><UIcon name="i-lucide-network" class="card-icon" /><h3>Network and music</h3><p>The Pi runs Falcon Player and sends E1.31/DDP to both controllers through the switch, all on patch cables in the garage. Reserve fixed IP addresses for the Pi and both controllers. The car FM transmitter runs from a 12 V supply, on the street side of the garage and not in a metal box.</p></div>
+        <div class="glass"><UIcon name="i-lucide-shield-alert" class="card-icon" /><h3>Mains</h3><p>Everything plugs into one power strip in the garage, on a 30 mA RCD. 230 V only reaches the supply terminals on the wall board; fuse every 12 V output, and keep the plug out while wiring.</p></div>
       </section>
     </main>
   </div>
@@ -177,6 +181,8 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 .diagram-scroll svg{display:block;width:100%;min-width:1040px;height:auto;font-family:var(--font-sans)}
 .scroll-hint{display:none}
 .card{fill:#0f1a2c;stroke:#ffffff1f}
+.garage{fill:#ffffff05;stroke:#efc19755;stroke-dasharray:6 5}
+.t-room{font-size:11px;letter-spacing:2px;font-weight:700;fill:#e3bd8f}
 .psu{fill:#2a1714;stroke:#ff4d3d55}
 .ctrl{fill:#14233a;stroke:#5ec8f055}
 .track{fill:#ffffff08;stroke:#ffffff14}
