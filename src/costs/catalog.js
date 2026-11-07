@@ -22,9 +22,9 @@ export const PRICES={
  // Blank white 3 mm sheets of 140 × 100 cm at €12.50, not a print shop's cut-to-size price.
  coro:{name:'Corrugated polypropylene sheet (coro), 3 mm, blank white, per m²',price:8.93,url:'https://kunststofshop.nl/',shop:'kunststofshop.nl'},
  cable:{name:'3-core pixel extension cable (18 AWG), per metre',price:.8,estimate:true},
- stake:{name:'Ground stake or wall clip',price:.6,estimate:true},
+ stake:{name:'Wall clip, or a printed foot and paving brick',price:.6,estimate:true},
  minitreeFrame:{name:'Mini-tree frame: printed base and top, six spokes',price:5,estimate:true},
- treeFrame:{name:'Tree centre pole, top ring and guy lines',price:30,estimate:true},
+ treeFrame:{name:'Tree centre pole and parasol base (crown hub and base ring printed)',price:52,estimate:true},
  fittings:{name:'Wall board, terminal blocks and fuses per box',price:15,estimate:true},
  mains:{name:'Outdoor 230 V feed per box (cable, plug, socket)',price:25,estimate:true},
  network:{name:'Outdoor Cat5e run per box (LEDshows makes them to length for €2 to €45)',price:15,estimate:true,url:LEDSHOWS,shop:'LEDshows.nl'},

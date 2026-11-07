@@ -46,3 +46,28 @@ module spoked_ring(r_out, r_in, t, n, boss_d, arm_w = 8) {
   for (i = [0 : n - 1]) rotate([0, 0, 360*i/n + 180/n]) translate([0, -arm_w/2, 0]) cube([r_in + 1, arm_w, t]);
   cylinder(d = boss_d, h = t);
 }
+
+// Bricks for ballast: the paving in front of the house is stone, so nothing
+// can be staked into it. The feet are trays that hold standard concrete paving
+// bricks (betonklinkers, 22 × 11 × 8 cm, about 4 kg each). Set your own size.
+brick_l = 220;
+brick_w = 110;
+brick_h = 80;
+brick_clr = 3;      // bricks vary a few millimetres
+tray_wall = 1.6;
+tray_h = 20;
+tray_lip = 10;      // the floor is only a ledge round the edge, to save PETG
+tray_floor = 1.6;
+
+// A tray for n bricks side by side along Y, its corner at the origin.
+// gap: extra room between the bricks (for a rib); returns nothing, see tray_size.
+function tray_inner(n = 1, gap = 0) = [brick_l + 2*brick_clr, n*(brick_w + 2*brick_clr) + gap];
+module tray(n = 1, gap = 0) {
+  in = tray_inner(n, gap);
+  out = [in[0] + 2*tray_wall, in[1] + 2*tray_wall];
+  difference() {
+    cube([out[0], out[1], tray_h]);
+    translate([tray_wall, tray_wall, tray_floor]) cube([in[0], in[1], tray_h]);
+    translate([tray_wall + tray_lip, tray_wall + tray_lip, -1]) cube([in[0] - 2*tray_lip, in[1] - 2*tray_lip, tray_floor + 2]);
+  }
+}

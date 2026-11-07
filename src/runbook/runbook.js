@@ -3,7 +3,7 @@ import {PRICES as P,CHECKED} from '../costs/catalog.js';
 import {HOUSE,PROP_LAYOUT as L} from '../house.js';
 import {OWN_CHANNELS} from '../props.js';
 import {MEASUREMENTS} from '../measures/measures.js';
-import {PARTS as PRINT_PARTS} from '../print/parts.js';
+import {PARTS as PRINT_PARTS,BRICK,BRICKS,PARASOL} from '../print/parts.js';
 import PRINT_MANIFEST from '../../outputs/print/manifest.json' with {type:'json'};
 // The 3D prints page (print.html): how many parts, how much PETG, and a link to a prop's section.
 const PRINT_COUNT=PRINT_PARTS.reduce((s,p)=>s+p.qty,0),PRINT_GRAMS=PRINT_PARTS.reduce((s,p)=>s+p.qty*(PRINT_MANIFEST[p.id]?.grams??0),0);
@@ -77,10 +77,12 @@ const ROWS=[
  {id:'cutting',name:'Stanley 1992 trapezoid blades and spray adhesive',qty:1,unit:'set',price:19.9,url:search('stanley 1992 trapezium mesjes'),shop:'bol',expense:'private',wave:1,tip:'Five fresh blades for the FatMax utility knife (trapezoid, not snap-off, €4.90), and Bison spray adhesive to hold the paper templates on the sheets (€15). Ordered 6 Nov in the bol.com order.'},
  {id:'fittings',name:'Wall board, terminal blocks and fuses',qty:zones.length,unit:'sets',price:P.fittings.price,url:search('zekeringhouder auto 12v'),shop:'bol',expense:'private',wave:2,estimate:true,tip:'One per box in the garage: a board on the wall with a fuse on every power supply output and terminal blocks for the 4 mm² runs. A DIY store has the same.'},
  {id:'minitreeFrame',name:'Bambu Lab PETG Basic, black, 1 kg',qty:6,unit:'×',price:62.24/6,url:'https://eu.store.bambulab.com/',shop:'bambu',expense:'business',wave:1,
-  tip:`For the parts on the 3D prints page: base and top for ${modelQty('minitreeFrame')} mini trees (the six spokes are mounting strip), the tree's crown hub, star holder and strand pegs, the cane stakes and the ground strip posts, about ${(Math.round(PRINT_GRAMS/100)/10)} kg in all. Ordered 6 Nov as a business purchase: €62.24 for six rolls with spool, excluding VAT, free shipping.`},
- {id:'treeFrame',name:'3 m tree pole and guy lines',qty:1,unit:'set',price:P.treeFrame.price,url:'https://www.gamma.be/',shop:'local',tip:'Buy locally, no need to order: the tree is 2.5 m tall and the pole goes about 40 cm into the ground, so a 3 m pole leaves room for the star. The crown hub, star holder and strand pegs are printed; they are drawn for a 32 mm pole, so measure its diameter and change pole_d in their OpenSCAD files if it differs before printing them.',expense:'private',wave:2,estimate:true},
+  tip:`For the parts on the 3D prints page: base and top for ${modelQty('minitreeFrame')} mini trees (the six spokes are mounting strip), the tree's crown hub, base ring and star holder, the cane bases and the ground strip's posts and feet, about ${(Math.round(PRINT_GRAMS/100)/10)} kg in all. Ordered 6 Nov as a business purchase: €62.24 for six rolls with spool, excluding VAT, free shipping.`},
+ {id:'treeFrame',name:'3 m tree pole, 25–50 mm across',qty:1,unit:'×',price:12,url:'https://www.gamma.be/',shop:'local',tip:'Buy locally, no need to order. It stands in the parasol base, so cut it to about 2.6 m: the crown hub sits at 2.5 m and the star holder on the top. The hub and the holder are drawn for a 32 mm pole; measure it and change pole_d in their OpenSCAD files if it differs before printing them.',expense:'private',wave:2,estimate:true},
  // Wave 2: only needed when hanging and placing.
- {id:'stake',name:'Wall clips for the facade strips and outlines',qty:facadeQty('stake'),unit:'×',price:P.stake.price,url:search('kabelclips buiten'),shop:'bol',expense:'private',wave:2,estimate:true,tip:'Only the facade: the garden\'s stakes (candy canes, ground strip posts, tree strand pegs) are printed in PETG.'},
+ {id:'stake',name:'Wall clips for the facade strips and outlines',qty:facadeQty('stake'),unit:'×',price:P.stake.price,url:search('kabelclips buiten'),shop:'bol',expense:'private',wave:2,estimate:true,tip:'Only the facade. The garden stands on stone paving, so its props stand on printed feet weighed down with bricks instead of stakes.'},
+ {id:'bricks',name:BRICK.name,qty:BRICKS,unit:'×',price:.75,url:'https://www.gamma.be/',shop:'local',expense:'private',wave:2,estimate:true,tip:`Ballast in the printed feet, about ${BRICK.kg} kg each: two per candy cane, one per ground strip post and four for the tree's ring. Buy them loose at the DIY store, or use any spare paving bricks (set the size in lib.scad before printing the feet).`},
+ {id:'parasolBase',name:PARASOL.name,qty:1,unit:'×',price:40,url:'https://www.gamma.be/',shop:'local',expense:'private',wave:2,estimate:true,tip:'For the wireframe tree\'s pole, on the paving between the planting tiles. Check its tube clamp takes the pole.'},
  {id:'soundCard',name:'USB sound card',qty:1,unit:'×',price:P.soundCard.price,url:P.soundCard.url,shop:'ledshows',expense:'private',wave:1,tip:'Audio out of the Pi for the FM transmitter. Ordered 6 Nov in the LEDshows basket.'},
  {id:'fm',name:'DrPhone FM7 car FM transmitter and 12 V socket lead',qty:1,unit:'set',price:25.54,url:search('fm transmitter 3.5 mm'),shop:'bol',expense:'private',wave:1,tip:'Transmitter €14.95 plus a 12 V socket lead €10.59, so it runs from one of the Mean Well power supplies. Place it on the street side of the garage, not in a metal box, and test from a parked car. Ordered 6 Nov in the bol.com order.'},
 ];
@@ -167,7 +169,7 @@ export const CHAPTERS=[
  {id:'build',title:'Build the props',icon:'i-lucide-hammer',due:'2026-11-24',steps:[
   {id:'build-boxes',text:'Build the two garage boards: a controller, two power supplies and fuses on each',tip:'Facade board and garden board on the garage wall. Fuse every power supply output, keep the mains side covered and leave room for air round the power supplies.'},
   {id:'build-fm',text:'Wire the FM transmitter\'s 12 V socket lead to a power supply',tip:'Fused, off the facade board. The transmitter goes on the street side of the garage, out of any metal box, with the USB sound card\'s output in its 3.5 mm input.'},
-  {id:'build-print',text:`Print the ${PRINT_COUNT} PETG parts on the A1: mini-tree frames, tree hub and pegs, cane stakes and ground strip posts`,link:{href:'/print.html',label:'3D prints'},tip:'Print one mini-tree base and one cane stake first to check the mounting strip and coro fit their slots; the sizes can be changed before the rest.'},
+  {id:'build-print',text:`Print the ${PRINT_COUNT} PETG parts on the A1: mini-tree frames, the tree's hub, ring and star holder, cane bases and ground strip posts`,link:{href:'/print.html',label:'3D prints'},tip:'Print one mini-tree base and one post foot first to check the mounting strip and a brick fit; the sizes can be changed before the rest.'},
   {id:'build-templates',text:'Print the prop templates 1:1 and stick them on the coro',links:TEMPLATES.map(t=>({href:`/outputs/templates/${t.file}.pdf`,label:`${t.title} (cut ${t.cut})`})),tip:'Tile them on A4 at home or print them as one A1/A0 sheet at a copy shop. Lay them with the flutes running vertically, so rain drains out and the props stay stiff.'},
   {id:'build-wreaths',text:'Cut and drill the two Christmas circles',tip:'On a scrap board: straight edges with a snap-off knife along a steel ruler, in two or three light passes. Curves with the knife in short cuts, or a jigsaw with a fine blade. Holes with the 12 mm step drill through the template marks, then pull the template off.'},
   {id:'build-peace',text:'Cut and drill the peace sign'},
@@ -177,7 +179,7 @@ export const CHAPTERS=[
   {id:'build-strips',text:`Fix the house strips to mounting strip: upper ${g.upper.pixels}, lower ${g.lower.pixels} pixels with icicle drops`},
   {id:'build-windows',text:`Fix the window outlines to mounting strip: ${g.windows.pixels} pixels at 10 cm`},
   {id:'build-minitrees',text:`String the ${g.minitrees.props.length} mini trees on their printed frames, ${each('minitrees')} pixels each`,link:PRINT_LINK('minitrees')},
-  {id:'build-tree',text:`Build the wireframe tree: pole, crown hub, 16 strands and star, ${g.tree.pixels} pixels`,link:PRINT_LINK('tree')},
+  {id:'build-tree',text:`Build the wireframe tree: pole, crown hub, base ring, 16 strands and star, ${g.tree.pixels} pixels`,link:PRINT_LINK('tree')},
   {id:'build-fence',text:`Fix the ground strip to its printed posts: ${g.fence.pixels} pixels`,link:PRINT_LINK('fence')},
   {id:'build-pigtails',text:'Fit a pigtail to every prop and a T-splitter every 150 pixels'},
   {id:'build-labels',text:'Label every prop with its name and the end the data goes in'},
@@ -189,8 +191,8 @@ export const CHAPTERS=[
   {id:'place-windows',text:'Fix the outlines round the small window, door, kitchen window and garage door'},
   {id:'place-letters',text:'Hang HAPPY HOLIDAYS between the door and the upper windows'},
   {id:'place-wreaths',text:'Hang the circles in the upper window panes and the peace sign on the front door'},
-  {id:'place-tree',text:'Sink the 3 m pole about 40 cm between the planting tiles, guy it down, then hang the strands and the star'},
-  {id:'place-garden',text:'Place the mini trees, the candy canes along the street edge and the ground strip'},
+  {id:'place-tree',text:'Stand the pole in the parasol base between the planting tiles, lay the base ring round it with a brick in each of its four trays, then stand the strands and the star',link:PRINT_LINK('tree'),tip:'The strands work as guy lines: pull each one just taut between the ring and the hub.'},
+  {id:'place-garden',text:'Place the mini trees on the bushes, the candy canes along the street edge and the ground strip, with their bricks',link:PRINT_LINK('canes'),tip:'Push each mini tree\'s rod down into its bush and tie the base ring to a couple of branches. Two bricks in every cane base and one in every post foot.'},
   {id:'place-cables',text:'Run the extension cables from the garage and connect the props',tip:'Keep the drive and the path to the door clear of cables. Drip loop before every plug, and seal each injection joint in a gel box.'},
   {id:'place-network',text:'Patch both controllers and the Pi into the switch and plug the boards into the power strip'},
  ]},

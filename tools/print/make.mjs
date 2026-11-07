@@ -37,7 +37,7 @@ if(process.argv[1]===fileURLToPath(import.meta.url)){
  for(const p of PARTS){
   if(only.length&&!only.includes(p.id))continue;
   const defs=Object.entries(p.params).flatMap(([k,v])=>['-D',`${k}=${v}`]);
-  const scad=`${src}${p.id}.scad`,stl=`${out}${p.id}.stl`;
+  const scad=`${src}${p.scad}.scad`,stl=`${out}${p.id}.stl`;
   // The copy next to the STL has the model's values filled in.
   const text=readFileSync(scad,'utf8').replace(/^(\w+) = [^;]+;/gm,(line,k)=>k in p.params?`${k} = ${p.params[k]};`:line);
   writeFileSync(`${out}${p.id}.scad`,text);
@@ -50,7 +50,9 @@ if(process.argv[1]===fileURLToPath(import.meta.url)){
   manifest[p.id]={size:m.size,volume:Math.round(m.volume*10)/10,grams};
   console.log(`${p.id}: ${m.size.join(' × ')} mm, ${manifest[p.id].volume} cm³, about ${grams} g`);
  }
- writeFileSync(manifestPath,JSON.stringify(manifest,null,1)+'\n');
+ // Only the parts still on the list.
+ const kept=Object.fromEntries(PARTS.filter(p=>manifest[p.id]).map(p=>[p.id,manifest[p.id]]));
+ writeFileSync(manifestPath,JSON.stringify(kept,null,1)+'\n');
  try{
   const files=['lib.scad',...PARTS.flatMap(p=>[`${p.id}.stl`,`${p.id}.scad`])];
   execFileSync('zip',['-q','-X','-FS','winterlight-prints.zip',...files],{cwd:out});
