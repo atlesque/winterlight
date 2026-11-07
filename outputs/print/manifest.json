@@ -1,0 +1,74 @@
+{
+ "minitree-base": {
+  "size": [
+   162,
+   162,
+   31.9
+  ],
+  "volume": 60.6,
+  "grams": 62
+ },
+ "minitree-top": {
+  "size": [
+   73.3,
+   79.4,
+   32.4
+  ],
+  "volume": 40.2,
+  "grams": 41
+ },
+ "tree-crown": {
+  "size": [
+   185.5,
+   185.5,
+   60
+  ],
+  "volume": 151.3,
+  "grams": 154
+ },
+ "tree-star-holder": {
+  "size": [
+   90,
+   42,
+   120
+  ],
+  "volume": 102.1,
+  "grams": 104
+ },
+ "tree-peg": {
+  "size": [
+   22.3,
+   195.6,
+   31.8
+  ],
+  "volume": 41.1,
+  "grams": 42
+ },
+ "cane-stake": {
+  "size": [
+   11.6,
+   215,
+   36
+  ],
+  "volume": 34.5,
+  "grams": 35
+ },
+ "fence-spike": {
+  "size": [
+   22,
+   250,
+   16
+  ],
+  "volume": 58.6,
+  "grams": 60
+ },
+ "fence-post": {
+  "size": [
+   22,
+   242.9,
+   16
+  ],
+  "volume": 77,
+  "grams": 78
+ }
+}
