@@ -7,7 +7,7 @@ import {HOUSE,PROP_LAYOUT} from './house.js';
 const lerp=(a,b,t)=>a.map((v,j)=>v+(b[j]-v)*t);
 const dist=(a,b)=>Math.hypot(...a.map((v,j)=>v-b[j]));
 // Evenly spaced points along a polyline, ends included (a closed one skips the repeat).
-function along(points,step,closed=false){
+export function along(points,step,closed=false){
   const pts=closed?[...points,points[0]]:points,out=[];
   for(let i=0;i<pts.length-1;i++){const n=Math.max(1,Math.round(dist(pts[i],pts[i+1])/step));for(let k=0;k<n;k++)out.push(lerp(pts[i],pts[i+1],k/n));}
   if(!closed)out.push(pts.at(-1));
@@ -52,13 +52,14 @@ function multiRun(path,step,icicles){
   return bulbs;
 }
 // Outline just outside an opening; a door or garage leaves the ground side open.
-function outline(o,z,open=false){
+export function outline(o,z,open=false){
   const w=o.width/2+.12,bottom=open?.05:o.y-o.height/2-.1,top=open?o.height+.1:o.y+o.height/2+.1;
   return open?[[o.x-w,bottom,z],[o.x-w,top,z],[o.x+w,top,z],[o.x+w,bottom,z]]:[[o.x-w,bottom,z],[o.x-w,top,z],[o.x+w,top,z],[o.x+w,bottom,z],[o.x-w,bottom,z]];
 }
 
 // Window outlines keep the 10 cm pitch; the three house strips are twice as dense.
-const STRIP=.1,DENSE=.05,L=PROP_LAYOUT;
+export const STRIP=.1,DENSE=.05;
+const L=PROP_LAYOUT;
 const geometry={
   upper(){const {from,to,y,z}=L.upper;return {bulbs:multiRun([[from,y,z],[to,y,z]],DENSE,true),frames:[[[from,y,z-.02],[to,y,z-.02]]]};},
   lower(){const {from,to,y}=L.eaves.garage;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],DENSE,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},

@@ -19,7 +19,7 @@ export function createScene(host) {
   const camera=new THREE.PerspectiveCamera(43,1,.1,100);camera.position.set(14,9,20);
   const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(4.25,2.8,-1.5);controls.enableDamping=true;controls.minDistance=5;controls.maxDistance=35;controls.maxPolarAngle=Math.PI/2-.035;controls.update();
   // A dark night: the moon and sky only sketch the house in, so the lights carry the scene.
-  scene.add(new THREE.HemisphereLight('#8ea6d6','#2a2422',.12));
+  const hemi=new THREE.HemisphereLight('#8ea6d6','#2a2422',.12);scene.add(hemi);
   const moon=new THREE.DirectionalLight('#a6bff2',.22);moon.position.set(-8,15,7);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);moon.shadow.camera.left=-16;moon.shadow.camera.right=16;moon.shadow.camera.top=12;moon.shadow.camera.bottom=-12;scene.add(moon);
   const mats={snow:new THREE.MeshStandardMaterial({color:'#8a949e',roughness:.85}),dark:new THREE.MeshStandardMaterial({color:'#22252b',roughness:.62}),metal:new THREE.MeshStandardMaterial({color:'#5b626e',metalness:.3,roughness:.65}),trim:new THREE.MeshStandardMaterial({color:'#bac5ca',roughness:.7}),path:new THREE.MeshStandardMaterial({color:'#505b62',roughness:.7}),soil:new THREE.MeshStandardMaterial({color:'#4b514d',roughness:1}),frame:new THREE.MeshStandardMaterial({color:'#1b222a',roughness:.8})};
   function brickTexture(){const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;const c=canvas.getContext('2d');c.fillStyle='#765a50';c.fillRect(0,0,512,512);for(let row=0;row<16;row++)for(let col=-1;col<8;col++){let seed=(row*71+col*33+123)&255;c.fillStyle=`rgb(${112+seed%24},${61+seed%17},${42+seed%15})`;c.fillRect(col*80+(row%2?40:0)+2,row*32+2,76,28);}const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(3,1.4);tex.anisotropy=renderer.capabilities.getMaxAnisotropy();return tex;}
@@ -175,7 +175,30 @@ export function createScene(host) {
     garageDoor.rotation.x=doorOpen*Math.PI/2*.98;garageLight.intensity=doorOpen*5;
     controls.update();composer.render();
   }
+  // The measuring layer (the measure page): a dimension line per tape
+  // measurement with end ticks, amber while still to measure and green once
+  // measured; the selected one is thicker and drawn over everything. The page
+  // puts its own labels on the lines with project().
+  const measureGroup=new THREE.Group();scene.add(measureGroup);
+  function setMeasures(list){
+    for(const o of [...measureGroup.children]){measureGroup.remove(o);o.geometry?.dispose();o.material?.dispose();}
+    for(const m of list){
+      const color=new THREE.Color(m.done?'#5fe39a':'#ffb347').multiplyScalar(m.active?.9:.45),mat=new THREE.MeshBasicMaterial({color,toneMapped:false,depthTest:!m.active});
+      const a=new THREE.Vector3(...m.from),b=new THREE.Vector3(...m.to),dir=b.clone().sub(a),len=dir.length(),r=m.active?.013:.008;
+      const bar=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,8),mat);bar.position.copy(a).add(b).multiplyScalar(.5);bar.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());bar.renderOrder=m.active?15:5;measureGroup.add(bar);
+      // End ticks across the line, in the facade's plane or flat on the ground.
+      const side=Math.abs(dir.y)>.5?new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0).cross(dir).normalize();
+      for(const end of [a,b]){const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,.16,6),mat);t.position.copy(end);t.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),side);t.renderOrder=bar.renderOrder;measureGroup.add(t);}
+    }
+  }
+  // Where a point of the model lands on the canvas, in CSS pixels, and whether it is in front of the camera.
+  const projected=new THREE.Vector3();
+  function project(p){projected.set(...p).project(camera);const r=renderer.domElement;return {x:(projected.x+1)/2*r.clientWidth,y:(1-projected.y)/2*r.clientHeight,visible:projected.z<1&&Math.abs(projected.x)<1.05&&Math.abs(projected.y)<1.05};}
+  // Light the house as at dusk, so the walls and openings read while measuring.
+  function setDusk(on){hemi.intensity=on?.85:.12;moon.intensity=on?1.1:.22;fog.density=on?.006:.018;background.set(on?'#141d2b':'#070b12');fog.color.copy(background);}
+  function look(pos,target){camera.position.set(...pos);controls.target.set(...target);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();}
   return {draw,bulbCount:bulbs.length,
+    setMeasures,project,setDusk,look,
     setBrightness(){last.fill(255);},
     setWiring(on){wiring.visible=on;},
     view(name){const overlay=name==='overlay';for(const o of houseParts)o.visible=!overlay;scene.background=overlay?BLACK:background;scene.fog=overlay?null:fog;camera.position.set(...views[name][0]);controls.target.set(...views[name][1]);camera.position.sub(controls.target).multiplyScalar(aspectFit).add(controls.target);controls.update();},

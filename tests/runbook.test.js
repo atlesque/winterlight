@@ -63,18 +63,21 @@ test('the orders placed on 6 Nov start ticked and add up to what was paid',async
 
 test('the runbook API needs an Access sign-in, reads defaults and validates changes',async()=>{
  const {default:worker,statements}=await import('../worker/index.js');
- const rows=new Map();
+ const rows=new Map(),measured=new Map();
  const select={all:async()=>({results:[...rows].map(([k,value])=>{const [kind,id]=k.split(':');return {kind,id,value};})})};
+ const mselect={all:async()=>({results:[...measured].map(([id,value])=>({id,value}))})};
  const db={
-  prepare:sql=>sql.startsWith('SELECT')?select:{bind:(...a)=>({sql,a})},
-  batch:async list=>{for(const {sql,a} of list){if(sql.startsWith('DELETE'))rows.delete(`expense:${a[0]}`);else rows.set(`${a[0]}:${a[1]}`,a[2]);}},
+  prepare:sql=>sql.startsWith('SELECT')?(sql.includes('measurements')?mselect:select):{bind:(...a)=>({sql,a})},
+  batch:async list=>{for(const {sql,a} of list){
+   if(sql.includes('measurements'))sql.startsWith('DELETE')?measured.delete(a[0]):measured.set(a[0],a[1]);
+   else if(sql.startsWith('DELETE'))rows.delete(`expense:${a[0]}`);else rows.set(`${a[0]}:${a[1]}`,a[2]);}},
  };
  const env={RUNBOOK_DB:db};
  const call=(method,body,user)=>worker.fetch(new Request('https://x/api/runbook',{method,headers:{'content-type':'application/json',...(user&&{'cf-access-authenticated-user-email':user})},body:body&&JSON.stringify(body)}),env);
  const me='alex@example.com';
  assert.equal((await call('GET')).status,401);
  assert.equal((await call('PATCH',{done:{'buy-pixels':false}})).status,401);
- assert.deepEqual(await (await call('GET',null,me)).json(),{done:{},expense:{}});
+ assert.deepEqual(await (await call('GET',null,me)).json(),{done:{},expense:{},measures:{}});
  const viaCookie=await worker.fetch(new Request('https://x/api/runbook',{headers:{cookie:'theme=dark; CF_Authorization=abc'}}),env);
  assert.equal(viaCookie.status,200,'the Access cookie alone is enough');
  const viaJwt=await worker.fetch(new Request('https://x/api/runbook',{headers:{'cf-access-jwt-assertion':'abc'}}),env);
@@ -82,9 +85,64 @@ test('the runbook API needs an Access sign-in, reads defaults and validates chan
  assert.equal((await call('PATCH',{done:{'not-a-step':true}},me)).status,400);
  assert.equal((await call('PATCH',{expense:{pixels:'gift'}},me)).status,400);
  const ok=await call('PATCH',{done:{'buy-pixels':false,'rcd':true},expense:{pixels:'business'}},me);
- assert.deepEqual(await ok.json(),{done:{'buy-pixels':false,rcd:true},expense:{pixels:'business'}});
+ assert.deepEqual(await ok.json(),{done:{'buy-pixels':false,rcd:true},expense:{pixels:'business'},measures:{}});
  const back=await call('PATCH',{expense:{pixels:null}},me);
  assert.deepEqual((await back.json()).expense,{});
  assert.equal((await worker.fetch(new Request('https://x/api/other'),env)).status,404);
  assert.throws(()=>statements(db,{done:{rcd:'yes'}}));
+});
+
+test('measurements are stored, checked against their bounds and tick their measuring step once complete',async()=>{
+ const {default:worker}=await import('../worker/index.js');
+ const {MEASUREMENTS,byStep}=await import('../src/measures/measures.js');
+ const rows=new Map(),measured=new Map();
+ const db={
+  prepare:sql=>sql.startsWith('SELECT')?{all:async()=>({results:sql.includes('measurements')?[...measured].map(([id,value])=>({id,value})):[...rows].map(([k,value])=>{const [kind,id]=k.split(':');return {kind,id,value};})})}:{bind:(...a)=>({sql,a})},
+  batch:async list=>{for(const {sql,a} of list){if(sql.includes('measurements'))sql.startsWith('DELETE')?measured.delete(a[0]):measured.set(a[0],a[1]);else rows.set(`${a[0]}:${a[1]}`,a[2]);}},
+ };
+ const call=body=>worker.fetch(new Request('https://x/api/runbook',{method:'PATCH',headers:{'content-type':'application/json','cf-access-jwt-assertion':'abc'},body:JSON.stringify(body)}),{RUNBOOK_DB:db});
+ assert.equal((await call({measures:{doorHeight:12}})).status,400,'12 m is no door');
+ assert.equal((await call({measures:{nope:1}})).status,400);
+ assert.equal((await call({measures:{doorHeight:'2.1'}})).status,400);
+ const garden=byStep('measure-garden');
+ let s=await (await call({measures:Object.fromEntries(garden.slice(1).map(m=>[m.id,m.guess]))})).json();
+ assert.equal(s.done['measure-garden'],undefined,'not ticked while one value is missing');
+ s=await (await call({measures:{[garden[0].id]:garden[0].guess+.1}})).json();
+ assert.equal(s.done['measure-garden'],true,'ticked with the last value');
+ assert.equal(s.measures[garden[0].id],garden[0].guess+.1);
+ s=await (await call({done:{'measure-garden':false}})).json();
+ s=await (await call({measures:{[garden[1].id]:garden[1].guess+.02}})).json();
+ assert.equal(s.done['measure-garden'],false,'an untick stays when a value is corrected');
+ s=await (await call({measures:{[garden[0].id]:null}})).json();
+ assert.equal(s.measures[garden[0].id],undefined,'null clears a value');
+ assert.equal(new Set(MEASUREMENTS.map(m=>m.id)).size,MEASUREMENTS.length);
+});
+
+test('measured values flow into the runbook: outlines, ground strip, pixel strings and fit checks',async()=>{
+ const {applyMeasures,BASELINE,MEASUREMENTS}=await import('../src/measures/measures.js');
+ const {MEASURES}=await import('../src/runbook/runbook.js');
+ const guesses=Object.fromEntries(MEASUREMENTS.map(m=>[m.id,m.guess]));
+ const same=applyMeasures(guesses);
+ assert.equal(same.windows,BASELINE.windows,'the guesses rebuild the model\'s outlines');
+ assert.equal(same.fence,BASELINE.fence,'and its ground strip');
+ assert.equal(same.pixels,BASELINE.pixels);
+ assert.equal(BASELINE.strings,PURCHASES.filter(p=>p.id.startsWith('pixels')).reduce((n,p)=>n+p.qty,0),'the strings ordered');
+ assert.equal(BASELINE.rolls,PURCHASES.find(p=>p.id==='mountStrip').qty,'the rolls ordered');
+ assert.deepEqual(applyMeasures({}).steps,{},'nothing measured, nothing changes');
+ const taller=applyMeasures({doorHeight:2.5,garageDoorHeight:2.45});
+ assert.ok(taller.windows>BASELINE.windows,'taller openings need more outline pixels');
+ assert.match(taller.steps['build-windows'].text,new RegExp(String(taller.windows)));
+ assert.ok(taller.steps['count-pixels'].notes[0].text.includes('still cover'));
+ const deep=applyMeasures({gardenDepth:6});
+ assert.ok(deep.fence>BASELINE.fence);assert.match(deep.steps['build-fence'].text,new RegExp(String(deep.fence)));
+ const huge=applyMeasures({smallWindowHeight:2,doorHeight:3,kitchenWindowHeight:2.5,garageDoorHeight:3,gardenDepth:8});
+ assert.ok(huge.strings>BASELINE.strings&&huge.steps['count-pixels'].notes[0].warn,'runs past the spare warn to order more strings');
+ assert.ok(applyMeasures({letterBand:.35}).steps['place-letters'].notes[0].warn);
+ assert.ok(!applyMeasures({letterBand:.9}).steps['place-letters'].notes[0].warn);
+ assert.ok(applyMeasures({bushWidth:.5}).steps['place-garden'].notes[0].warn);
+ assert.ok(!applyMeasures({tileGapWidth:.62,tileGapDepth:.85}).steps['place-tree'].notes[0].warn);
+ for(const step of Object.keys(huge.steps))assert.ok(STEP_IDS.includes(step),step);
+ // Every tape line in the measuring steps points at measurements on the measure page.
+ for(const r of Object.values(MEASURES).flat().filter(r=>r.from==='tape'))for(const id of r.ids)assert.ok(guesses[id]!==undefined,id);
+ for(const m of MEASUREMENTS){assert.ok(m.guess>=m.min&&m.guess<=m.max,m.id);assert.ok([...m.from,...m.to].every(Number.isFinite),m.id);assert.ok(STEP_IDS.includes(m.step),m.id);}
 });
