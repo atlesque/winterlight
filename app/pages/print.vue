@@ -41,8 +41,12 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
     <main class="costs prints">
       <section class="intro">
         <h1>3D prints</h1>
-        <p>The PETG parts the garden props still need. The paving in front of the house is stone, so nothing is staked into the ground: the candy canes, the ground strip and the tree's base ring stand on printed trays weighed down with concrete paving bricks, the tree's pole stands in a parasol base, and only the mini trees, on top of the bushes, push a rod into something.
-          Every part fits the {{ BED.name }}'s {{ BED.x }} mm bed and prints without supports. The facade props hang on coro and ready-made letters, so they have nothing to print.</p>
+        <p>PETG parts for the garden props, all sized for the {{ BED.name }}.</p>
+        <ul class="points">
+          <li>The paving is stone, so nothing is staked: props stand on printed trays weighed down with paving bricks.</li>
+          <li>The tree's pole stands in a parasol base; the mini trees push a rod into their bush.</li>
+          <li>Every part fits the {{ BED.x }} mm bed and prints without supports.</li>
+        </ul>
         <p class="actions">
           <UButton to="/outputs/print/winterlight-prints.zip" external download icon="i-lucide-download" label="All STLs and sources (.zip)" color="primary" />
           <UButton to="/runbook.html#build" external icon="i-lucide-list-checks" label="Build steps in the runbook" color="neutral" variant="subtle" />
@@ -66,7 +70,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
           <div class="stage-label">
             <template v-if="mode==='prop'">
               <strong>{{ currentProp.name }}</strong>
-              <span>{{ ASSEMBLIES[prop].caption }} Printed parts are gold; the strip is black, coro white, bricks grey.</span>
+              <span class="legend"><i class="sw gold" />printed <i class="sw strip" />strip <i class="sw coro" />coro <i class="sw brick" />brick</span>
             </template>
             <template v-else>
               <strong>{{ currentPart.name }}</strong>
@@ -97,7 +101,9 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
           </button>
           <div>
             <h2><UIcon :name="p.icon" class="card-icon" /> {{ p.name }}</h2>
-            <p class="led">{{ p.about }}</p>
+            <ul class="points">
+              <li v-for="t in p.points" :key="t">{{ t }}</li>
+            </ul>
             <UButton size="sm" color="neutral" variant="subtle" icon="i-lucide-rotate-3d" label="See it finished in 3D" @click="showProp(p.id)" />
           </div>
         </header>
@@ -130,19 +136,28 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
           <table class="settings"><tbody><tr v-for="[k,v] in SETTINGS" :key="k"><th>{{ k }}</th><td>{{ v }}</td></tr></tbody></table>
         </div>
         <div class="glass">
-          <UIcon name="i-lucide-weight" class="card-icon" /><h3>Weights to buy</h3>
-          <p>{{ BRICKS }} grey concrete paving bricks (betonklinkers) of 22 × 11 × 8 cm, about {{ BRICK.kg }} kg each: two per candy cane, one per ground strip post and four for the tree's ring. Any DIY store or garden centre has them loose. Other bricks work too: set brick_l, brick_w and brick_h in lib.scad.</p>
-          <p>For the tree, a granite parasol base of about {{ PARASOL.kg }} kg whose tube clamp takes the pole. Cut the pole so its top is about 2.6 m up, just above the crown hub, so the star sits where it does in the model.</p>
+          <UIcon name="i-lucide-weight" class="card-icon" /><h3>To buy</h3>
+          <ul class="points">
+            <li><b>{{ BRICKS }} paving bricks</b>, 22 × 11 × 8 cm (about {{ BRICK.kg }} kg each): 2 per cane, 1 per post, 4 for the tree</li>
+            <li><b>A parasol base</b> of about {{ PARASOL.kg }} kg whose clamp takes the pole</li>
+            <li><b>8 mm rods</b>, about 70 cm, one per mini tree</li>
+          </ul>
         </div>
         <div class="glass">
-          <UIcon name="i-lucide-ruler" class="card-icon" /><h3>Measure before you print</h3>
-          <p>The channels and slots are drawn for a 25 × 2 mm pixel mounting strip, 3 mm coro, a 32 mm tree pole and 22 × 11 × 8 cm bricks, with clearance. Measure the strip from LEDshows, the pole and a brick, and print one mini-tree base and one post foot to try before the rest.</p>
-          <p>To change a size, open the part's .scad file in <a href="https://openscad.org/" target="_blank" rel="noopener">OpenSCAD</a> (strip_w, strip_t, the brick size and clr are at the top of lib.scad, pole_d in the hub and the star holder), render with F6 and export the STL. Each part needs <a href="/outputs/print/lib.scad" download>lib.scad</a> in the same folder (the zip has it). In the repository, <code>node tools/print/make.mjs</code> renders them all again.</p>
+          <UIcon name="i-lucide-ruler" class="card-icon" /><h3>Before you print</h3>
+          <ul class="points">
+            <li>Measure the mounting strip (drawn for 25 × 2 mm), the pole (32 mm) and a brick</li>
+            <li>Print one mini-tree base and one post foot to check the fit</li>
+            <li>To change a size, edit <a href="/outputs/print/lib.scad" download>lib.scad</a> in <a href="https://openscad.org/" target="_blank" rel="noopener">OpenSCAD</a> and export the STL again (the zip has all the files)</li>
+          </ul>
         </div>
         <div class="glass">
           <UIcon name="i-lucide-scissors" class="card-icon" /><h3>Strip to cut</h3>
-          <p>Mini trees: 6 spokes of {{ MINI_SPOKE_CM }} cm each, {{ PRINT_PROPS[0].count*6 }} in all. Wireframe tree: 16 strands of about {{ STRAND_CM }} cm, from the ring's channel to the hub's; cut them long and trim once the hub is on the pole. The spokes and strands stop short of the centre at the top, because six or sixteen 25 mm strips can't meet at a point.</p>
-          <p>Dry the PETG (65 °C, 4 h) if it strings or pops, and let the plate cool before taking PETG off the textured plate. The cane base is the biggest print, {{ size('cane-base') }} mm, almost the whole bed.</p>
+          <ul class="points">
+            <li><b>Mini trees:</b> {{ PRINT_PROPS[0].count*6 }} spokes of {{ MINI_SPOKE_CM }} cm</li>
+            <li><b>Wireframe tree:</b> 16 strands of about {{ STRAND_CM }} cm; cut long, trim once the hub is up</li>
+          </ul>
+          <p class="tip">Dry the PETG (65 °C, 4 h) if it strings. The cane base is the biggest print, almost the whole bed.</p>
         </div>
       </section>
     </main>
@@ -172,7 +187,16 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 .prop-block{margin-bottom:34px;scroll-margin-top:80px}
 .prop-block header{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
 .prop-block h2{display:flex;align-items:center;gap:10px}
-.prop-block header .led{margin-bottom:12px}
+.points{margin:6px 0 12px;padding-left:18px;list-style:disc;color:#a3b3c3;font-size:13.5px;line-height:1.6;max-width:780px}
+.points li{margin:3px 0}
+.points li::marker{color:var(--gold-soft)}
+.points b{color:#e3e9ee;font-weight:600}
+.intro .points{font-size:14px}
+.wiring-notes .points{font-size:12.5px}
+.tip{font-size:12px!important;color:#8397a9!important}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:-6px}
+.sw.gold{background:#f0c49a}.sw.strip{background:#16181d;border:1px solid #ffffff44}.sw.coro{background:#f2f2ee}.sw.brick{background:#7c8288}
 .prop-thumb{width:200px;flex-shrink:0}
 .prop-block .led{color:#a3b3c3;font-size:13.5px;line-height:1.7;max-width:820px;margin:0}
 .part-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
