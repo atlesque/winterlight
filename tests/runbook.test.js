@@ -75,6 +75,10 @@ test('the runbook API needs an Access sign-in, reads defaults and validates chan
  assert.equal((await call('GET')).status,401);
  assert.equal((await call('PATCH',{done:{'buy-pixels':false}})).status,401);
  assert.deepEqual(await (await call('GET',null,me)).json(),{done:{},expense:{}});
+ const viaCookie=await worker.fetch(new Request('https://x/api/runbook',{headers:{cookie:'theme=dark; CF_Authorization=abc'}}),env);
+ assert.equal(viaCookie.status,200,'the Access cookie alone is enough');
+ const viaJwt=await worker.fetch(new Request('https://x/api/runbook',{headers:{'cf-access-jwt-assertion':'abc'}}),env);
+ assert.equal(viaJwt.status,200,'the Access JWT header alone is enough');
  assert.equal((await call('PATCH',{done:{'not-a-step':true}},me)).status,400);
  assert.equal((await call('PATCH',{expense:{pixels:'gift'}},me)).status,400);
  const ok=await call('PATCH',{done:{'buy-pixels':false,'rcd':true},expense:{pixels:'business'}},me);
