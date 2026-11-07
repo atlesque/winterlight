@@ -5,6 +5,7 @@ const PAGES=[
   {label:'LED cost estimate',description:'LEDs and euro costs per prop',icon:'i-lucide-gift',to:'/costs.html',paths:['/costs','/costs.html']},
   {label:'Wiring plan',description:'Boxes, power and pixel runs',icon:'i-lucide-cable',to:'/wiring.html',paths:['/wiring','/wiring.html']},
   {label:'Build runbook',description:'From ordering to the first test run',icon:'i-lucide-list-checks',to:'/runbook.html',paths:['/runbook','/runbook.html']},
+  {label:'Measure the house',description:'What to measure, on the 3D model',icon:'i-lucide-ruler',to:'/measure.html',paths:['/measure','/measure.html']},
 ];
 const route=useRoute();
 const open=ref(false);

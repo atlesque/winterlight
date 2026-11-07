@@ -2,6 +2,7 @@ import {estimate,ALL,GROUP_LIST,ZONES,DEFAULTS} from '../costs/estimate.js';
 import {PRICES as P,CHECKED} from '../costs/catalog.js';
 import {HOUSE,PROP_LAYOUT as L} from '../house.js';
 import {OWN_CHANNELS} from '../props.js';
+import {MEASUREMENTS} from '../measures/measures.js';
 // The coro templates made by tools/templates/make.mjs (outputs/templates/).
 export const TEMPLATES=[
  {file:'christmas-circle',title:'Christmas circle',cut:2},{file:'peace-sign',title:'Peace sign',cut:1},
@@ -106,22 +107,25 @@ const caneGap=L.canes.xs[1]-L.canes.xs[0],treeTop=L.tree.height+L.tree.star.gap+
 const ROUTE_Y=2.55,GARAGE_BOX=[HOUSE.garageWidth-.1,1,0],gardenX=HOUSE.entry.maxX+.1;
 const gardenLead=Math.max(...GROUP_LIST.filter(x=>x.zone==='garden').map(x=>{const [px,y,z]=x.props[0].start;
  return ROUTE_Y-GARAGE_BOX[1]+(gardenX-GARAGE_BOX[0])+ROUTE_Y+Math.abs(px-gardenX)+z+y;}));
+const GUESS=Object.fromEntries(MEASUREMENTS.map(x=>[x.id,x.guess]));
+export const fmtMeasure=(v,unit)=>unit==='cm'?cm(v):m(v);
+const tape=rows=>rows.map(r=>r.ids?{...r,value:r.ids.map(id=>fmtMeasure(GUESS[id],r.unit)).join(', ')}:r);
 export const MEASURES={
- facade:[
+ facade:tape([
   {from:'plan',what:'Upper floor strip',value:m(L.upper.to-L.upper.from),how:`From 9 cm left of the left upstairs window to 9 cm right of the right one. Both are ${cm(left.width)} wide, ${m(right.x-left.x)} apart centre to centre.`},
   {from:'plan',what:'Garage eave strip',value:m(L.eaves.garage.to-L.eaves.garage.from),how:`The garage is ${m(HOUSE.garageWidth)} wide; the strip runs 5 cm past each side.`},
   {from:'plan',what:'Opening widths',value:OPENINGS.map(([,o])=>cm(o.width)).join(', '),how:`${OPENINGS.map(([n],i)=>i?n:n[0].toUpperCase()+n.slice(1)).join(', ')}. Each outline sits 12 cm outside the opening.`},
-  {from:'tape',what:'Opening heights',value:OPENINGS.map(([,o])=>cm(o.height)).join(', '),how:`Same order. The plan has no heights, so these are guesses, and they make up ${m(outlineUp)} of the ${m(outlineRun)} of outline: every 10 cm more is one more pixel on each side.`},
-  {from:'tape',what:'Mounting heights',value:`${m(L.upper.y)} and ${m(L.eaves.garage.y)}`,how:'Upper strip and garage eave, guessed. They don\'t change the pixel count, but they set the ladder you need and the length of the lead up from the box.'},
-  {from:'tape',what:'Letter band',value:cm(left.y-left.height/2-HOUSE.door.height),how:`Between the top of the front door and the sill of the upstairs windows, for the 30 cm letters. The ${m(L.letters.to-L.letters.from)} width comes from the plan; the height is a guess.`},
- ],
- garden:[
+  {from:'tape',what:'Opening heights',ids:['smallWindowHeight','doorHeight','kitchenWindowHeight','garageDoorHeight'],unit:'cm',how:`Same order. The plan has no heights, so these are guesses, and they make up ${m(outlineUp)} of the ${m(outlineRun)} of outline: every 10 cm more is one more pixel on each side.`},
+  {from:'tape',what:'Upstairs windows and garage eave',ids:['upstairsWindowTop','garageEaveHeight'],unit:'m',how:'Ground to the top of the upstairs windows (the upper strip hangs 13 cm above) and to the underside of the garage eave, guessed. They don\'t change the pixel count, but they set the ladder you need and the length of the lead up from the box.'},
+  {from:'tape',what:'Letter band',ids:['letterBand'],unit:'cm',how:`Between the top of the front door and the sill of the upstairs windows, for the 30 cm letters. The ${m(L.letters.to-L.letters.from)} width comes from the plan; the height is a guess.`},
+ ]),
+ garden:tape([
   {from:'plan',what:'Garden width',value:m(fence[2][0]-fence[1][0]),how:'From the entrance path to the boundary on the right: the front run of the ground strip.'},
   {from:'plan',what:'Cane line',value:m(L.canes.xs.at(-1)-L.canes.xs[0]),how:`${L.canes.xs.length} canes along the street edge, ${cm(caneGap)} apart.`},
-  {from:'tape',what:'Garden depth',value:m(fence[1][2]-fence[0][2]),how:'From the facade to the street edge, along the entrance path: the side run of the ground strip. The plan doesn\'t dimension the forecourt.'},
-  {from:'tape',what:'Tree spot',value:`${cm(2*L.tree.radius)} across`,how:`Between the planting tiles, about ${m(HOUSE.width-L.tree.x)} from the right boundary and ${m(L.tree.z)} out from the facade, ${m(treeTop)} high with the star. The tiles' positions come from the street photo.`},
-  {from:'tape',what:'Bush tops',value:`${cm(HOUSE.planters.bush)} cubes`,how:`The mini trees stand three across each bush (two on the back right one), so each top needs about 60 cm of flat width. Bush sizes are guessed from the photo.`},
- ],
+  {from:'tape',what:'Garden depth',ids:['gardenDepth'],unit:'m',how:'From the facade to the street edge, along the entrance path; the ground strip\'s side run is this less 55 cm. The plan doesn\'t dimension the forecourt.'},
+  {from:'tape',what:'Tree spot',ids:['tileGapWidth','tileGapDepth'],unit:'cm',how:`The gaps between the four planting tiles, left to right and front to back. The tree stands in the middle, ${cm(2*L.tree.radius)} across at the base and ${m(treeTop)} high with the star. The tiles' positions come from the street photo.`},
+  {from:'tape',what:'Bush tops',ids:['bushWidth'],unit:'cm',how:'The mini trees stand three across each bush (two on the back right one), so each top needs about 60 cm of flat width. Bush sizes are guessed from the photo.'},
+ ]),
  boxes:[
   {from:'plan',what:'Longest garden lead from the garage',value:`about ${Math.ceil(gardenLead)} m`,how:`Up inside the garage, over the front door at ${m(ROUTE_Y)} and down into the garden to the farthest first prop of a chain (the candy canes and the tree). Under 15 m, so no null pixel is needed; the heights on the way are guesses, so check it once the boxes have a spot.`},
  ],
@@ -131,8 +135,8 @@ const FPP='https://github.com/FalconChristmas/fpp/releases',XLIGHTS='https://xli
 
 export const CHAPTERS=[
  {id:'plan',title:'Plan and measure',icon:'i-lucide-ruler',due:'2026-11-05',steps:[
-  {id:'measure-facade',text:'Measure the upper floor, garage eave and window frames',tip:'The plan gives every length along the facade; measure the heights. If a run is longer than below, the pixel and strip quantities go up (the 5% spare covers about 120 pixels).',measures:MEASURES.facade},
-  {id:'measure-garden',text:'Measure the tree spot, mini-tree row, cane line and ground strip',tip:'The plan gives the garden\'s width; its depth, the planting tiles and the bushes need a tape.',measures:MEASURES.garden},
+  {id:'measure-facade',text:'Measure the upper floor, garage eave and window frames',link:{href:'/measure.html',label:'Measure on the 3D model'},tip:'The plan gives every length along the facade; measure the heights. If a run is longer than below, the pixel and strip quantities go up (the 5% spare covers about 120 pixels).',measures:MEASURES.facade},
+  {id:'measure-garden',text:'Measure the tree spot, mini-tree row, cane line and ground strip',link:{href:'/measure.html',label:'Measure on the 3D model'},tip:'The plan gives the garden\'s width; its depth, the planting tiles and the bushes need a tape.',measures:MEASURES.garden},
   {id:'box-spots',text:'Decide where the boxes go: both in the garage',tip:'Decided: both boxes go inside the garage. There they stay dry, so they need no IP65 enclosures, outdoor mains or outdoor network cables; they plug into a power strip and patch into the switch. The pixel cables to the garden props get longer: past about 15 m of data cable, add a null pixel or a differential receiver.',measures:MEASURES.boxes},
   {id:'rcd',text:'Check the garage socket is on a 30 mA RCD',tip:'Aardlekschakelaar. Both boxes run from one power strip in the garage, about 1 kW at full white.'},
   {id:'accountant',text:'Confirm the business purchases with the accountant',tip:'The business tags below are a suggestion: show hardware and network gear. Business orders go on a separate invoice in the company name with its VAT number.'},

@@ -308,7 +308,11 @@ aside.summary { position: sticky; top: 112px; padding: 22px; }
 .measures .from { flex-shrink: 0; font-size: 9px; letter-spacing: .4px; text-transform: uppercase; padding: 1px 6px; border-radius: 999px; border: 1px solid; }
 .measures [data-from=plan] .from { color: #76dda9; border-color: #3fc68655; background: #3fc68612; }
 .measures [data-from=tape] .from { color: var(--gold-soft); border-color: #d9b68c55; background: #d9b68c12; }
+.measures [data-from=measured] .from { color: #8ee6ff; border-color: #5ec8f055; background: #5ec8f014; }
 .steps li.done .measures { opacity: .55; }
+.step-note { display: flex; gap: 6px; align-items: flex-start; margin: 6px 0 2px; font-size: 12px; line-height: 1.45; color: #a9dcef; }
+.step-note svg, .step-note .iconify { flex-shrink: 0; margin-top: 2px; width: 13px; height: 13px; }
+.step-note.warn { color: #ffc27a; }
 @media (max-width: 640px) { .measures > div { grid-template-columns: minmax(0, 1fr); } }
 .steps li.done .step-text { color: #6c7f90; text-decoration: line-through; text-decoration-color: #6c7f9080; }
 .steps .price { text-align: right; font-variant-numeric: tabular-nums; color: #e3e9ee; white-space: nowrap; }

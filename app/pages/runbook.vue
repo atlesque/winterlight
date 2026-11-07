@@ -1,5 +1,6 @@
 <script setup>
-import {CHAPTERS,PURCHASES,SHOPS,STEP_IDS,SHOW_DATE,CHECKED,PRESET} from '~~/src/runbook/runbook.js';
+import {CHAPTERS,PURCHASES,SHOPS,STEP_IDS,SHOW_DATE,CHECKED,PRESET,fmtMeasure} from '~~/src/runbook/runbook.js';
+import {applyMeasures,completeSteps,validMeasure} from '~~/src/measures/measures.js';
 
 // The build runbook: chapters of to-dos from ordering to the first test run.
 // Ticks and private/business switches are shared through the site's Worker
@@ -17,15 +18,19 @@ const byId=Object.fromEntries(PURCHASES.map(p=>[p.id,p]));
 const DEFAULT=new Set(PRESET);
 
 // Overrides of the defaults: done[id]=true|false, expense[id]='private'|'business'.
-const over=reactive({done:{},expense:{}});
-const done=computed(()=>new Set(STEP_IDS.filter(id=>over.done[id]??DEFAULT.has(id))));
+// measures are the tape measurements from the measure page (metres); a
+// measuring step counts as done once all its values are in, unless unticked.
+const over=reactive({done:{},expense:{},measures:{}});
+const auto=computed(()=>new Set(completeSteps(over.measures)));
+const done=computed(()=>new Set(STEP_IDS.filter(id=>over.done[id]??(DEFAULT.has(id)||auto.value.has(id)))));
+const measured=computed(()=>applyMeasures(over.measures));
 const kind=p=>over.expense[p.id]||p.expense;
 // 'loading', 'shared' (the database), or 'local' (this browser only).
 const mode=ref('loading'),status=ref(''),why=ref('');
 const canEdit=computed(()=>mode.value!=='loading');
 const store=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}catch{}};
 const load=k=>{try{return localStorage.getItem(k);}catch{return null;}};
-const apply=s=>{over.done={...s.done};over.expense={...s.expense};};
+const apply=s=>{over.done={...s.done};over.expense={...s.expense};over.measures={...s.measures};};
 
 async function send(change){
  if(mode.value==='local'){store(LOCAL,over);return true;}
@@ -35,7 +40,7 @@ async function send(change){
 }
 // Change locally first, so the tick feels instant, and undo it if saving fails.
 async function change(c){
- const before={done:{...over.done},expense:{...over.expense}};
+ const before={done:{...over.done},expense:{...over.expense},measures:{...over.measures}};
  Object.assign(over.done,c.done||{});for(const [id,k] of Object.entries(c.expense||{}))k===null?delete over.expense[id]:over.expense[id]=k;
  if(!await send(c))apply(before);
 }
@@ -61,7 +66,8 @@ onMounted(async()=>{
   why.value=e?.message||'no connection';
   mode.value='local';
   try{const s=JSON.parse(load(LOCAL)||'null');if(s)apply({done:Object.fromEntries(Object.entries(s.done||{}).filter(([id])=>STEP_IDS.includes(id))),
-   expense:Object.fromEntries(Object.entries(s.expense||{}).filter(([id,k])=>byId[id]&&KIND[k]))});}catch{}
+   expense:Object.fromEntries(Object.entries(s.expense||{}).filter(([id,k])=>byId[id]&&KIND[k])),
+   measures:Object.fromEntries(Object.entries(s.measures||{}).filter(([id,v])=>validMeasure(id,v)))});}catch{}
  }
 });
 
@@ -69,7 +75,9 @@ const chapters=computed(()=>CHAPTERS.map((c,i)=>({...c,n:i+1,count:c.steps.filte
  cost:c.steps.reduce((t,s)=>t+(s.buy?byId[s.buy].cost:0),0)})));
 const progress=computed(()=>({done:STEP_IDS.filter(id=>done.value.has(id)).length,of:STEP_IDS.length}));
 const next=computed(()=>{for(const c of chapters.value)for(const s of c.steps)if(!done.value.has(s.id))return {c,s};return null;});
-const stepText=s=>s.buy?`Order: ${byId[s.buy].name}`:s.text;
+const stepText=s=>s.buy?`Order: ${byId[s.buy].name}`:measured.value.steps[s.id]?.text||s.text;
+// A tape line shows the measured values once they are all in, else the model's guess.
+const tapeValue=x=>x.ids&&x.ids.every(id=>id in over.measures)?x.ids.map(id=>fmtMeasure(over.measures[id],x.unit)).join(', '):null;
 // Optional items (gear that may already be at hand) stay out of the totals until ticked as ordered.
 const money=computed(()=>{const t={private:0,business:0,ordered:0,all:0,optional:0};
  for(const p of PURCHASES){const bought=done.value.has(`buy-${p.id}`);if(bought)t.ordered+=p.cost;
@@ -123,12 +131,13 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
                 </template>
                 <template v-else>
                   <div class="step-body">
-                    <span class="step-text">{{ s.text }} <InfoTip v-if="s.tip" :text="s.tip" label="More about this step" /></span>
+                    <span class="step-text">{{ stepText(s) }} <InfoTip v-if="s.tip" :text="s.tip" label="More about this step" /></span>
                     <span v-if="s.due||links(s).length" class="step-meta"><template v-if="s.due">Expected {{ day(s.due) }}</template><template v-for="(l,i) in links(s)" :key="l.href"><template v-if="s.due||i"> · </template><a :href="l.href" target="_blank" rel="noopener">{{ l.label }}<UIcon name="i-lucide-external-link" /></a></template></span>
+                    <p v-for="(n,i) in measured.steps[s.id]?.notes||[]" :key="i" class="step-note" :class="{warn:n.warn}"><UIcon :name="n.warn?'i-lucide-triangle-alert':'i-lucide-ruler'" /> {{ n.text }}</p>
                     <dl v-if="s.measures" class="measures">
-                      <div v-for="x in s.measures" :key="x.what" :data-from="x.from">
-                        <dt><span class="from">{{ x.from==='plan'?'Plan':'Tape' }}</span> {{ x.what }}</dt>
-                        <dd><strong>{{ x.value }}</strong> <span>{{ x.how }}</span></dd>
+                      <div v-for="x in s.measures" :key="x.what" :data-from="tapeValue(x)?'measured':x.from">
+                        <dt><span class="from">{{ tapeValue(x)?'Measured':x.from==='plan'?'Plan':'Tape' }}</span> {{ x.what }}</dt>
+                        <dd><strong>{{ tapeValue(x)||x.value }}</strong> <span>{{ tapeValue(x)?`The model guessed ${x.value}.`:x.how }}</span></dd>
                       </div>
                     </dl>
                   </div>
