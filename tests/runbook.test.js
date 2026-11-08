@@ -145,6 +145,10 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  assert.ok(applyMeasures({letterBand:.35}).steps['place-letters'].notes[0].warn);
  assert.ok(!applyMeasures({letterBand:.9}).steps['place-letters'].notes[0].warn);
  assert.ok(applyMeasures({bushWidth:.5}).steps['place-garden'].notes[0].warn);
+ assert.ok(!applyMeasures({kitchenWindowTop:2.1}).steps['place-letters'].notes[0].warn,'a kitchen window level with the door clears the letters');
+ assert.ok(applyMeasures({kitchenWindowTop:2.7}).steps['place-letters'].notes[0].warn,'a taller one runs into them');
+ assert.ok(!applyMeasures({tileSetback:.91}).steps['place-garden'].notes[0].warn);
+ assert.ok(applyMeasures({tileSetback:1.6}).steps['place-garden'].notes[0].warn,'tiles past the cane line');
  assert.ok(!applyMeasures({tileGapWidth:.62,tileGapDepth:.85}).steps['place-tree'].notes[0].warn);
  for(const step of Object.keys(huge.steps))assert.ok(STEP_IDS.includes(step),step);
  // Every tape line in the measuring steps points at measurements on the measure page.

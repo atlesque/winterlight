@@ -16,12 +16,14 @@ const {tiles,size:TILE,bush:BUSH}=HOUSE.planters;
 const r2=v=>Math.round(v*100)/100;
 const upperTop=r2(UP.y+UP.height/2),sill=r2(UP.y-UP.height/2);
 const gapX=r2(tiles[1].x-tiles[0].x-TILE),gapZ=r2(tiles[2].z-tiles[0].z-TILE);
-const FRONT=.42;
+const FRONT=.42,kitchenTop=r2(kitchen.y+kitchen.height/2),setback=r2(tiles[0].z-TILE/2);
 // The model's guesses before the tape came out. The house model (src/house.js)
 // now carries the measured values; these stay so the measure page can show
 // what each measurement changed, and so the order baseline below holds.
 const GUESSES={smallWindowHeight:.7,doorHeight:2.3,kitchenWindowHeight:1.4,garageDoorHeight:2.25,garageEaveHeight:2.74,
- upstairsWindowTop:4.85,letterBand:1.15,gardenDepth:4.2,tileGapWidth:.62,tileGapDepth:.85,bushWidth:.72};
+ upstairsWindowTop:4.85,letterBand:1.15,gardenDepth:4.2,tileGapWidth:.62,tileGapDepth:.85,bushWidth:.72,
+ // Added after the first round, so their guesses are the model as it then stood.
+ kitchenWindowTop:2.1,tileSetback:.91};
 export const MEASURE_STEPS={
  'measure-facade':'Facade heights',
  'measure-garden':'Garden and planting tiles',
@@ -37,6 +39,9 @@ export const MEASUREMENTS=[
  {id:'kitchenWindowHeight',step:'measure-facade',label:'Kitchen window height',guess:GUESSES.kitchenWindowHeight,min:.5,max:2.5,
   how:'The window right of the front door: inside of the frame, bottom to top.',
   from:[kitchen.x+kitchen.width/2+.25,kitchen.y-kitchen.height/2,FRONT],to:[kitchen.x+kitchen.width/2+.25,kitchen.y+kitchen.height/2,FRONT],view:[[7.6,1.7,5.4],[6.9,1.6,0]]},
+ {id:'kitchenWindowTop',step:'measure-facade',label:'Height of the kitchen window',guess:GUESSES.kitchenWindowTop,min:1.2,max:3,
+  how:'The ground to the top of the kitchen window frame. The model has it level with the top of the front door; the letters hang just above it.',
+  from:[kitchen.x+kitchen.width/2+.5,0,FRONT+.05],to:[kitchen.x+kitchen.width/2+.5,kitchenTop,FRONT+.05],view:[[9.8,2,5.2],[7.6,1.3,0]]},
  {id:'garageDoorHeight',step:'measure-facade',label:'Garage door height',guess:GUESSES.garageDoorHeight,min:1.8,max:3,
   how:'The garage door opening: the floor to the underside of the frame at the top.',
   from:[garage.x+garage.width/2+.15,0,FRONT],to:[garage.x+garage.width/2+.15,garage.height,FRONT],view:[[2.6,1.5,6],[1.8,1.2,0]]},
@@ -61,6 +66,9 @@ export const MEASUREMENTS=[
  {id:'bushWidth',step:'measure-garden',label:'Bush top width',guess:GUESSES.bushWidth,min:.2,max:1.5,
   how:'Across the flat top of the narrowest clipped bush. The mini trees stand on the bush tops, three across.',
   from:[tiles[2].x-BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],to:[tiles[2].x+BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],view:[[6.2,1.9,5.3],[6.03,.6,2.91]]},
+ {id:'tileSetback',step:'measure-garden',label:'House to the front tiles',guess:GUESSES.tileSetback,min:.2,max:3,
+  how:'From the facade to the near edge of the planting tiles closest to the house. With the gaps, it places the tiles, the tree and the mini trees.',
+  from:[tiles[0].x-TILE/2-.08,.08,0],to:[tiles[0].x-TILE/2-.08,.08,setback],view:[[3.4,3.6,4.6],[5.8,.3,.7]]},
 ];
 export const MEASURE_IDS=MEASUREMENTS.map(m=>m.id);
 export const byStep=step=>MEASUREMENTS.filter(m=>m.step===step);
@@ -135,10 +143,24 @@ export function applyMeasures(values={}){
   note('place-letters',room>=.1?`The band is ${cm(v.letterBand)}: the 30 cm letters fit with ${cm(room/2)} above and below. Centre them ${metres((v.doorHeight??door.height)+v.letterBand/2)} up.`
    :`The band is only ${cm(v.letterBand)}, too tight for the 30 cm letters with room round them. Hang them above the upstairs window sills or over the garage instead.`,room<.1);
  }
+ if(has('kitchenWindowTop')){
+  // The letters hang centred in the band over the door; the kitchen outline runs 12 cm above its window.
+  const top=v.kitchenWindowTop,doorTop=v.doorHeight??door.height,band=v.letterBand??r2(sill-door.height);
+  const letterFoot=doorTop+band/2-L.letters.height/2,clear=letterFoot-(top+.12),d=Math.round((top-doorTop)*100);
+  note('build-windows',`The kitchen window's top is ${metres(top)}, ${d===0?'level with':`${Math.abs(d)} cm ${d>0?'above':'below'}`} the top of the front door.`);
+  note('place-letters',clear>=.05?`The letters' feet are ${cm(clear)} above the kitchen window's outline.`
+   :`The kitchen window's outline reaches ${clear<0?`${cm(-clear)} into`:'right under'} the letters. Hang them higher, or take the outline's top run under the frame.`,clear<.05);
+ }
  if(has('tileGapWidth')||has('tileGapDepth')){
   const gx=v.tileGapWidth??gapX,gz=v.tileGapDepth??gapZ,inset=(TILE-BUSH)/2,fit=2*Math.hypot(gx/2+inset,gz/2+inset),base=2*L.tree.radius;
   note('place-tree',fit>=base+.1?`The tiles leave room for a cone up to ${cm(fit)} across between the bushes; the tree's base is ${cm(base)}, so it fits. Centre the pole in the middle of the four tiles.`
    :`The tiles leave room for a cone of only ${cm(fit)} across between the bushes, and the tree's base is ${cm(base)}. Narrow the base or move the tree forward of the tiles.`,fit<base+.1);
+ }
+ if(has('tileSetback')){
+  const gz=v.tileGapDepth??gapZ,depth=v.gardenDepth??HOUSE.forecourtDepth,pole=v.tileSetback+TILE+gz/2,back=v.tileSetback+2*TILE+gz,room=depth-.4-back;
+  note('place-tree',`The tree's pole stands ${metres(pole)} out from the facade.`);
+  note('place-garden',room>=.1?`The back tiles end ${metres(back)} out, ${cm(room)} short of the cane line.`
+   :`The back tiles end ${metres(back)} out, ${room<0?'past':'right at'} the cane line 40 cm in from the street. Set the canes along the street edge itself.`,room<.1);
  }
  if(has('bushWidth')){
   const w=v.bushWidth;
