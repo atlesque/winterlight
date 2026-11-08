@@ -83,7 +83,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
               <text :x="HUB.x+16" :y="HUB.y+44" class="t-dim">on a shelf next to the boxes</text>
               <text :x="HUB.x+16" :y="HUB.y+70" class="t-body">Raspberry Pi 5 · Falcon Player</text>
               <text :x="HUB.x+16" :y="HUB.y+90" class="t-body">5-port switch</text>
-              <text :x="HUB.x+16" :y="HUB.y+116" class="t-body">Power strip on a 30 mA RCD</text>
+              <text :x="HUB.x+16" :y="HUB.y+116" class="t-body">Power strip on a plug-in 30 mA RCD</text>
               <text :x="HUB.x+16" :y="HUB.y+136" class="t-dim">FM transmitter on 12 V</text>
             </g>
 
@@ -163,7 +163,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
         <div class="glass"><UIcon name="i-lucide-cable" class="card-icon" /><h3>Data</h3><p>Each prop group is one chain on one port: out of the garage to the first prop, then prop to prop, on xConnect 18 AWG extensions with a pigtail pair per prop. Facade chains go up the wall; garden chains go over the front door at 2.55 m and down beside it, so the door and the path stay clear. The longest lead is about {{ LONGEST_RUN }} m, under the 15 m where a null pixel is needed. Start each prop at its corner nearest the garage.</p></div>
         <div class="glass"><UIcon name="i-lucide-zap" class="card-icon" /><h3>Power</h3><p>12 V, two Mean Well supplies per controller, each kept under {{ pct(parts.psuLoad) }} load. Every {{ parts.injectEvery }} pixels a T-splitter takes a red and black 4 mm² run from the chain's supply, joined with Wagos in a gel box outside. Regulated strings go on the long runs (tree, eaves, windows) so they stay evenly bright; the small props use the standard strings.</p></div>
         <div class="glass"><UIcon name="i-lucide-network" class="card-icon" /><h3>Network and music</h3><p>The Pi runs Falcon Player and sends E1.31/DDP to both controllers through the switch, all on patch cables in the garage. Reserve fixed IP addresses for the Pi and both controllers. The car FM transmitter runs from a 12 V supply, on the street side of the garage and not in a metal box.</p></div>
-        <div class="glass"><UIcon name="i-lucide-shield-alert" class="card-icon" /><h3>Mains</h3><p>Everything plugs into one power strip in the garage, on a 30 mA RCD. 230 V only reaches the supply terminals on the wall board; fuse every 12 V output, and keep the plug out while wiring.</p></div>
+        <div class="glass"><UIcon name="i-lucide-shield-alert" class="card-icon" /><h3>Mains</h3><p>Everything plugs into one power strip in the garage, and that into socket S through a plug-in 30 mA RCD (PRCD): the socket itself has no working 30 mA RCD. 230 V only reaches the supply terminals on the wall board; fuse every 12 V output, and keep the plug out while wiring.</p></div>
       </section>
     </main>
   </div>
