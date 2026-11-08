@@ -47,7 +47,7 @@ test('the measuring steps say what the plan gives and what needs a tape',async()
  assert.ok(rows.some(r=>r.from==='tape'&&/height/i.test(r.what)),'heights are not on the plan');
  const lead=+MEASURES.boxes[0].value.match(/\d+/)[0];assert.ok(lead<15,'garden lead stays under 15 m');
  const steps=CHAPTERS[0].steps.filter(s=>s.measures).map(s=>s.id);
- assert.deepEqual(steps,['measure-facade','measure-garden','box-spots']);
+ assert.deepEqual(steps,['measure-facade','measure-garden','measure-more','box-spots']);
 });
 
 test('the orders placed on 6 Nov start ticked and add up to what was paid',async()=>{
