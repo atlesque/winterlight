@@ -128,13 +128,14 @@ export const MEASURES={
   {from:'plan',what:'Opening widths',value:OPENINGS.map(([,o])=>cm(o.width)).join(', '),how:`${OPENINGS.map(([n],i)=>i?n:n[0].toUpperCase()+n.slice(1)).join(', ')}. Each outline sits 12 cm outside the opening.`},
   {from:'tape',what:'Opening heights',ids:['smallWindowHeight','doorHeight','kitchenWindowHeight','garageDoorHeight'],unit:'cm',how:`Same order. The plan has no heights, so these are guesses, and they make up ${m(outlineUp)} of the ${m(outlineRun)} of outline: every 10 cm more is one more pixel on each side.`},
   {from:'tape',what:'Upstairs windows and garage eave',ids:['upstairsWindowTop','garageEaveHeight'],unit:'m',how:'Ground to the top of the upstairs windows (the upper strip hangs 13 cm above) and to the underside of the garage eave, guessed. They don\'t change the pixel count, but they set the ladder you need and the length of the lead up from the box.'},
+  {from:'tape',what:'Kitchen window top',ids:['kitchenWindowTop'],unit:'m',how:'Ground to the top of the kitchen window frame. The model has it level with the top of the front door; it sets how close the kitchen outline comes to the letters.'},
   {from:'tape',what:'Letter band',ids:['letterBand'],unit:'cm',how:`Between the top of the front door and the sill of the upstairs windows, for the 30 cm letters. The ${m(L.letters.to-L.letters.from)} width comes from the plan; the height is a guess.`},
  ]),
  garden:tape([
   {from:'plan',what:'Garden width',value:m(fence[2][0]-fence[1][0]),how:'From the entrance path to the boundary on the right: the front run of the ground strip.'},
   {from:'plan',what:'Cane line',value:m(L.canes.xs.at(-1)-L.canes.xs[0]),how:`${L.canes.xs.length} canes along the street edge, ${cm(caneGap)} apart.`},
   {from:'tape',what:'Garden depth',ids:['gardenDepth'],unit:'m',how:'From the facade to the street edge, along the entrance path; the ground strip\'s side run is this less 55 cm. The plan doesn\'t dimension the forecourt.'},
-  {from:'tape',what:'Tree spot',ids:['tileGapWidth','tileGapDepth'],unit:'cm',how:`The gaps between the four planting tiles, left to right and front to back. The tree stands in the middle, ${cm(2*L.tree.radius)} across at the base and ${m(treeTop)} high with the star. The tiles' positions come from the street photo.`},
+  {from:'tape',what:'Tree spot',ids:['tileGapWidth','tileGapDepth','tileSetback'],unit:'cm',how:`The gaps between the four planting tiles, left to right and front to back, and the facade to the front tiles. The tree stands in the middle, ${cm(2*L.tree.radius)} across at the base and ${m(treeTop)} high with the star. The tiles' positions come from the street photo.`},
   {from:'tape',what:'Bush tops',ids:['bushWidth'],unit:'cm',how:'The mini trees stand three across each bush (two on the back right one), so each top needs about 60 cm of flat width. Bush sizes are guessed from the photo.'},
  ]),
  boxes:[

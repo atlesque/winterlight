@@ -16,46 +16,59 @@ const {tiles,size:TILE,bush:BUSH}=HOUSE.planters;
 const r2=v=>Math.round(v*100)/100;
 const upperTop=r2(UP.y+UP.height/2),sill=r2(UP.y-UP.height/2);
 const gapX=r2(tiles[1].x-tiles[0].x-TILE),gapZ=r2(tiles[2].z-tiles[0].z-TILE);
-const FRONT=.42;
+const FRONT=.42,kitchenTop=r2(kitchen.y+kitchen.height/2),setback=r2(tiles[0].z-TILE/2);
+// The model's guesses before the tape came out. The house model (src/house.js)
+// now carries the measured values; these stay so the measure page can show
+// what each measurement changed, and so the order baseline below holds.
+const GUESSES={smallWindowHeight:.7,doorHeight:2.3,kitchenWindowHeight:1.4,garageDoorHeight:2.25,garageEaveHeight:2.74,
+ upstairsWindowTop:4.85,letterBand:1.15,gardenDepth:4.2,tileGapWidth:.62,tileGapDepth:.85,bushWidth:.72,
+ // Added after the first round, so their guesses are the model as it then stood.
+ kitchenWindowTop:2.1,tileSetback:.91};
 export const MEASURE_STEPS={
  'measure-facade':'Facade heights',
  'measure-garden':'Garden and planting tiles',
 };
 // min and max (metres) bound what the page and the API accept.
 export const MEASUREMENTS=[
- {id:'smallWindowHeight',step:'measure-facade',label:'Small window height',guess:small.height,min:.2,max:2,
+ {id:'smallWindowHeight',step:'measure-facade',label:'Small window height',guess:GUESSES.smallWindowHeight,min:.2,max:2,
   how:'The small window left of the front door: inside of the frame, bottom to top.',
   from:[small.x+small.width/2+.2,small.y-small.height/2,FRONT],to:[small.x+small.width/2+.2,small.y+small.height/2,FRONT],view:[[4.6,1.9,4.2],[3.7,1.7,0]]},
- {id:'doorHeight',step:'measure-facade',label:'Front door height',guess:door.height,min:1.8,max:3,
+ {id:'doorHeight',step:'measure-facade',label:'Front door height',guess:GUESSES.doorHeight,min:1.8,max:3,
   how:'The front door opening: the doorstep to the underside of the frame at the top.',
   from:[door.x+door.width/2+.2,0,FRONT],to:[door.x+door.width/2+.2,door.height,FRONT],view:[[5.6,1.6,5.6],[4.8,1.2,0]]},
- {id:'kitchenWindowHeight',step:'measure-facade',label:'Kitchen window height',guess:kitchen.height,min:.5,max:2.5,
+ {id:'kitchenWindowHeight',step:'measure-facade',label:'Kitchen window height',guess:GUESSES.kitchenWindowHeight,min:.5,max:2.5,
   how:'The window right of the front door: inside of the frame, bottom to top.',
   from:[kitchen.x+kitchen.width/2+.25,kitchen.y-kitchen.height/2,FRONT],to:[kitchen.x+kitchen.width/2+.25,kitchen.y+kitchen.height/2,FRONT],view:[[7.6,1.7,5.4],[6.9,1.6,0]]},
- {id:'garageDoorHeight',step:'measure-facade',label:'Garage door height',guess:garage.height,min:1.8,max:3,
+ {id:'kitchenWindowTop',step:'measure-facade',label:'Height of the kitchen window',guess:GUESSES.kitchenWindowTop,min:1.2,max:3,
+  how:'The ground to the top of the kitchen window frame. The model has it level with the top of the front door; the letters hang just above it.',
+  from:[kitchen.x+kitchen.width/2+.5,0,FRONT+.05],to:[kitchen.x+kitchen.width/2+.5,kitchenTop,FRONT+.05],view:[[9.8,2,5.2],[7.6,1.3,0]]},
+ {id:'garageDoorHeight',step:'measure-facade',label:'Garage door height',guess:GUESSES.garageDoorHeight,min:1.8,max:3,
   how:'The garage door opening: the floor to the underside of the frame at the top.',
   from:[garage.x+garage.width/2+.15,0,FRONT],to:[garage.x+garage.width/2+.15,garage.height,FRONT],view:[[2.6,1.5,6],[1.8,1.2,0]]},
- {id:'garageEaveHeight',step:'measure-facade',label:'Garage eave height',guess:L.eaves.garage.y,min:2,max:4,
+ {id:'garageEaveHeight',step:'measure-facade',label:'Garage eave height',guess:GUESSES.garageEaveHeight,min:2,max:4,
   how:'The ground to the underside of the garage\'s eave, where the lower floor strip hangs.',
   from:[.25,0,FRONT],to:[.25,L.eaves.garage.y,FRONT],view:[[1.8,1.8,6.2],[1,1.4,0]]},
- {id:'upstairsWindowTop',step:'measure-facade',label:'Height of the upstairs windows',guess:upperTop,min:3.5,max:7,
+ {id:'upstairsWindowTop',step:'measure-facade',label:'Height of the upstairs windows',guess:GUESSES.upstairsWindowTop,min:3.5,max:7,
   how:'The ground to the top of the upstairs window frames. The upper floor strip hangs 13 cm above it; from a window upstairs, measure down to the ground with a weighted tape.',
   from:[UP.x+(HOUSE.windows[1].x-UP.x)/2,0,FRONT+.05],to:[UP.x+(HOUSE.windows[1].x-UP.x)/2,upperTop,FRONT+.05],view:[[5.6,3,9.5],[5.6,2.6,0]]},
- {id:'letterBand',step:'measure-facade',label:'Letter band',guess:r2(sill-door.height),min:.2,max:2,
+ {id:'letterBand',step:'measure-facade',label:'Letter band',guess:GUESSES.letterBand,min:.2,max:2,
   how:'The top of the front door frame to the sill of the upstairs window above it: the band HAPPY HOLIDAYS hangs in.',
   from:[door.x+.25,door.height,FRONT+.1],to:[door.x+.25,sill,FRONT+.1],view:[[5.2,3,4.6],[4.8,2.9,0]]},
- {id:'gardenDepth',step:'measure-garden',label:'Garden depth',guess:HOUSE.forecourtDepth,min:2,max:8,
+ {id:'gardenDepth',step:'measure-garden',label:'Garden depth',guess:GUESSES.gardenDepth,min:2,max:8,
   how:'From the facade to the street edge, along the entrance path. The ground strip\'s side run is this less 55 cm.',
   from:[HOUSE.entry.maxX,.06,0],to:[HOUSE.entry.maxX,.06,HOUSE.forecourtDepth],view:[[3.4,3.2,6.4],[5.6,0,2]]},
- {id:'tileGapWidth',step:'measure-garden',label:'Gap between the tiles, left to right',guess:gapX,min:.2,max:2,
+ {id:'tileGapWidth',step:'measure-garden',label:'Gap between the tiles, left to right',guess:GUESSES.tileGapWidth,min:.2,max:2,
   how:'Between the left and right planting tiles, edge to edge across the paving. The tree stands in the middle of the four tiles.',
-  from:[tiles[0].x+TILE/2,.08,L.tree.z],to:[tiles[1].x-TILE/2,.08,L.tree.z],view:[[6.74,2.6,5.2],[6.74,0,2.3]]},
- {id:'tileGapDepth',step:'measure-garden',label:'Gap between the tiles, front to back',guess:gapZ,min:.2,max:2,
+  from:[tiles[0].x+TILE/2,.08,L.tree.z],to:[tiles[1].x-TILE/2,.08,L.tree.z],view:[[L.tree.x,2.6,5.2],[L.tree.x,0,L.tree.z]]},
+ {id:'tileGapDepth',step:'measure-garden',label:'Gap between the tiles, front to back',guess:GUESSES.tileGapDepth,min:.2,max:2,
   how:'Between the tiles nearest the house and the tiles nearest the street, edge to edge.',
-  from:[L.tree.x,.1,tiles[0].z+TILE/2],to:[L.tree.x,.1,tiles[2].z-TILE/2],view:[[9.4,2.4,2.4],[6.74,0,2.3]]},
- {id:'bushWidth',step:'measure-garden',label:'Bush top width',guess:BUSH,min:.2,max:1.5,
+  from:[L.tree.x,.1,tiles[0].z+TILE/2],to:[L.tree.x,.1,tiles[2].z-TILE/2],view:[[9.4,2.4,L.tree.z],[L.tree.x,0,L.tree.z]]},
+ {id:'bushWidth',step:'measure-garden',label:'Bush top width',guess:GUESSES.bushWidth,min:.2,max:1.5,
   how:'Across the flat top of the narrowest clipped bush. The mini trees stand on the bush tops, three across.',
-  from:[tiles[2].x-BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],to:[tiles[2].x+BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],view:[[6.2,1.9,5.6],[6.03,.7,3.2]]},
+  from:[tiles[2].x-BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],to:[tiles[2].x+BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],view:[[6.2,1.9,5.3],[6.03,.6,2.91]]},
+ {id:'tileSetback',step:'measure-garden',label:'House to the front tiles',guess:GUESSES.tileSetback,min:.2,max:3,
+  how:'From the facade to the near edge of the planting tiles closest to the house. With the gaps, it places the tiles, the tree and the mini trees.',
+  from:[tiles[0].x-TILE/2-.08,.08,0],to:[tiles[0].x-TILE/2-.08,.08,setback],view:[[3.4,3.6,4.6],[5.8,.3,.7]]},
 ];
 export const MEASURE_IDS=MEASUREMENTS.map(m=>m.id);
 export const byStep=step=>MEASUREMENTS.filter(m=>m.step===step);
@@ -67,13 +80,18 @@ export function validMeasure(id,value){const m=MEASUREMENTS.find(x=>x.id===id);r
 export const cm=v=>`${Math.round(v*100)} cm`;
 export const metres=v=>`${(Math.round(v*100)/100).toFixed(2)} m`;
 
-// The baseline the orders were placed on: the cost model's full show.
-const FULL=estimate(ALL,DEFAULTS),SPARE=1+DEFAULTS.spare/100;
+// The baseline the orders were placed on: the cost model's full show as it
+// stood on the guesses (51 strings of 50, two 50 m rolls of mounting strip).
+// Fixed numbers, since the model has since moved to the measured sizes.
+const SPARE=1+DEFAULTS.spare/100;
+export const BASELINE={pixels:2399,strings:51,stripMetres:86,rolls:2,windows:230,fence:132};
+// The show as the model now stands, which applyMeasures() adjusts for any
+// value that differs from it.
+const FULL=estimate(ALL,DEFAULTS);
 const pixelsOf=prop=>OWN_CHANNELS.filter(c=>c.prop===prop).reduce((n,c)=>n+c.bulbs.length,0);
 const runLength=paths=>paths.reduce((t,f)=>t+f.slice(1).reduce((s,p,i)=>s+Math.hypot(...p.map((v,j)=>v-f[i][j])),0),0);
 const stripMetres=FULL.groups.flatMap(g=>g.props.flatMap(p=>p.lines)).filter(l=>l.item==='mountStrip').reduce((s,l)=>s+l.qty,0);
-export const BASELINE={pixels:FULL.pixels,strings:Math.ceil(FULL.pixels*SPARE/50),stripMetres,rolls:Math.ceil(stripMetres/50),
- windows:pixelsOf('windows'),fence:pixelsOf('fence')};
+export const MODEL={pixels:FULL.pixels,stripMetres,windows:pixelsOf('windows'),fence:pixelsOf('fence')};
 
 // The window outlines and the ground strip with the measured sizes, built
 // the same way src/props.js builds them for the model.
@@ -85,7 +103,7 @@ function windowPaths(v){
 const fencePath=depth=>{const [a,b,c]=L.fence.path,front=b[2]+(depth-HOUSE.forecourtDepth);return [a,[b[0],b[1],front],[c[0],c[1],front]];};
 
 // What the measured values change. Returns the updated quantities and, per
-// runbook step, a new text and/or a note. Missing values keep the model's guess.
+// runbook step, a new text and/or a note. Missing values keep the model's own value.
 export function applyMeasures(values={}){
  const v=Object.fromEntries(MEASURE_IDS.filter(id=>Number.isFinite(values[id])).map(id=>[id,values[id]]));
  const has=id=>id in v,steps={};
@@ -94,18 +112,18 @@ export function applyMeasures(values={}){
  const wPaths=windowPaths(v),windows=wPaths.reduce((n,p)=>n+along(p,STRIP).length,0);
  const fPath=fencePath(v.gardenDepth??HOUSE.forecourtDepth),fence=along(fPath,DENSE).length;
  const windowsStrip=Math.ceil(runLength(wPaths)),fenceStrip=Math.ceil(runLength([fPath]));
- const baseWindowsStrip=Math.ceil(runLength(windowPaths({}))),baseFenceStrip=Math.ceil(runLength([fencePath(HOUSE.forecourtDepth)]));
- const pixels=BASELINE.pixels+(windows-BASELINE.windows)+(fence-BASELINE.fence);
- const strings=Math.ceil(pixels*SPARE/50),stripMetres=BASELINE.stripMetres+(windowsStrip-baseWindowsStrip)+(fenceStrip-baseFenceStrip);
+ const modelWindowsStrip=Math.ceil(runLength(windowPaths({}))),modelFenceStrip=Math.ceil(runLength([fencePath(HOUSE.forecourtDepth)]));
+ const pixels=MODEL.pixels+(windows-MODEL.windows)+(fence-MODEL.fence);
+ const strings=Math.ceil(pixels*SPARE/50),stripMetres=MODEL.stripMetres+(windowsStrip-modelWindowsStrip)+(fenceStrip-modelFenceStrip);
  const rolls=Math.ceil(stripMetres/50),measured=Object.keys(v).length;
  const out={measured,of:MEASURE_IDS.length,windows,fence,pixels,strings,stripMetres,rolls,steps};
  const facadeHeights=['smallWindowHeight','doorHeight','kitchenWindowHeight','garageDoorHeight'].filter(has);
 
  if(facadeHeights.length)steps['build-windows']={text:`Fix the window outlines to mounting strip: ${windows} pixels at 10 cm`,notes:[]};
- if(facadeHeights.length)note('build-windows',`From ${facadeHeights.length===4?'all four measured heights':`${facadeHeights.length} of the 4 measured heights`}: ${windows} pixels instead of the model's ${BASELINE.windows}, ${windowsStrip} m of mounting strip.`);
+ if(facadeHeights.length)note('build-windows',`From ${facadeHeights.length===4?'all four measured heights':`${facadeHeights.length} of the 4 measured heights`}: ${windows} pixels instead of the ${BASELINE.windows} the order was counted on, ${windowsStrip} m of mounting strip.`);
  if(has('gardenDepth')){
   steps['build-fence']={text:`Fix the ground strip to its staked rail: ${fence} pixels`,notes:[]};
-  note('build-fence',`The garden is ${metres(v.gardenDepth)} deep, so the side run is ${metres(fPath[1][2]-fPath[0][2])}: ${fence} pixels instead of ${BASELINE.fence}, ${fenceStrip} m of mounting strip.`);
+  note('build-fence',`The garden is ${metres(v.gardenDepth)} deep, so the side run is ${metres(fPath[1][2]-fPath[0][2])}: ${fence} pixels instead of the ${BASELINE.fence} the order was counted on, ${fenceStrip} m of mounting strip.`);
  }
  if(facadeHeights.length||has('gardenDepth')){
   const spare=BASELINE.strings*50-pixels,d=pixels-BASELINE.pixels;
@@ -125,10 +143,24 @@ export function applyMeasures(values={}){
   note('place-letters',room>=.1?`The band is ${cm(v.letterBand)}: the 30 cm letters fit with ${cm(room/2)} above and below. Centre them ${metres((v.doorHeight??door.height)+v.letterBand/2)} up.`
    :`The band is only ${cm(v.letterBand)}, too tight for the 30 cm letters with room round them. Hang them above the upstairs window sills or over the garage instead.`,room<.1);
  }
+ if(has('kitchenWindowTop')){
+  // The letters hang centred in the band over the door; the kitchen outline runs 12 cm above its window.
+  const top=v.kitchenWindowTop,doorTop=v.doorHeight??door.height,band=v.letterBand??r2(sill-door.height);
+  const letterFoot=doorTop+band/2-L.letters.height/2,clear=letterFoot-(top+.12),d=Math.round((top-doorTop)*100);
+  note('build-windows',`The kitchen window's top is ${metres(top)}, ${d===0?'level with':`${Math.abs(d)} cm ${d>0?'above':'below'}`} the top of the front door.`);
+  note('place-letters',clear>=.05?`The letters' feet are ${cm(clear)} above the kitchen window's outline.`
+   :`The kitchen window's outline reaches ${clear<0?`${cm(-clear)} into`:'right under'} the letters. Hang them higher, or take the outline's top run under the frame.`,clear<.05);
+ }
  if(has('tileGapWidth')||has('tileGapDepth')){
   const gx=v.tileGapWidth??gapX,gz=v.tileGapDepth??gapZ,inset=(TILE-BUSH)/2,fit=2*Math.hypot(gx/2+inset,gz/2+inset),base=2*L.tree.radius;
   note('place-tree',fit>=base+.1?`The tiles leave room for a cone up to ${cm(fit)} across between the bushes; the tree's base is ${cm(base)}, so it fits. Centre the pole in the middle of the four tiles.`
    :`The tiles leave room for a cone of only ${cm(fit)} across between the bushes, and the tree's base is ${cm(base)}. Narrow the base or move the tree forward of the tiles.`,fit<base+.1);
+ }
+ if(has('tileSetback')){
+  const gz=v.tileGapDepth??gapZ,depth=v.gardenDepth??HOUSE.forecourtDepth,pole=v.tileSetback+TILE+gz/2,back=v.tileSetback+2*TILE+gz,room=depth-.4-back;
+  note('place-tree',`The tree's pole stands ${metres(pole)} out from the facade.`);
+  note('place-garden',room>=.1?`The back tiles end ${metres(back)} out, ${cm(room)} short of the cane line.`
+   :`The back tiles end ${metres(back)} out, ${room<0?'past':'right at'} the cane line 40 cm in from the street. Set the canes along the street edge itself.`,room<.1);
  }
  if(has('bushWidth')){
   const w=v.bushWidth;

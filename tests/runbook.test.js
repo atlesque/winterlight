@@ -129,6 +129,11 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  assert.equal(BASELINE.strings,PURCHASES.filter(p=>p.id.startsWith('pixels')).reduce((n,p)=>n+p.qty,0),'the strings ordered');
  assert.equal(BASELINE.rolls,PURCHASES.find(p=>p.id==='mountStrip').qty,'the rolls ordered');
  assert.deepEqual(applyMeasures({}).steps,{},'nothing measured, nothing changes');
+ // The model now carries the taped values of 8 Nov 2026: entering them changes no count.
+ const {MODEL}=await import('../src/measures/measures.js');
+ const taped=applyMeasures({smallWindowHeight:.76,doorHeight:2.1,kitchenWindowHeight:1.21,garageDoorHeight:2.12,gardenDepth:3.91});
+ assert.deepEqual([taped.windows,taped.fence,taped.pixels,taped.stripMetres],[MODEL.windows,MODEL.fence,MODEL.pixels,MODEL.stripMetres]);
+ assert.ok(taped.strings<=BASELINE.strings&&taped.rolls<=BASELINE.rolls,'the order still covers the measured house');
  const taller=applyMeasures({doorHeight:2.5,garageDoorHeight:2.45});
  assert.ok(taller.windows>BASELINE.windows,'taller openings need more outline pixels');
  assert.match(taller.steps['build-windows'].text,new RegExp(String(taller.windows)));
@@ -140,6 +145,10 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  assert.ok(applyMeasures({letterBand:.35}).steps['place-letters'].notes[0].warn);
  assert.ok(!applyMeasures({letterBand:.9}).steps['place-letters'].notes[0].warn);
  assert.ok(applyMeasures({bushWidth:.5}).steps['place-garden'].notes[0].warn);
+ assert.ok(!applyMeasures({kitchenWindowTop:2.1}).steps['place-letters'].notes[0].warn,'a kitchen window level with the door clears the letters');
+ assert.ok(applyMeasures({kitchenWindowTop:2.7}).steps['place-letters'].notes[0].warn,'a taller one runs into them');
+ assert.ok(!applyMeasures({tileSetback:.91}).steps['place-garden'].notes[0].warn);
+ assert.ok(applyMeasures({tileSetback:1.6}).steps['place-garden'].notes[0].warn,'tiles past the cane line');
  assert.ok(!applyMeasures({tileGapWidth:.62,tileGapDepth:.85}).steps['place-tree'].notes[0].warn);
  for(const step of Object.keys(huge.steps))assert.ok(STEP_IDS.includes(step),step);
  // Every tape line in the measuring steps points at measurements on the measure page.
