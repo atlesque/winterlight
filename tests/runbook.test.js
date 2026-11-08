@@ -129,6 +129,11 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  assert.equal(BASELINE.strings,PURCHASES.filter(p=>p.id.startsWith('pixels')).reduce((n,p)=>n+p.qty,0),'the strings ordered');
  assert.equal(BASELINE.rolls,PURCHASES.find(p=>p.id==='mountStrip').qty,'the rolls ordered');
  assert.deepEqual(applyMeasures({}).steps,{},'nothing measured, nothing changes');
+ // The model now carries the taped values of 8 Nov 2026: entering them changes no count.
+ const {MODEL}=await import('../src/measures/measures.js');
+ const taped=applyMeasures({smallWindowHeight:.76,doorHeight:2.1,kitchenWindowHeight:1.21,garageDoorHeight:2.12,gardenDepth:3.91});
+ assert.deepEqual([taped.windows,taped.fence,taped.pixels,taped.stripMetres],[MODEL.windows,MODEL.fence,MODEL.pixels,MODEL.stripMetres]);
+ assert.ok(taped.strings<=BASELINE.strings&&taped.rolls<=BASELINE.rolls,'the order still covers the measured house');
  const taller=applyMeasures({doorHeight:2.5,garageDoorHeight:2.45});
  assert.ok(taller.windows>BASELINE.windows,'taller openings need more outline pixels');
  assert.match(taller.steps['build-windows'].text,new RegExp(String(taller.windows)));
