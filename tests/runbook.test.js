@@ -155,3 +155,12 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  for(const r of Object.values(MEASURES).flat().filter(r=>r.from==='tape'))for(const id of r.ids)assert.ok(guesses[id]!==undefined,id);
  for(const m of MEASUREMENTS){assert.ok(m.guess>=m.min&&m.guess<=m.max,m.id);assert.ok([...m.from,...m.to].every(Number.isFinite),m.id);assert.ok(STEP_IDS.includes(m.step),m.id);}
 });
+
+test('the LEDshows and Elektramat parcels arrived on 9 Nov and start ticked',async()=>{
+ const {PRESET}=await import('../src/runbook/runbook.js');
+ const steps=CHAPTERS.find(c=>c.id==='deliveries').steps;
+ const arrived=steps.filter(s=>s.arrived).map(s=>[s.id,s.arrived]);
+ assert.deepEqual(arrived.sort(),[['arrive-elektramat-1','2026-11-09'],['arrive-ledshows-1','2026-11-09']]);
+ for(const [id] of arrived)assert.ok(PRESET.includes(id),id);
+ assert.ok(!PRESET.includes('arrive-pixelimperium-1'),'the pixels are still on their way');
+});
