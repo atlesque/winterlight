@@ -93,9 +93,11 @@ export const PURCHASES=ROWS.map(r=>({...r,cost:Math.round(r.qty*r.price*100)/100
 
 const addDays=(date,n)=>{const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
 const buy=wave=>PURCHASES.filter(p=>p.wave===wave).map(p=>({id:`buy-${p.id}`,buy:p.id}));
+// Deliveries already at the door, by delivery step id. These start ticked.
+const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09'};
 // One delivery check per shop and order wave, expected by the shop's slowest delivery.
 const deliveries=[1,2].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const items=PURCHASES.filter(p=>p.shop===id&&p.wave===wave);if(!items.length||id==='local')return null;
- return {id:`arrive-${id}-${wave}`,text:`${s.name} ${wave===2?'installation parts ':''}delivered and checked`,due:addDays(items[0].orderBy,s.days[1]),tip:items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · ')};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
+ return {id:`arrive-${id}-${wave}`,text:`${s.name} ${wave===2?'installation parts ':''}delivered and checked`,due:addDays(items[0].orderBy,s.days[1]),tip:items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · '),...(ARRIVED[`arrive-${id}-${wave}`]&&{arrived:ARRIVED[`arrive-${id}-${wave}`]})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
 const g=Object.fromEntries(GROUP_LIST.map(x=>[x.id,{...x,pixels:group(x.id).pixels}]));
 const each=id=>Math.round(g[id].pixels/g[id].props.length);
 
@@ -219,6 +221,6 @@ export const CHAPTERS=[
 ];
 // Every to-do id, in order.
 export const STEP_IDS=CHAPTERS.flatMap(c=>c.steps.map(s=>s.id));
-// To-dos that start ticked: every order already placed, and the decisions
-// already made. The shared state (worker/index.js) only stores changes to these.
-export const PRESET=[...PURCHASES.filter(p=>p.ordered).map(p=>`buy-${p.id}`),'box-spots','spare-gear'];
+// To-dos that start ticked: every order already placed, every delivery
+// already arrived, and the decisions already made. The shared state (worker/index.js) only stores changes to these.
+export const PRESET=[...PURCHASES.filter(p=>p.ordered).map(p=>`buy-${p.id}`),...Object.keys(ARRIVED),'box-spots','spare-gear'];
