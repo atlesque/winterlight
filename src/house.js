@@ -37,7 +37,7 @@ const UPPER=HOUSE.windows.slice(0,2);
 export const PROP_LAYOUT = {
   // The upper icicle strip runs along the top edge of the two upper windows, from the
   // left one's frame to the right one's, in front of their glass; the lower one under the garage eave.
-  upper:{from:+(UPPER[0].x-UPPER[0].width/2-.09).toFixed(3),to:+(UPPER[1].x+UPPER[1].width/2+.09).toFixed(3),y:+(UPPER[0].y+UPPER[0].height/2+.13).toFixed(3),z:.22},
+  upper:{from:+(UPPER[0].x-UPPER[0].width/2-.09).toFixed(3),to:+(UPPER[1].x+UPPER[1].width/2+.09).toFixed(3),y:+(UPPER[0].y+UPPER[0].height/2+.27).toFixed(3),z:.22},
   eaves:{garage:{from:-.05,to:3.15,y:2.86},z:.09},
   outlines:{z:.27},
   // ProPixeler's 30 cm coro letters (propixeler.nl), bought ready-made.
