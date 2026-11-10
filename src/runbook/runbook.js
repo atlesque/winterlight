@@ -250,7 +250,7 @@ export const CHAPTERS=[
   {id:'sw-controllers',text:'Set each controller port\'s pixel count and colour order',link:{href:BALDRICK,label:'Baldrick 8 manual'},tip:'Full brightness. Reverse every other tree strand and mini-tree spoke, and the eave strip, to match how they are wired.'},
   {id:'sw-xlights',text:'Install xLights on the laptop',link:{href:XLIGHTS,label:'xLights downloads'}},
   {id:'sw-layout',text:`Build the layout in xLights: ${FULL.groups.reduce((n,x)=>n+x.count,0)} props on two controllers`,tip:'One model per channel on the show page, with the same pixel counts.'},
-  {id:'sw-sequence',text:'Turn the detected show into an xLights sequence',link:{href:'/outputs/original-house-cues.json',label:'Cue file'},tip:'The cue file has one brightness per channel per video frame. There is no exporter yet; the sequence is made from it in xLights or with a small script.'},
+  {id:'sw-sequence',text:'Turn the detected show into an xLights sequence',link:{href:'/software.html',label:'Show software'},tip:'The cue file has one brightness per channel per video frame. There is no exporter yet; the proposal on the show software page is a small script that writes Falcon Player\'s .fseq straight from it, with xLights optional.'},
   {id:'sw-upload',text:'Upload the sequence and the music to Falcon Player and make a playlist'},
   {id:'sw-schedule',text:'Schedule the playlist for the evenings'},
   {id:'sw-fm',text:'Tune the FM transmitter to a free frequency'},

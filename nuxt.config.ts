@@ -33,7 +33,7 @@ export default defineNuxtConfig({
     output: {publicDir: fileURLToPath(new URL('./dist', import.meta.url))},
     // The detected cue file and the project guides are served from /outputs, as before.
     publicAssets: [{dir: fileURLToPath(new URL('./outputs', import.meta.url)), baseURL: '/outputs', maxAge: 0}],
-    prerender: {routes: ['/', '/costs', '/runbook', '/wiring', '/measure', '/print'], autoSubfolderIndex: false, crawlLinks: false},
+    prerender: {routes: ['/', '/costs', '/runbook', '/wiring', '/software', '/measure', '/print'], autoSubfolderIndex: false, crawlLinks: false},
   },
   vite: {
     build: {
