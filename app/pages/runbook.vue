@@ -74,16 +74,18 @@ onMounted(async()=>{
 });
 
 const chapters=computed(()=>CHAPTERS.map((c,i)=>({...c,n:i+1,count:c.steps.filter(s=>done.value.has(s.id)).length,
- cost:c.steps.reduce((t,s)=>t+(s.buy?byId[s.buy].cost:0),0)})));
+ cost:c.steps.reduce((t,s)=>t+(s.buy?spent(byId[s.buy]):0),0)})));
 const progress=computed(()=>({done:STEP_IDS.filter(id=>done.value.has(id)).length,of:STEP_IDS.length}));
 const next=computed(()=>{for(const c of chapters.value)for(const s of c.steps)if(!done.value.has(s.id))return {c,s};return null;});
 const stepText=s=>s.buy?`Order: ${byId[s.buy].name}`:measured.value.steps[s.id]?.text||s.text;
 // A tape line shows the measured values once they are all in, else the model's guess.
 const tapeValue=x=>x.ids&&x.ids.every(id=>id in over.measures)?x.ids.map(id=>fmtMeasure(over.measures[id],x.unit)).join(', '):null;
+// A returned item was refunded, so it counts for nothing.
+const spent=p=>p.returned?0:p.cost;
 // Optional items (gear that may already be at hand) stay out of the totals until ticked as ordered.
 const money=computed(()=>{const t={private:0,business:0,ordered:0,all:0,optional:0};
- for(const p of PURCHASES){const bought=done.value.has(`buy-${p.id}`);if(bought)t.ordered+=p.cost;
-  if(p.optional&&!bought){t.optional+=p.cost;continue;}t[kind(p)]+=p.cost;t.all+=p.cost;}return t;});
+ for(const p of PURCHASES){const bought=done.value.has(`buy-${p.id}`),cost=spent(p);if(bought)t.ordered+=cost;
+  if(p.optional&&!bought){t.optional+=cost;continue;}t[kind(p)]+=cost;t.all+=cost;}return t;});
 const links=s=>s.links||(s.link?[s.link]:[]);
 const qty=p=>p.unit==='×'?`${p.qty} ×`:`${p.qty} ${p.unit}`;
 const checked=new Date(CHECKED).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
@@ -128,15 +130,16 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
                       <template v-if="PER_PIXEL[s.buy]?.withShipping"> · <span class="per-pixel">{{ cents(PER_PIXEL[s.buy].each) }} a pixel, {{ cents(PER_PIXEL[s.buy].withShipping) }} with shipping</span></template>
                       <template v-else-if="PER_PIXEL[s.buy]"> · <span class="per-pixel">Whole order {{ euro(PER_PIXEL[s.buy].total) }} for {{ PER_PIXEL[s.buy].pixels.toLocaleString('en') }} pixels: {{ cents(PER_PIXEL[s.buy].each) }} a pixel with shipping</span></template>
                       <template v-if="byId[s.buy].estimate"> · <UBadge label="estimate" color="primary" variant="subtle" size="sm" /></template>
-                      <template v-if="byId[s.buy].optional"> · <UBadge label="optional" color="neutral" variant="subtle" size="sm" /></template></span>
+                      <template v-if="byId[s.buy].optional"> · <UBadge label="optional" color="neutral" variant="subtle" size="sm" /></template>
+                      <template v-if="byId[s.buy].returned"> · <UBadge :label="`returned ${day(byId[s.buy].returned)}`" color="warning" variant="subtle" size="sm" /></template></span>
                   </div>
                   <button type="button" class="expense" :disabled="!canEdit" :data-kind="kind(byId[s.buy])" :aria-label="`${KIND[kind(byId[s.buy])].label} expense, switch to ${KIND[kind(byId[s.buy])].other}`" @click="flip(byId[s.buy])">{{ KIND[kind(byId[s.buy])].label }}</button>
-                  <span class="price">{{ euro(byId[s.buy].cost) }}</span>
+                  <span class="price" :class="{returned:byId[s.buy].returned}">{{ euro(byId[s.buy].cost) }}</span>
                 </template>
                 <template v-else>
                   <div class="step-body">
                     <span class="step-text">{{ stepText(s) }} <InfoTip v-if="s.tip" :text="s.tip" label="More about this step" /></span>
-                    <span v-if="s.due||links(s).length" class="step-meta"><template v-if="s.arrived">Arrived {{ day(s.arrived) }}</template><template v-else-if="s.due">Expected {{ day(s.due) }}</template><template v-for="(l,i) in links(s)" :key="l.href"><template v-if="s.due||i"> · </template><a :href="l.href" target="_blank" rel="noopener">{{ l.label }}<UIcon name="i-lucide-external-link" /></a></template></span>
+                    <span v-if="s.due||links(s).length" class="step-meta"><template v-if="s.arrived">Arrived {{ day(s.arrived) }}</template><template v-else-if="s.partly">Partly arrived {{ day(s.partly) }}</template><template v-else-if="s.due">Expected {{ day(s.due) }}</template><template v-for="(l,i) in links(s)" :key="l.href"><template v-if="s.due||i"> · </template><a :href="l.href" target="_blank" rel="noopener">{{ l.label }}<UIcon name="i-lucide-external-link" /></a></template></span>
                     <p v-for="(n,i) in measured.steps[s.id]?.notes||[]" :key="i" class="step-note" :class="{warn:n.warn}"><UIcon :name="n.warn?'i-lucide-triangle-alert':'i-lucide-ruler'" /> {{ n.text }}</p>
                     <dl v-if="s.measures" class="measures">
                       <div v-for="x in s.measures" :key="x.what" :data-from="tapeValue(x)?'measured':x.from">
