@@ -72,8 +72,9 @@ const ROWS=[
  {id:'coro',name:'Coro sheet 140 × 100 cm, 3 mm, blank white',qty:5,unit:'sheets',price:12.5,url:'https://kunststofshop.nl/polypropeen/polypropeen-kanaalplaten/semi-transparant-wit-of-zwart/polypropeen-kanaalplaat-wit-1400x1000x3mm/a-3753-20000050',shop:'kunststofshop',expense:'private',wave:1,
   tip:`${Math.ceil(modelQty('coro'))} m² for the circles, peace sign, candy canes and tree star, plus 40% for offcuts. No piece is bigger than about 65 × 65 cm. Three sheets cover that; two more are spare for miscuts and next year, since shipping is a flat €49.95. Ordered 6 Nov: €112.45 with shipping.`},
  {id:'coroShipping',name:'Kunststofshop.nl shipping to Belgium (oversized parcel)',qty:1,unit:'×',price:49.95,url:'https://kunststofshop.nl/',shop:'kunststofshop',expense:'private',wave:1,tip:'Paid with the five coro sheets on 6 Nov.'},
- {id:'gelbox',name:'WAGO Gelbox 207-1332 (IPX8, takes 221 Wagos), pack of 4',qty:1,unit:'pack',price:16.5,url:search('wago gelbox 207-1332'),shop:'bol',expense:'private',wave:1,tip:'Waterproofs the Wago joint between each T-splitter pigtail and the 4 mm² run. Bol caps it at one pack, so the other six come from Elektramat. Ordered 6 Nov in the €61.94 bol.com order.'},
+ {id:'gelbox',name:'WAGO Gelbox 207-1332 (IPX8, takes 221 Wagos), pack of 4',qty:1,unit:'pack',price:16.5,url:search('wago gelbox 207-1332'),shop:'bol',expense:'private',wave:1,returned:'2026-11-10',tip:'Waterproofs the Wago joint between each T-splitter pigtail and the 4 mm² run. Bol caps it at one pack, so the other six come from Elektramat. Ordered 6 Nov in the €61.94 bol.com order. Only one of the four arrived on 10 Nov, so this part of the order went back to bol.com for a refund; the four are reordered from Elektramat below.'},
  {id:'gelboxMore',name:'WAGO Gelbox 207-1332 (IPX8, takes 221 Wagos), plus shipping',qty:6,unit:'×',price:33.58/6,url:'https://www.elektramat.nl/',shop:'elektramat',expense:'business',wave:1,tip:'The other six of the ten injection joints. Ordered 6 Nov as a business purchase: €33.58 with shipping, excluding VAT.'},
+ {id:'gelboxReorder',name:'WAGO Gelbox 207-1332, the four bol.com fell short on',qty:4,unit:'×',price:33.58/6,url:'https://www.elektramat.nl/wago-kabelaftak-gelbox-max-4mm-grijs-207-1332/',shop:'elektramat',expense:'business',wave:1,orderBy:'2026-11-10',delivery:'reorder',estimate:true,tip:'Replaces the bol.com pack that came one short and went back on 10 Nov. Same shop and article as the other six, sold per piece; the price is the last order\'s €5.60 a piece with shipping, excluding VAT. Not bol.com again.'},
  {id:'cutting',name:'Stanley 1992 trapezoid blades and spray adhesive',qty:1,unit:'set',price:19.9,url:search('stanley 1992 trapezium mesjes'),shop:'bol',expense:'private',wave:1,tip:'Five fresh blades for the FatMax utility knife (trapezoid, not snap-off, €4.90), and Bison spray adhesive to hold the paper templates on the sheets (€15). Ordered 6 Nov in the bol.com order.'},
  {id:'fittings',name:'Wall board, terminal blocks and fuses',qty:zones.length,unit:'sets',price:P.fittings.price,url:search('zekeringhouder auto 12v'),shop:'bol',expense:'private',wave:2,estimate:true,tip:'One per box in the garage: a board on the wall with a fuse on every power supply output and terminal blocks for the 4 mm² runs. A DIY store has the same.'},
  {id:'minitreeFrame',name:'Bambu Lab PETG Basic, black, 1 kg',qty:6,unit:'×',price:62.24/6,url:'https://eu.store.bambulab.com/',shop:'bambu',expense:'business',wave:1,
@@ -85,11 +86,11 @@ const ROWS=[
  {id:'bricks',name:BRICK.name,qty:BRICKS,unit:'×',price:.75,url:'https://www.gamma.be/',shop:'local',expense:'private',wave:2,estimate:true,tip:`Ballast in the printed feet, about ${BRICK.kg} kg each: two per candy cane, one per ground strip post and four for the tree's ring. Buy them loose at the DIY store, or use any spare paving bricks (set the size in lib.scad before printing the feet).`},
  {id:'parasolBase',name:PARASOL.name,qty:1,unit:'×',price:40,url:'https://www.gamma.be/',shop:'local',expense:'private',wave:2,estimate:true,tip:'For the wireframe tree\'s pole, on the paving between the planting tiles. Check its tube clamp takes the pole.'},
  {id:'soundCard',name:'USB sound card',qty:1,unit:'×',price:P.soundCard.price,url:P.soundCard.url,shop:'ledshows',expense:'private',wave:1,tip:'Audio out of the Pi for the FM transmitter. Ordered 6 Nov in the LEDshows basket.'},
- {id:'fm',name:'DrPhone FM7 car FM transmitter and 12 V socket lead',qty:1,unit:'set',price:25.54,url:search('fm transmitter 3.5 mm'),shop:'bol',expense:'private',wave:1,tip:'Transmitter €14.95 plus a 12 V socket lead €10.59, so it runs from one of the Mean Well power supplies. Place it on the street side of the garage, not in a metal box, and test from a parked car. Ordered 6 Nov in the bol.com order.'},
+ {id:'fm',name:'DrPhone FM7 car FM transmitter and 12 V socket lead',qty:1,unit:'set',price:25.54,url:search('fm transmitter 3.5 mm'),shop:'bol',expense:'private',wave:1,tip:'Transmitter €14.95 plus a 12 V socket lead €10.59, so it runs from one of the Mean Well power supplies. Place it on the street side of the garage, not in a metal box, and test from a parked car. Ordered 6 Nov in the bol.com order; the only part of it still on its way on 10 Nov, due that day.'},
 ];
 // Placed on 6 Nov 2026: €2,133.10 over nine shops. These start ticked.
 const BOUGHT=new Set(['pixels','pixelsRegulated','pixelShipping','controller','ledshowsShipping','pigtail','tSplitter','cable','injectWire','mountStrip','zipTies','psu','letters','letterShipping','coro','coroShipping','gelbox','gelboxMore','cutting','minitreeFrame','soundCard','fm']);
-export const PURCHASES=ROWS.map(r=>({...r,cost:Math.round(r.qty*r.price*100)/100,orderBy:r.wave===1?WAVE1:WAVE2,...(BOUGHT.has(r.id)&&{ordered:ORDERED})}));
+export const PURCHASES=ROWS.map(r=>({...r,cost:Math.round(r.qty*r.price*100)/100,orderBy:r.orderBy||(r.wave===1?WAVE1:WAVE2),...(BOUGHT.has(r.id)&&{ordered:ORDERED})}));
 // Price paid per pixel, for each order with pixel strings in it (one shop, one wave).
 // A string row gets its own price per pixel, and again with its share of the
 // order's shipping (split by pixel); the order's shipping row gets the whole
@@ -107,9 +108,13 @@ const addDays=(date,n)=>{const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.ge
 const buy=wave=>PURCHASES.filter(p=>p.wave===wave).map(p=>({id:`buy-${p.id}`,buy:p.id}));
 // Deliveries already at the door, by delivery step id. These start ticked.
 const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09'};
+// Deliveries that came in part: the date, and what is still missing. These stay unticked.
+const PARTLY={'arrive-bol-1':{date:'2026-11-10',note:'The Stanley blades and spray adhesive are in. The FM transmitter is due on 10 Nov. Only one of the four Wago gel boxes came, so they went back; four are reordered from Elektramat.'}};
 // One delivery check per shop and order wave, expected by the shop's slowest delivery.
-const deliveries=[1,2].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const items=PURCHASES.filter(p=>p.shop===id&&p.wave===wave);if(!items.length||id==='local')return null;
- return {id:`arrive-${id}-${wave}`,text:`${s.name} ${wave===2?'installation parts ':''}delivered and checked`,due:addDays(items[0].orderBy,s.days[1]),tip:items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · '),...(ARRIVED[`arrive-${id}-${wave}`]&&{arrived:ARRIVED[`arrive-${id}-${wave}`]})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
+// A row with its own delivery (a reorder) gets a delivery check of its own.
+const deliveries=[1,2,'reorder'].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const items=PURCHASES.filter(p=>p.shop===id&&(p.delivery||p.wave)===wave&&!p.returned);if(!items.length||id==='local')return null;
+ const key=`arrive-${id}-${wave}`,status=PARTLY[key];
+ return {id:key,text:`${s.name} ${wave===2?'installation parts ':wave==='reorder'?'reorder ':''}delivered and checked`,due:addDays(items[0].orderBy,s.days[1]),tip:[status?.note,items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · ')].filter(Boolean).join(' '),...(ARRIVED[key]&&{arrived:ARRIVED[key]}),...(status&&{partly:status.date})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
 const g=Object.fromEntries(GROUP_LIST.map(x=>[x.id,{...x,pixels:group(x.id).pixels}]));
 const each=id=>Math.round(g[id].pixels/g[id].props.length);
 
@@ -175,7 +180,7 @@ export const CHAPTERS=[
   {id:'tools',text:'Get the tools ready: multimeter, wire stripper, crimp pliers, step drill bit, drill'},
   {id:'ip-plan',text:'Reserve IP addresses for the Pi and both controllers'},
  ]},
- {id:'order-1',title:'Order the parts',icon:'i-lucide-shopping-cart',due:WAVE1,tip:'All placed on 6 Nov: €2,133.10 over nine shops. Private and business items went as separate orders, so each invoice goes to the right name.',steps:buy(1)},
+ {id:'order-1',title:'Order the parts',icon:'i-lucide-shopping-cart',due:WAVE1,tip:'All placed on 6 Nov: €2,133.10 over nine shops. Private and business items went as separate orders, so each invoice goes to the right name. Bol.com sent one of the four Wago gel boxes, so that pack went back on 10 Nov and four are reordered from Elektramat.',steps:buy(1)},
  {id:'order-2',title:'Buy the installation parts',icon:'i-lucide-package-plus',due:WAVE2,tip:'Small parts for hanging and placing, from bol.com or a DIY store.',steps:buy(2)},
  {id:'deliveries',title:'Deliveries',icon:'i-lucide-truck',due:deliveries.map(d=>d.due).sort().at(-1),steps:[
   ...deliveries,

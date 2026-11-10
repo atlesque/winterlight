@@ -317,6 +317,7 @@ aside.summary { position: sticky; top: 112px; padding: 22px; }
 .steps li.done .step-text { color: #6c7f90; text-decoration: line-through; text-decoration-color: #6c7f9080; }
 .steps .price { text-align: right; font-variant-numeric: tabular-nums; color: #e3e9ee; white-space: nowrap; }
 .steps li.done .price { color: #6c7f90; }
+.steps .price.returned { text-decoration: line-through; }
 .expense { font-size: 10px; letter-spacing: .3px; padding: 2px 8px; border-radius: 999px; border: 1px solid; background: none; white-space: nowrap; transition: background .15s; }
 .expense[data-kind=private] { color: #fd9b9e; border-color: #f43f4555; background: #f43f4512; }
 .expense[data-kind=business] { color: #76dda9; border-color: #3fc68655; background: #3fc68612; }

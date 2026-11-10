@@ -177,3 +177,18 @@ test('the pixel order shows what each pixel cost, with and without shipping',asy
  const sum=['pixels','pixelsRegulated'].reduce((t,id)=>{const p=PURCHASES.find(x=>x.id===id);return t+PER_PIXEL[id].withShipping*p.qty*50;},0);
  assert.equal(Math.round(sum*100)/100,820.47);
 });
+
+test('bol.com came in part on 10 Nov: the Wago gel boxes went back and four are reordered from Elektramat',async()=>{
+ const {PRESET}=await import('../src/runbook/runbook.js');
+ const steps=CHAPTERS.find(c=>c.id==='deliveries').steps,byId=Object.fromEntries(PURCHASES.map(p=>[p.id,p]));
+ assert.equal(byId.gelbox.returned,'2026-11-10');
+ const reorder=byId.gelboxReorder;
+ assert.deepEqual([reorder.shop,reorder.qty,reorder.ordered],['elektramat',4,undefined]);
+ assert.ok(!PRESET.includes('buy-gelboxReorder'),'the reorder is still to place');
+ const bol=steps.find(s=>s.id==='arrive-bol-1');
+ assert.equal(bol.partly,'2026-11-10');assert.ok(!bol.arrived&&!PRESET.includes(bol.id));
+ assert.match(bol.tip,/FM transmitter/);assert.doesNotMatch(bol.tip,/1 pack WAGO/,'the returned pack is not awaited');
+ const again=steps.find(s=>s.id==='arrive-elektramat-reorder');
+ assert.deepEqual([again.due,again.arrived],['2026-11-13',undefined]);
+ assert.match(steps.find(s=>s.id==='arrive-elektramat-1').tip,/^6 ×/,'the first Elektramat parcel holds only the six');
+});
