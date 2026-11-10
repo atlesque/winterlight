@@ -1,5 +1,5 @@
 <script setup>
-import {CHAPTERS,PURCHASES,SHOPS,STEP_IDS,SHOW_DATE,CHECKED,PRESET,fmtMeasure} from '~~/src/runbook/runbook.js';
+import {CHAPTERS,PURCHASES,PER_PIXEL,SHOPS,STEP_IDS,SHOW_DATE,CHECKED,PRESET,fmtMeasure} from '~~/src/runbook/runbook.js';
 import {applyMeasures,completeSteps,validMeasure} from '~~/src/measures/measures.js';
 
 // The build runbook: chapters of to-dos from ordering to the first test run.
@@ -12,6 +12,8 @@ import {applyMeasures,completeSteps,validMeasure} from '~~/src/measures/measures
 definePageMeta({alias:['/runbook.html']});
 const API='/api/runbook',LOCAL='winterlight-runbook-v2',OLD='winterlight-runbook';
 const euro=v=>new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR',minimumFractionDigits:v>=1000?0:2,maximumFractionDigits:v>=1000?0:2}).format(v);
+// A price per pixel, to a tenth of a cent.
+const cents=v=>`€${v.toFixed(3)}`;
 const day=d=>new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 const KIND={private:{label:'Private',other:'business'},business:{label:'Business',other:'private'}};
 const byId=Object.fromEntries(PURCHASES.map(p=>[p.id,p]));
@@ -123,6 +125,8 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
                   <div class="step-body">
                     <span class="step-text">{{ byId[s.buy].name }} <InfoTip v-if="byId[s.buy].tip" :text="byId[s.buy].tip" :label="`About ${byId[s.buy].name}`" /></span>
                     <span class="step-meta">{{ qty(byId[s.buy]) }} · <a :href="byId[s.buy].url" target="_blank" rel="noopener">{{ SHOPS[byId[s.buy].shop].name }}<UIcon name="i-lucide-external-link" /></a>
+                      <template v-if="PER_PIXEL[s.buy]?.withShipping"> · <span class="per-pixel">{{ cents(PER_PIXEL[s.buy].each) }} a pixel, {{ cents(PER_PIXEL[s.buy].withShipping) }} with shipping</span></template>
+                      <template v-else-if="PER_PIXEL[s.buy]"> · <span class="per-pixel">Whole order {{ euro(PER_PIXEL[s.buy].total) }} for {{ PER_PIXEL[s.buy].pixels.toLocaleString('en') }} pixels: {{ cents(PER_PIXEL[s.buy].each) }} a pixel with shipping</span></template>
                       <template v-if="byId[s.buy].estimate"> · <UBadge label="estimate" color="primary" variant="subtle" size="sm" /></template>
                       <template v-if="byId[s.buy].optional"> · <UBadge label="optional" color="neutral" variant="subtle" size="sm" /></template></span>
                   </div>
