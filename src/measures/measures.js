@@ -27,6 +27,7 @@ const GUESSES={smallWindowHeight:.7,doorHeight:2.3,kitchenWindowHeight:1.4,garag
 export const MEASURE_STEPS={
  'measure-facade':'Facade heights',
  'measure-garden':'Garden and planting tiles',
+ 'measure-more':'Kitchen window and tile position',
 };
 // min and max (metres) bound what the page and the API accept.
 export const MEASUREMENTS=[
@@ -39,7 +40,7 @@ export const MEASUREMENTS=[
  {id:'kitchenWindowHeight',step:'measure-facade',label:'Kitchen window height',guess:GUESSES.kitchenWindowHeight,min:.5,max:2.5,
   how:'The window right of the front door: inside of the frame, bottom to top.',
   from:[kitchen.x+kitchen.width/2+.25,kitchen.y-kitchen.height/2,FRONT],to:[kitchen.x+kitchen.width/2+.25,kitchen.y+kitchen.height/2,FRONT],view:[[7.6,1.7,5.4],[6.9,1.6,0]]},
- {id:'kitchenWindowTop',step:'measure-facade',label:'Height of the kitchen window',guess:GUESSES.kitchenWindowTop,min:1.2,max:3,
+ {id:'kitchenWindowTop',step:'measure-more',label:'Height of the kitchen window',guess:GUESSES.kitchenWindowTop,min:1.2,max:3,
   how:'The ground to the top of the kitchen window frame. The model has it level with the top of the front door; the letters hang just above it.',
   from:[kitchen.x+kitchen.width/2+.5,0,FRONT+.05],to:[kitchen.x+kitchen.width/2+.5,kitchenTop,FRONT+.05],view:[[9.8,2,5.2],[7.6,1.3,0]]},
  {id:'garageDoorHeight',step:'measure-facade',label:'Garage door height',guess:GUESSES.garageDoorHeight,min:1.8,max:3,
@@ -66,7 +67,7 @@ export const MEASUREMENTS=[
  {id:'bushWidth',step:'measure-garden',label:'Bush top width',guess:GUESSES.bushWidth,min:.2,max:1.5,
   how:'Across the flat top of the narrowest clipped bush. The mini trees stand on the bush tops, three across.',
   from:[tiles[2].x-BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],to:[tiles[2].x+BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],view:[[6.2,1.9,5.3],[6.03,.6,2.91]]},
- {id:'tileSetback',step:'measure-garden',label:'House to the front tiles',guess:GUESSES.tileSetback,min:.2,max:3,
+ {id:'tileSetback',step:'measure-more',label:'House to the front tiles',guess:GUESSES.tileSetback,min:.2,max:3,
   how:'From the facade to the near edge of the planting tiles closest to the house. With the gaps, it places the tiles, the tree and the mini trees.',
   from:[tiles[0].x-TILE/2-.08,.08,0],to:[tiles[0].x-TILE/2-.08,.08,setback],view:[[3.4,3.6,4.6],[5.8,.3,.7]]},
 ];
