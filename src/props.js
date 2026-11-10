@@ -62,10 +62,13 @@ export const STRIP=.1,DENSE=.05;
 const L=PROP_LAYOUT;
 const geometry={
   upper(){const {from,to,y,z}=L.upper;return {bulbs:multiRun([[from,y,z],[to,y,z]],DENSE,true),frames:[[[from,y,z-.02],[to,y,z-.02]]]};},
-  lower(){const {from,to,y}=L.eaves.garage;return {bulbs:multiRun([[from,y,L.eaves.z],[to,y,L.eaves.z]],DENSE,true),frames:[[[from,y,L.eaves.z-.02],[to,y,L.eaves.z-.02]]]};},
-  // The small left window, the door frame, the kitchen window and the garage door.
+  // Wired from its right end, next to where the cables leave the garage.
+  lower(){const {from,to,y}=L.eaves.garage;return {bulbs:multiRun([[to,y,L.eaves.z],[from,y,L.eaves.z]],DENSE,true),frames:[[[to,y,L.eaves.z-.02],[from,y,L.eaves.z-.02]]]};},
+  // In data order: the garage door (next to where the cables leave the garage),
+  // the small left window, the door frame and the kitchen window, so each hop
+  // to the next opening is short.
   windows(){
-    const z=L.outlines.z,paths=[outline(HOUSE.windows[3],z),outline({...HOUSE.door,y:0},z,true),outline(HOUSE.windows[2],z),outline({...HOUSE.garage,y:0},z,true)];
+    const z=L.outlines.z,paths=[outline({...HOUSE.garage,y:0},z,true),outline(HOUSE.windows[3],z),outline({...HOUSE.door,y:0},z,true),outline(HOUSE.windows[2],z)];
     return {bulbs:paths.flatMap(p=>multiRun(p,STRIP,false)),frames:paths};
   },
   fence(){const path=L.fence.path;return {bulbs:multiRun(path,DENSE,false),frames:[path.map(p=>[p[0],p[1]-.01,p[2]])],posts:path};},
@@ -97,13 +100,17 @@ const geometry={
   },
   minitree(channel,index){
     const {spots,height,radius:r}=L.minitrees,{x,y,z}=spots[index],top=[x,y+height,z],bulbs=[],frames=[];
-    for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,y,z+Math.sin(a)*r];bulbs.push(...along([base,top],.07).map(p=>bulb(p,COLORS.red,0,.75)));frames.push([base,top]);}
+    // Up one spoke and down the next, so the string never doubles back.
+    for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,y,z+Math.sin(a)*r],spoke=along([base,top],.07);
+      bulbs.push(...(s%2?spoke.reverse():spoke).map(p=>bulb(p,COLORS.red,0,.75)));frames.push([base,top]);}
     return {bulbs,frames};
   },
   // Strip at angle θ around the cone, from the ground ring to the apex under the star.
-  treeStrip(channel){
+  // Odd strands are wired top down, so the data goes up one strand and down the next.
+  treeStrip(channel,index){
     const {x,z,radius:R,height}=L.tree,theta=channel.model.theta,base=[x+Math.sin(theta)*R,.03,z+Math.cos(theta)*R],apex=[x,height,z];
-    return {bulbs:along([base,apex],.12).slice(0,-1).map(p=>bulb(p,COLORS.yellow,0,.85)),frames:[[base,apex]]};
+    const pts=along([base,apex],.12).slice(0,-1);
+    return {bulbs:(index%2?pts.reverse():pts).map(p=>bulb(p,COLORS.yellow,0,.85)),frames:[[base,apex]]};
   },
   star(){
     const {x,z,height,star:{radius:R,gap}}=L.tree,cy=height+gap+R*.81;

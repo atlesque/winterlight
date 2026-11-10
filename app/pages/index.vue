@@ -111,7 +111,7 @@ useSeoMeta({
             <USwitch id="all-on" v-model="state.allOn" aria-label="All props on" />
           </div>
           <div v-show="player.shows('ours')" class="switch-row">
-            <span class="label-with-tip">Wiring <InfoTip text="Shows how our house is wired: the garage door opens on both controller boxes, and each port's data cable runs out in its own colour, with the power injection points in red and their 12 V feeds. The wiring plan page has the full diagram." label="About the wiring" /></span>
+            <span class="label-with-tip">Wiring <InfoTip text="Shows how our house is wired: the garage door opens on the facade controller box, the garden box stands behind the front-left bush with its mains and network feed from the garage, and each port's data cable runs out in its own colour, with the power injection points in red and their 12 V feeds. The wiring plan page has the full diagram." label="About the wiring" /></span>
             <USwitch id="wiring" v-model="state.wiring" aria-label="Show wiring" />
           </div>
           <p v-show="player.shows('ours')&&state.wiring" class="note wiring-note"><a href="/wiring.html">Open the wiring plan</a></p>

@@ -82,10 +82,11 @@ export const cm=v=>`${Math.round(v*100)} cm`;
 export const metres=v=>`${(Math.round(v*100)/100).toFixed(2)} m`;
 
 // The baseline the orders were placed on: the cost model's full show as it
-// stood on the guesses (51 strings of 50, two 50 m rolls of mounting strip).
+// stood on the guesses (51 strings of 50, two 50 m rolls of mounting strip),
+// plus the third roll added on 10 Nov once the mini-tree spokes were counted.
 // Fixed numbers, since the model has since moved to the measured sizes.
 const SPARE=1+DEFAULTS.spare/100;
-export const BASELINE={pixels:2399,strings:51,stripMetres:86,rolls:2,windows:230,fence:132};
+export const BASELINE={pixels:2399,strings:51,stripMetres:86,rolls:3,windows:230,fence:132};
 // The show as the model now stands, which applyMeasures() adjusts for any
 // value that differs from it.
 const FULL=estimate(ALL,DEFAULTS);

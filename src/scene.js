@@ -124,15 +124,17 @@ export function createScene(host) {
     for(const port of z.ports){const mat=wireMat(port.color);for(const seg of port.segments)wire(seg,.01,mat);}
     for(const port of z.ports)for(const inj of port.injections){wire(inj.path,.008,powerMat);const m=new THREE.Mesh(node,injectMat);m.position.set(...inj.pos);wiring.add(m);}
   }
-  // Inside the garage: a wall board on the left wall with both controllers and
-  // their power supplies, the show computer on a shelf, and every cable going
-  // up, across the ceiling and out through the right jamb (src/wiring/plan.js).
+  // Inside the garage: a wall board on the left wall with the facade controller
+  // and its power supplies, the show computer on a shelf, and every cable going
+  // up, across the ceiling and out through the right jamb. The garden box stands
+  // outdoors behind the front-left bush, fed by a mains and a network cable from
+  // the garage (src/wiring/plan.js).
   // Cables run along the inside of the front wall, just under the door's header, so they show through the opening.
   const IN_X=.12,CEIL=HOUSE.garage.height-.12,FRONT=-.2,[ex,ey,ez]=WIRING.hub.exit;
   const ply=new THREE.MeshStandardMaterial({color:'#8a6b4a',roughness:.9}),ctrlMat=new THREE.MeshStandardMaterial({color:'#24303f',roughness:.5}),psuMat=new THREE.MeshStandardMaterial({color:'#9aa3ad',metalness:.5,roughness:.4});
   const part=(w,h,d,x,y,z,mat)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);wiring.add(m);return m;};
   part(.02,1.1,1.6,IN_X+.01,1.4,-1.25,ply);
-  WIRING.zones.forEach((z,k)=>{
+  WIRING.zones.filter(z=>!z.outdoor).forEach((z,k)=>{
     const zc=-.85-k*.75,cx=IN_X+.05;
     part(.07,.3,.22,cx,1.55,zc,ctrlMat);
     z.psus.forEach((s,n)=>part(.05,.21,.11,IN_X+.045,1.05,zc-.17+n*.34,psuMat));
@@ -142,7 +144,21 @@ export function createScene(host) {
       wire([[IN_X+.07,1.05,zc],[IN_X+.3,1.05,zc],[IN_X+.3,CEIL-.12,zc],[IN_X+.3,CEIL-.12,FRONT-.3],[ex-.1,CEIL-.12,FRONT-.3],[ex-.1,start[1],FRONT-.3],[ex-.1,start[1],start[2]],start],.007,powerMat);}
   });
   part(.3,.02,.4,IN_X+.15,.95,-2.35,ply);part(.1,.03,.07,IN_X+.1,.975,-2.3,ctrlMat);part(.08,.03,.16,IN_X+.2,.975,-2.45,ctrlMat);
-  tag('Controllers, power supplies, show computer',[IN_X+.55,.6,-1.3]);
+  tag('Facade controller, power supplies, show computer',[IN_X+.55,.6,-1.3]);
+  const boxMat=new THREE.MeshStandardMaterial({color:'#c9ced4',roughness:.55}),brickMat=new THREE.MeshStandardMaterial({color:'#7c8288',roughness:.9});
+  for(const z of WIRING.zones.filter(z=>z.outdoor)){
+    const [bx,by,bz]=z.box;
+    for(const dz of [-.08,.08])part(.22,.08,.11,bx,.04,bz+dz,brickMat);
+    part(.17,.3,.4,bx,.08+.15,bz,boxMat);
+    tag('Garden box',[bx,.6,bz]);
+    // Its feed from the garage: mains and network, out through the jamb and over the front door.
+    const outMains=wireMat(WIRE_COLORS.mains),outNet=wireMat(WIRE_COLORS.network);
+    wire(z.feed.mains,.009,outMains);wire(z.feed.network,.008,outNet);
+    const s=z.feed.mains[0];
+    wire([[IN_X+.4,1.2,-1.3],[IN_X+.4,CEIL-.2,-1.3],[IN_X+.4,CEIL-.2,FRONT-.4],[ex-.14,CEIL-.2,FRONT-.4],[ex-.14,s[1],FRONT-.4],[ex-.14,s[1],s[2]],s],.009,outMains);
+    const n=z.feed.network[0];
+    wire([[IN_X+.2,.98,-2.3],[IN_X+.45,.98,-2.3],[IN_X+.45,CEIL-.24,-2.3],[IN_X+.45,CEIL-.24,FRONT-.45],[ex-.18,CEIL-.24,FRONT-.45],[ex-.18,n[1],FRONT-.45],[ex-.18,n[1],n[2]],n],.008,outNet);
+  }
   const gland=part(.08,.08,.04,ex,ey,ez,new THREE.MeshStandardMaterial({color:'#3a4350',roughness:.6}));
   // A work light in the garage, on with the wiring so the boards read through the open door.
   const garageLight=new THREE.PointLight('#ffd9a8',0,9,1.2);garageLight.position.set(1.1,1.9,-1.3);scene.add(garageLight);

@@ -140,7 +140,8 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
           <ul class="points">
             <li><b>{{ BRICKS }} paving bricks</b>, 22 × 11 × 8 cm (about {{ BRICK.kg }} kg each): 2 per cane, 1 per post, 4 for the tree</li>
             <li><b>A parasol base</b> of about {{ PARASOL.kg }} kg whose clamp takes the pole</li>
-            <li><b>8 mm rods</b>, about 70 cm, one per mini tree</li>
+            <li><b>Rods of about 1.2 m</b> (fibreglass, bamboo or galvanised), one per mini tree, down through the bush into the soil</li>
+            <li><b>Guy rope and four ground anchors</b> for the tree, into the soil of the planting tiles</li>
           </ul>
         </div>
         <div class="glass">

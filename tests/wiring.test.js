@@ -21,9 +21,9 @@ test('ports, power supplies and injections match the cost model',()=>{
   assert.equal(inj,splitters,z.id);
  }
 });
-test('every chain leaves the garage and every route ends at a bulb',()=>{
+test('every chain leaves its box and every route ends at a bulb',()=>{
  for(const z of WIRING.zones)for(const p of z.ports){
-  assert.equal(p.segments[0][0][0],WIRING.hub.exit[0]);
+  assert.ok(Math.hypot(...p.segments[0][0].map((v,j)=>v-z.box[j]))<.5,p.name);
   for(const seg of p.segments)assert.ok(seg.length>=2&&seg.every(pt=>pt.every(Number.isFinite)));
   for(const j of p.injections)assert.ok(j.pos&&j.path.at(-1)===j.pos);
  }
