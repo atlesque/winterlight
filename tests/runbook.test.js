@@ -52,11 +52,11 @@ test('the measuring steps say what the plan gives and what needs a tape',async()
 
 test('the orders placed on 6 Nov start ticked and add up to what was paid',async()=>{
  const {PRESET}=await import('../src/runbook/runbook.js');
- const ordered=PURCHASES.filter(p=>p.ordered);
+ const ordered=PURCHASES.filter(p=>p.ordered==='2026-11-06');
  assert.equal(Math.round(ordered.reduce((s,p)=>s+p.cost,0)*100)/100,2133.1);
  const shop=id=>Math.round(ordered.filter(p=>p.shop===id).reduce((s,p)=>s+p.cost,0)*100)/100;
  assert.deepEqual(['pixelimperium','ledshows','aliexpress','audiophonics','propixeler','bol','elektramat','bambu','kunststofshop'].map(shop),[820.47,391,407.46,140.96,103,61.94,33.58,62.24,112.45]);
- for(const p of ordered)assert.ok(PRESET.includes(`buy-${p.id}`),p.id);
+ for(const p of PURCHASES.filter(p=>p.ordered))assert.ok(PRESET.includes(`buy-${p.id}`),p.id);
  for(const id of PRESET)assert.ok(STEP_IDS.includes(id),id);
  assert.ok(!PRESET.includes('buy-treeFrame'),'the tree pole is still to buy locally');
 });
@@ -178,13 +178,13 @@ test('the pixel order shows what each pixel cost, with and without shipping',asy
  assert.equal(Math.round(sum*100)/100,820.47);
 });
 
-test('bol.com came in part on 10 Nov: the Wago gel boxes went back and four are reordered from Elektramat',async()=>{
+test('bol.com came in part on 10 Nov: the Wago gel boxes went back and four were reordered from Elektramat',async()=>{
  const {PRESET}=await import('../src/runbook/runbook.js');
  const steps=CHAPTERS.find(c=>c.id==='deliveries').steps,byId=Object.fromEntries(PURCHASES.map(p=>[p.id,p]));
  assert.equal(byId.gelbox.returned,'2026-11-10');
  const reorder=byId.gelboxReorder;
- assert.deepEqual([reorder.shop,reorder.qty,reorder.ordered],['elektramat',4,undefined]);
- assert.ok(!PRESET.includes('buy-gelboxReorder'),'the reorder is still to place');
+ assert.deepEqual([reorder.shop,reorder.qty,reorder.ordered,reorder.cost,reorder.expense],['elektramat',4,'2026-11-10',23.9,'business']);
+ assert.ok(PRESET.includes('buy-gelboxReorder'),'the reorder was placed on 10 Nov');
  const bol=steps.find(s=>s.id==='arrive-bol-1');
  assert.equal(bol.partly,'2026-11-10');assert.ok(!bol.arrived&&!PRESET.includes(bol.id));
  assert.match(bol.tip,/FM transmitter/);assert.doesNotMatch(bol.tip,/1 pack WAGO/,'the returned pack is not awaited');
