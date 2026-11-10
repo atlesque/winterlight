@@ -8,8 +8,8 @@ export const HOUSE = {
   garage:{x:1.55,width:2.5,height:2.12},
   door:{x:4.7,width:1.1,height:2.1},
   // Upstairs: top 5.15 m, sill 3.65 m (door top 2.10 + letter band 1.55). The
-  // ground-floor windows' tops are taken level with the door's.
-  windows:[{x:4.45,y:4.4,width:1.4,height:1.5},{x:6.8,y:4.4,width:1.4,height:1.5},{x:6.8,y:1.495,width:1.4,height:1.21},{x:3.55,y:1.72,width:.3,height:.76}],
+  // kitchen window's top is taped at 2.16 m; the small window's is taken level with the door's.
+  windows:[{x:4.45,y:4.4,width:1.4,height:1.5},{x:6.8,y:4.4,width:1.4,height:1.5},{x:6.8,y:1.555,width:1.4,height:1.21},{x:3.55,y:1.72,width:.3,height:.76}],
   driveway:{minX:0,maxX:3.35}, entry:{minX:4,maxX:5.5},
   // Concrete mailbox at the street edge, between the two clear access corridors.
   mailbox:{x:3.7,z:3.685,width:.56,depth:.45,height:1.05},
@@ -17,10 +17,10 @@ export const HOUSE = {
   // Four square cut-outs in the slate paving, read from the street photo:
   // a 2x2 grid right of the door. Each holds a full variegated shrub clipped
   // into a cube (bush = width and height). The gaps between the tiles (76 cm
-  // across, 80 cm front to back) and the bush tops (60 cm) are measured; the
-  // left tiles stay clear of the entrance path and the back ones 20 cm short of the canes.
+  // across, 80 cm front to back), the bush tops (60 cm) and the facade to the
+  // front tiles (97 cm) are measured; the left tiles stay clear of the entrance path.
   planters:{size:.8,bush:.6,tiles:[
-    {x:6.03,z:1.31},{x:7.59,z:1.31},{x:6.03,z:2.91},{x:7.59,z:2.91},
+    {x:6.03,z:1.37},{x:7.59,z:1.37},{x:6.03,z:2.97},{x:7.59,z:2.97},
   ]},
 };
 // Where the original house's props sit on ours (see src/props.js). Facade
@@ -46,7 +46,7 @@ export const PROP_LAYOUT = {
   wreaths:{'wreath-left':{x:4.1,y:4.4,radius:.27,z:.26},'wreath-right':{x:7.15,y:4.4,radius:.27,z:.26}},
   // The peace sign hangs on the front door at eye height, in front of its upper glass and clear of the handle.
   peace:{x:HOUSE.door.x,y:1.62,radius:.25,z:.27},
-  tree:{x:6.81,z:2.11,radius:.42,height:2.5,star:{radius:.2,gap:.06}},
+  tree:{x:6.81,z:2.17,radius:.42,height:2.5,star:{radius:.2,gap:.06}},
   canes:{xs:tick(5.75,8.34,8),z:3.51,height:.6,hook:.12},
   // Eleven short trees standing on the bush tops: a row of three across each
   // bush, two on the back right one. Listed left to right so chases still run across.
