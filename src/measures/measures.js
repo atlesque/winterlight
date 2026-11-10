@@ -66,7 +66,7 @@ export const MEASUREMENTS=[
   from:[L.tree.x,.1,tiles[0].z+TILE/2],to:[L.tree.x,.1,tiles[2].z-TILE/2],view:[[9.4,2.4,L.tree.z],[L.tree.x,0,L.tree.z]]},
  {id:'bushWidth',step:'measure-garden',label:'Bush top width',guess:GUESSES.bushWidth,min:.2,max:1.5,
   how:'Across the flat top of the narrowest clipped bush. The mini trees stand on the bush tops, three across.',
-  from:[tiles[2].x-BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],to:[tiles[2].x+BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],view:[[6.2,1.9,5.3],[6.03,.6,2.91]]},
+  from:[tiles[2].x-BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],to:[tiles[2].x+BUSH/2,BUSH+.09,tiles[2].z+BUSH/2+.04],view:[[6.2,1.9,5.3],[6.03,.6,2.97]]},
  {id:'tileSetback',step:'measure-more',label:'House to the front tiles',guess:GUESSES.tileSetback,min:.2,max:3,
   how:'From the facade to the near edge of the planting tiles closest to the house. With the gaps, it places the tiles, the tree and the mini trees.',
   from:[tiles[0].x-TILE/2-.08,.08,0],to:[tiles[0].x-TILE/2-.08,.08,setback],view:[[3.4,3.6,4.6],[5.8,.3,.7]]},
