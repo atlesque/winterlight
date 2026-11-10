@@ -164,3 +164,16 @@ test('the LEDshows and Elektramat parcels arrived on 9 Nov and start ticked',asy
  for(const [id] of arrived)assert.ok(PRESET.includes(id),id);
  assert.ok(!PRESET.includes('arrive-pixelimperium-1'),'the pixels are still on their way');
 });
+
+test('the pixel order shows what each pixel cost, with and without shipping',async()=>{
+ const {PER_PIXEL}=await import('../src/runbook/runbook.js');
+ const r=v=>Math.round(v*1000)/1000;
+ assert.equal(PER_PIXEL.pixelShipping.pixels,2550);
+ assert.equal(PER_PIXEL.pixelShipping.total,820.47);
+ assert.equal(r(PER_PIXEL.pixelShipping.each),0.322);
+ assert.equal(r(PER_PIXEL.pixels.each),0.244);
+ assert.equal(r(PER_PIXEL.pixelsRegulated.each),0.344);
+ // Shipping split by pixel: the rows add back up to the whole order.
+ const sum=['pixels','pixelsRegulated'].reduce((t,id)=>{const p=PURCHASES.find(x=>x.id===id);return t+PER_PIXEL[id].withShipping*p.qty*50;},0);
+ assert.equal(Math.round(sum*100)/100,820.47);
+});

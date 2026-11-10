@@ -53,11 +53,11 @@ const search=q=>`https://www.bol.com/be/nl/s/?searchtext=${encodeURIComponent(q)
 const ROWS=[
  // Wave 1: parts with the longest delivery or needed first on the bench.
  // Pixel-Imperium had 24 standard strings; the regulated strings make up the rest.
- {id:'pixels',name:'12 V WS2811 bullet pixels, strings of 50',qty:STANDARD_STRINGS,unit:'strings',price:P.pixels50.price,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,
+ {id:'pixels',name:'12 V WS2811 bullet pixels, strings of 50',qty:STANDARD_STRINGS,unit:'strings',price:P.pixels50.price,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,pixelsEach:50,
   tip:`${FULL.pixels.toLocaleString('en')} pixels in the props plus ${DEFAULTS.spare}% spare make ${STRINGS} strings of 50. Only ${STANDARD_STRINGS} standard strings were in stock. Ordered 6 Nov with the regulated strings: €820.47 including shipping.`},
- {id:'pixelsRegulated',name:'Regulated 12 V WS2811 bullet pixels, strings of 50',qty:STRINGS-STANDARD_STRINGS,unit:'strings',price:P.pixels50reg.price,url:P.pixels50reg.url,shop:'pixelimperium',expense:'private',wave:1,
+ {id:'pixelsRegulated',name:'Regulated 12 V WS2811 bullet pixels, strings of 50',qty:STRINGS-STANDARD_STRINGS,unit:'strings',price:P.pixels50reg.price,url:P.pixels50reg.url,shop:'pixelimperium',expense:'private',wave:1,pixelsEach:50,
   tip:'The same pixels with a constant-current driver, so they stay evenly bright along a run. Same xConnect plugs and 10 cm pitch. Ordered 6 Nov with the standard strings.'},
- {id:'pixelShipping',name:'Pixel-Imperium shipping to Belgium',qty:1,unit:'×',price:64.05,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,tip:'Paid with the pixel order on 6 Nov: €820.47 in all for 24 standard and 27 regulated strings plus shipping. Delivery in 3 to 7 days.'},
+ {id:'pixelShipping',name:'Pixel-Imperium shipping to Belgium',qty:1,unit:'×',price:64.05,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,shipping:true,tip:'Paid with the pixel order on 6 Nov: €820.47 in all for 24 standard and 27 regulated strings plus shipping. Delivery in 3 to 7 days.'},
  {id:'controller',name:'Baldrick 8 pixel controller',qty:zoneSum('controllers'),unit:'×',price:P.controller.price,url:P.controller.url,shop:'ledshows',expense:'private',wave:1,tip:'One for the facade box, one for the garden box. Private: LEDshows doesn\'t sell to businesses. Ordered 6 Nov with the rest of the LEDshows basket: €391 in all.'},
  {id:'ledshowsShipping',name:'LEDshows shipping to Belgium',qty:1,unit:'×',price:9,url:P.controller.url,shop:'ledshows',expense:'private',wave:1,tip:'Paid with the LEDshows basket on 6 Nov: €391 in all for the controllers, T-splitters, wire, mounting strip, cable ties and sound card.'},
  {id:'pigtail',name:'xConnect pigtail pairs, 50 cm, packs of 10',qty:Math.ceil(modelQty('pigtail')/10),unit:'packs',price:Math.round(P.pigtail.price*10*100)/100,url:P.pigtail.url,shop:'aliexpress',expense:'private',wave:1,tip:`One pair per prop, ${modelQty('pigtail')} in all. LEDshows and Pixel-Imperium had none in stock. Ordered 6 Nov with the extension cables: €407.46 for both.`},
@@ -90,6 +90,18 @@ const ROWS=[
 // Placed on 6 Nov 2026: €2,133.10 over nine shops. These start ticked.
 const BOUGHT=new Set(['pixels','pixelsRegulated','pixelShipping','controller','ledshowsShipping','pigtail','tSplitter','cable','injectWire','mountStrip','zipTies','psu','letters','letterShipping','coro','coroShipping','gelbox','gelboxMore','cutting','minitreeFrame','soundCard','fm']);
 export const PURCHASES=ROWS.map(r=>({...r,cost:Math.round(r.qty*r.price*100)/100,orderBy:r.wave===1?WAVE1:WAVE2,...(BOUGHT.has(r.id)&&{ordered:ORDERED})}));
+// Price paid per pixel, for each order with pixel strings in it (one shop, one wave).
+// A string row gets its own price per pixel, and again with its share of the
+// order's shipping (split by pixel); the order's shipping row gets the whole
+// order's cost per pixel, shipping included.
+export const PER_PIXEL={};
+for(const o of new Set(PURCHASES.filter(p=>p.pixelsEach).map(p=>`${p.shop}-${p.wave}`))){
+ const rows=PURCHASES.filter(p=>`${p.shop}-${p.wave}`===o),strings=rows.filter(p=>p.pixelsEach);
+ const pixels=strings.reduce((n,p)=>n+p.qty*p.pixelsEach,0),shipping=rows.filter(p=>p.shipping).reduce((t,p)=>t+p.cost,0);
+ for(const p of strings){const each=p.cost/(p.qty*p.pixelsEach);PER_PIXEL[p.id]={each,withShipping:each+shipping/pixels};}
+ const total=rows.reduce((t,p)=>t+p.cost,0);
+ for(const p of rows.filter(p=>p.shipping))PER_PIXEL[p.id]={pixels,total,each:total/pixels};
+}
 
 const addDays=(date,n)=>{const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
 const buy=wave=>PURCHASES.filter(p=>p.wave===wave).map(p=>({id:`buy-${p.id}`,buy:p.id}));
