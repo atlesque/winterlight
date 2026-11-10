@@ -5,16 +5,27 @@ import {PRICES as P,WATTS_PER_PIXEL,PSU_LOAD,PSU_WATTS,PORT_PIXELS,PORTS_PER_CON
 
 // The cost model: every prop on our house (one per channel of the original),
 // with its real pixel count and frame length from src/props.js, priced as
-// 12 V WS2811 pixels on the mounts below. Props hang off two controller boxes
-// on a wall board inside the garage; every chain leaves the garage through the
-// brick jamb right of the garage door (`box`), and the garden's chains go over
-// the front door and down beside it (`via`) so the door and the path stay
-// clear. Props of a group are wired in a chain.
+// 12 V WS2811 pixels on the mounts below. The facade's controller box sits on
+// a wall board inside the garage, about a metre in from the brick jamb right
+// of the garage door (`box`), where every facade chain leaves the garage. The
+// garden's controller box stands outside in an IP65 box just inside the ground
+// strip, behind the front-left bush, so the garden chains start there; only a
+// mains and a network cable run to it from the garage, over the front door
+// and down beside it (`feed`), so the door and the path stay clear. Props of a
+// group are wired in a chain, from where one prop's data ends to where the next
+// one's starts.
 const EXIT=[HOUSE.garageWidth-.15,1,.03],OVER_DOOR=2.55,GARDEN_X=HOUSE.entry.maxX+.1;
+// Metres of cable inside the garage, from the facade board to the hole.
+export const INDOOR=1;
+export const GARDEN_BOX=[5.75,.3,2.2];
 export const ZONES={
- facade:{name:'Facade box',where:'in the garage, on a wall board',box:EXIT,via:[]},
- garden:{name:'Garden box',where:'in the garage, on the same wall board',box:EXIT,via:[[EXIT[0],OVER_DOOR,EXIT[2]],[GARDEN_X,OVER_DOOR,EXIT[2]],[GARDEN_X,.04,EXIT[2]]]},
+ facade:{name:'Facade box',where:'in the garage, on a wall board',box:EXIT,via:[],indoor:INDOOR},
+ garden:{name:'Garden box',where:'outside, in an IP65 box behind the front-left bush',box:GARDEN_BOX,via:[],indoor:0,outdoor:true,
+  feed:[EXIT,[EXIT[0],OVER_DOOR,EXIT[2]],[GARDEN_X,OVER_DOOR,EXIT[2]],[GARDEN_X,.04,EXIT[2]],[GARDEN_X,.04,GARDEN_BOX[2]],GARDEN_BOX]},
 };
+// A gap between two pixels of one prop longer than this needs an extension cable
+// (the outlines' hops from one opening to the next); shorter ones are soldered.
+const JUMP=.5;
 const dist=(a,b)=>Math.hypot(...a.map((v,j)=>v-b[j]));
 const walk=(a,b)=>a.reduce((s,v,j)=>s+Math.abs(v-b[j]),0);
 const length=frames=>frames.reduce((s,f)=>s+f.slice(1).reduce((t,p,i)=>t+dist(f[i],p),0),0);
@@ -37,12 +48,14 @@ export const GROUPS={
  wreaths:{zone:'facade',led:'12 mm bullet pixels in a coro ring',why:'Green rings and the red bow come from the same pixels, so no separate bow string.',mount:coro},
  peace:{zone:'facade',led:'12 mm bullet pixels in a coro sign',why:'A coro board holds the circle and the three strokes on the door glass.',mount:coro},
  canes:{zone:'garden',led:'12 mm bullet pixels in coro canes',why:'Coro canes stand on two stakes in the snow and survive wind better than tubes.',mount:coro},
- minitrees:{zone:'garden',led:'12 mm bullet pixels up six spokes',why:'Pixels instead of red mini-lights let each tree fade on its own channel like the original.',mount:()=>[line('minitreeFrame',1)]},
+ minitrees:{zone:'garden',led:'12 mm bullet pixels up six spokes, wired up one and down the next',why:'Pixels instead of red mini-lights let each tree fade on its own channel like the original.',mount:c=>[line('minitreeFrame',1),line('mountStrip',Math.ceil(length(c.frames)*10)/10)]},
  fence:{zone:'garden',led:'12 mm bullet pixels on a staked rail, 30 cm up',why:'Multicolour, so pixels again; a mounting strip on stakes keeps it straight.',mount:strip},
- tree:{zone:'garden',led:'12 mm bullet pixels on 16 strands and a coro star',why:'Each strand is its own channel, so the circular chases and sweeps of the original play as they do in the model.',mount:c=>c.kind==='star'?coro(c):[line('mountStrip',Math.ceil(length(c.frames))),line('stake',1)],fixed:[['treeFrame',1]]},
+ tree:{zone:'garden',led:'12 mm bullet pixels on 16 strands and a coro star',why:'Each strand is its own channel, so the circular chases and sweeps of the original play as they do in the model.',mount:c=>c.kind==='star'?coro(c):[line('mountStrip',Math.ceil(length(c.frames)*10)/10),line('stake',1)],fixed:[['treeFrame',1]]},
 };
 
-export const PROP_LIST=OWN_CHANNELS.map(c=>({id:c.id,group:c.prop,name:c.name,pixels:c.bulbs.length,start:c.bulbs[0].pos,mount:GROUPS[c.prop].mount(c)}));
+// Extension cable inside a prop: one per gap longer than JUMP, each rounded up to the metre with 50 cm slack.
+const jumps=c=>c.bulbs.slice(1).map((b,i)=>walk(c.bulbs[i].pos,b.pos)).filter((d,i)=>dist(c.bulbs[i].pos,c.bulbs[i+1].pos)>JUMP).map(d=>Math.ceil(d+.5));
+export const PROP_LIST=OWN_CHANNELS.map(c=>({id:c.id,group:c.prop,name:c.name,pixels:c.bulbs.length,start:c.bulbs[0].pos,end:c.bulbs.at(-1).pos,jumps:jumps(c),mount:GROUPS[c.prop].mount(c)}));
 export const GROUP_LIST=PROPS.map(g=>({...g,...GROUPS[g.id],props:PROP_LIST.filter(p=>p.group===g.id)}));
 export const DEFAULTS={pixelPrice:P.pixels50.price,spare:5,contingency:10,audio:true};
 
@@ -52,31 +65,39 @@ export function estimate(selected,options={}){
  const groups=[],zones={};
  for(const g of GROUP_LIST){
   const zone=ZONES[g.zone];let from=null;const props=[];
-  const lead=zone.via.reduce((s,v,i)=>s+walk(i?zone.via[i-1]:zone.box,v),0),leadEnd=zone.via.at(-1)||zone.box;
+  const lead=(zone.indoor||0)+zone.via.reduce((s,v,i)=>s+walk(i?zone.via[i-1]:zone.box,v),0),leadEnd=zone.via.at(-1)||zone.box;
   for(const p of g.props){
    if(!selected.has(p.id))continue;
-   // A chain runs out of the garage to the first prop, then prop to prop, plus slack.
-   const run=Math.ceil((from?walk(from,p.start):lead+walk(leadEnd,p.start))+.5);from=p.start;
-   const lines=[{item:'pixels',name:'Pixels',qty:p.pixels,unit:pixelUnit,cost:round(p.pixels*pixelUnit)},...p.mount,line('cable',run),line('pigtail',1),line('zipTies',p.pixels/1000)];
+   // A chain runs from the box to the first prop, then from where each prop's data ends to the next one's start, plus slack.
+   const run=Math.ceil((from?walk(from,p.start):lead+walk(leadEnd,p.start))+.5);from=p.end;
+   const inside=p.jumps.reduce((s,d)=>s+d,0);
+   const lines=[{item:'pixels',name:'Pixels',qty:p.pixels,unit:pixelUnit,cost:round(p.pixels*pixelUnit)},...p.mount,line('cable',run+inside),line('pigtail',1),line('zipTies',p.pixels/1000)];
    props.push({...p,run,lines,total:round(lines.reduce((s,l)=>s+l.cost,0))});
   }
-  const pixels=props.reduce((s,p)=>s+p.pixels,0),extras=[];
+  const pixels=props.reduce((s,p)=>s+p.pixels,0),extras=[];let injectRuns=[];
   if(props.length){
-   const injections=Math.floor((pixels-1)/INJECT_EVERY);
-   if(injections)extras.push(line('tSplitter',injections),line('injectWire',injections*4));
+   // Power goes in every INJECT_EVERY pixels, on a run from the box's supplies to that
+   // pixel: red and black 4 mm² from the garage, a short xConnect extension from the garden box.
+   const at=Array.from({length:Math.floor((pixels-1)/INJECT_EVERY)},(_,k)=>(k+1)*INJECT_EVERY),bulbs=props.flatMap(p=>OWN_CHANNELS.find(c=>c.id===p.id).bulbs.map(b=>b.pos));
+   const runs=at.map(i=>Math.ceil(lead+walk(leadEnd,bulbs[i])+.5));
+   let first=0;const owner=props.map(p=>{const f=first;first+=p.pixels;return {name:p.name,f};});
+   injectRuns=at.map((i,k)=>({at:i,prop:owner.findLast(o=>o.f<=i).name,m:runs[k]}));
+   if(runs.length)extras.push(line('tSplitter',runs.length),zone.outdoor?{...line('cable',runs.reduce((s,r)=>s+r,0)),inject:true}:line('injectWire',2*runs.reduce((s,r)=>s+r,0)));
    for(const [item,qty] of g.fixed||[])extras.push(line(item,qty));
    const z=zones[g.zone]||={pixels:0,ports:0};z.pixels+=pixels;z.ports+=Math.ceil(pixels/PORT_PIXELS);
   }
   const total=round(props.reduce((s,p)=>s+p.total,0)+extras.reduce((s,l)=>s+l.cost,0));
-  groups.push({id:g.id,name:g.name,zone:g.zone,props,extras,pixels,total,count:props.length,of:g.props.length});
+  groups.push({id:g.id,name:g.name,zone:g.zone,props,extras,injectRuns,pixels,total,count:props.length,of:g.props.length});
  }
- // Controllers, power and a fused wall board per zone (all indoors, so no
- // enclosures, outdoor mains or network runs), then the show computer and spares.
+ // Controllers, power and a fused board per zone, an enclosure with mains and
+ // network runs for the box outdoors, then the show computer and spares.
  const infra=[];
  for(const [id,z] of Object.entries(zones)){
   const name=ZONES[id].name,controllers=Math.ceil(z.ports/PORTS_PER_CONTROLLER),psus=Math.ceil(z.pixels*WATTS_PER_PIXEL/(PSU_WATTS*PSU_LOAD)),boxes=Math.ceil((controllers+psus)/2);
   Object.assign(z,{controllers,psus,boxes});
   infra.push({zone:id,...line('controller',controllers),name:`${name}: ${P.controller.name}`},{zone:id,...line('psu',psus),name:`${name}: ${P.psu.name}`},{zone:id,...line('fittings',1),name:`${name}: ${P.fittings.name}`});
+  // A box outdoors needs its enclosure and its own mains and network runs from the garage.
+  if(ZONES[id].outdoor)for(const item of ['enclosure','mains','network'])infra.push({zone:id,...line(item,1),name:`${name}: ${P[item].name}`});
  }
  const pixels=groups.reduce((s,g)=>s+g.pixels,0);
  if(pixels){
@@ -95,10 +116,10 @@ export function estimate(selected,options={}){
  const categories=[
   {id:'leds',name:'Pixels',cost:round(sum(l=>l.item==='pixels')+inf(['spares']))},
   {id:'mounts',name:'Prop frames and mounts',cost:round(sum(l=>['mountStrip','stake','coro','letter30','minitreeFrame'].includes(l.item))+ext(['treeFrame']))},
-  {id:'wiring',name:'Wiring and power injection',cost:round(sum(l=>['cable','pigtail','zipTies'].includes(l.item))+ext(['tSplitter','injectWire']))},
+  {id:'wiring',name:'Wiring and power injection',cost:round(sum(l=>['cable','pigtail','zipTies'].includes(l.item))+ext(['tSplitter','injectWire','cable']))},
   {id:'control',name:'Controllers',cost:inf(['controller'])},
-  {id:'power',name:'Power supplies, fuses and wall board',cost:inf(['psu','fittings'])},
-  {id:'show',name:'Show computer, switch and audio',cost:inf(['player','playerKit','switch','soundCard','fm'])},
+  {id:'power',name:'Power supplies, fuses and wall board',cost:inf(['psu','fittings','enclosure','mains'])},
+  {id:'show',name:'Show computer, switch and audio',cost:inf(['player','playerKit','switch','soundCard','fm','network'])},
   {id:'contingency',name:`Contingency (${o.contingency}%)`,cost:contingency},
  ];
  return {groups,infra,zones,pixels,watts:Math.round(pixels*WATTS_PER_PIXEL),direct,infraTotal,subtotal,contingency,total,categories};

@@ -28,7 +28,13 @@ test('the shopping list covers the full show in the cost model',()=>{
  const owned=e.infra.filter(l=>['player','playerKit','switch'].includes(l.item)).reduce((s,l)=>s+l.cost,0);
  const total=PURCHASES.reduce((s,p)=>s+p.cost,0);
  assert.ok(total>=(e.subtotal-owned)*.95,'purchases come close to the cost page before contingency');
- for(const id of ['enclosure','mains','network','switch','player','playerKit'])assert.ok(!get(id),`${id} is no longer bought`);
+ for(const id of ['switch','player','playerKit'])assert.ok(!get(id),`${id} is at hand`);
+ // The garden box stands outdoors: its enclosure, mains and network run are on the list.
+ for(const id of ['gardenBox','gardenMains','gardenNetwork'])assert.ok(get(id),id);
+ // What was bought on 6 Nov plus what was added on 10 Nov covers what the model needs.
+ assert.ok((get('mountStrip').qty+get('mountStripMore').qty)*50>=e.groups.flatMap(g=>g.props.flatMap(p=>p.lines)).filter(l=>l.item==='mountStrip').reduce((s,l)=>s+l.qty,0));
+ const facadeInject=e.groups.filter(g=>g.zone==='facade').flatMap(g=>g.injectRuns).reduce((s,r)=>s+r.m,0);
+ assert.ok(get('injectWire').qty/2+get('injectCable').qty>=facadeInject,'the facade injection runs are covered');
 });
 
 test('the runbook links every coro template, and each is made from the model',async()=>{
@@ -127,7 +133,7 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  assert.equal(same.fence,BASELINE.fence,'and its ground strip');
  assert.equal(same.pixels,BASELINE.pixels);
  assert.equal(BASELINE.strings,PURCHASES.filter(p=>p.id.startsWith('pixels')).reduce((n,p)=>n+p.qty,0),'the strings ordered');
- assert.equal(BASELINE.rolls,PURCHASES.find(p=>p.id==='mountStrip').qty,'the rolls ordered');
+ assert.equal(BASELINE.rolls,PURCHASES.filter(p=>p.id.startsWith('mountStrip')).reduce((n,p)=>n+p.qty,0),'the rolls bought');
  assert.deepEqual(applyMeasures({}).steps,{},'nothing measured, nothing changes');
  // The model now carries the taped values of 8 Nov 2026: entering them changes no count.
  const {MODEL}=await import('../src/measures/measures.js');
