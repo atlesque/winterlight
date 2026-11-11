@@ -49,7 +49,9 @@ test('letters sit between the door and the upper windows; circles fit one pane; 
 
 test('the upper strip runs along the top edge of the upper windows, from the left one to the right one',()=>{
  const [left,right]=HOUSE.windows,top=left.y+left.height/2,line=OWN_CHANNELS.find(c=>c.id==='upper').bulbs.filter(b=>b.size===1).map(b=>b.pos);
- assert.ok(line.every(p=>p[1]>top&&p[1]<top+.2),'just above the window tops');
+ assert.ok(line.every(p=>p[1]>top&&p[1]<top+.35),'just above the window tops');
+ assert.ok(OWN_CHANNELS.find(c=>c.id==='upper').bulbs.every(b=>b.pos[1]>top+.01),'the icicles end above the window tops, so the built-in shutters still close');
+ assert.ok(Math.max(...line.map(p=>p[1]))<HOUSE.eaves,'under the eaves');
  assert.ok(Math.abs(Math.min(...line.map(p=>p[0]))-(left.x-left.width/2))<.15&&Math.abs(Math.max(...line.map(p=>p[0]))-(right.x+right.width/2))<.15,'window to window');
 });
 

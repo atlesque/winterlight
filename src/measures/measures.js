@@ -50,7 +50,7 @@ export const MEASUREMENTS=[
   how:'The ground to the underside of the garage\'s eave, where the lower floor strip hangs.',
   from:[.25,0,FRONT],to:[.25,L.eaves.garage.y,FRONT],view:[[1.8,1.8,6.2],[1,1.4,0]]},
  {id:'upstairsWindowTop',step:'measure-facade',label:'Height of the upstairs windows',guess:GUESSES.upstairsWindowTop,min:3.5,max:7,
-  how:'The ground to the top of the upstairs window frames. The upper floor strip hangs 13 cm above it; from a window upstairs, measure down to the ground with a weighted tape.',
+  how:'The ground to the top of the upstairs window frames. The upper floor strip hangs 27 cm above it, so its icicles end above the built-in shutter boxes; from a window upstairs, measure down to the ground with a weighted tape.',
   from:[UP.x+(HOUSE.windows[1].x-UP.x)/2,0,FRONT+.05],to:[UP.x+(HOUSE.windows[1].x-UP.x)/2,upperTop,FRONT+.05],view:[[5.6,3,9.5],[5.6,2.6,0]]},
  {id:'letterBand',step:'measure-facade',label:'Letter band',guess:GUESSES.letterBand,min:.2,max:2,
   how:'The top of the front door frame to the sill of the upstairs window above it: the band HAPPY HOLIDAYS hangs in.',
@@ -136,7 +136,7 @@ export function applyMeasures(values={}){
  }
  if(has('upstairsWindowTop')||has('garageEaveHeight')){
   const parts=[];
-  if(has('upstairsWindowTop'))parts.push(`the upper strip hangs at ${metres(v.upstairsWindowTop+.13)}, so the ladder has to reach that`);
+  if(has('upstairsWindowTop'))parts.push(`the upper strip hangs at ${metres(v.upstairsWindowTop+.27)}, so the ladder has to reach that`);
   if(has('garageEaveHeight'))parts.push(`the garage eave strip hangs at ${metres(v.garageEaveHeight)}`);
   note('place-strips',`Measured: ${parts.join('; ')}.`);
  }
