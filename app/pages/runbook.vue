@@ -126,7 +126,7 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
                 <template v-if="s.buy">
                   <div class="step-body">
                     <span class="step-text">{{ byId[s.buy].name }} <InfoTip v-if="byId[s.buy].tip" :text="byId[s.buy].tip" :label="`About ${byId[s.buy].name}`" /></span>
-                    <span class="step-meta">{{ qty(byId[s.buy]) }} · <a :href="byId[s.buy].url" target="_blank" rel="noopener">{{ SHOPS[byId[s.buy].shop].name }}<UIcon name="i-lucide-external-link" /></a>
+                    <span class="step-meta">{{ qty(byId[s.buy]) }} · <a :href="byId[s.buy].url" target="_blank" rel="noopener">{{ byId[s.buy].at||SHOPS[byId[s.buy].shop].name }}<UIcon name="i-lucide-external-link" /></a><template v-for="m in byId[s.buy].more||[]" :key="m.url"> · <a :href="m.url" target="_blank" rel="noopener">{{ m.label }}<UIcon name="i-lucide-external-link" /></a></template>
                       <template v-if="PER_PIXEL[s.buy]?.withShipping"> · <span class="per-pixel">{{ cents(PER_PIXEL[s.buy].each) }} a pixel, {{ cents(PER_PIXEL[s.buy].withShipping) }} with shipping</span></template>
                       <template v-else-if="PER_PIXEL[s.buy]"> · <span class="per-pixel">Whole order {{ euro(PER_PIXEL[s.buy].total) }} for {{ PER_PIXEL[s.buy].pixels.toLocaleString('en') }} pixels: {{ cents(PER_PIXEL[s.buy].each) }} a pixel with shipping</span></template>
                       <template v-if="byId[s.buy].estimate"> · <UBadge label="estimate" color="primary" variant="subtle" size="sm" /></template>

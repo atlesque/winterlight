@@ -199,12 +199,22 @@ test('bol.com came in part on 10 Nov and the rest on 12 Nov: the Wago gel boxes 
  assert.match(steps.find(s=>s.id==='arrive-elektramat-1').tip,/^6 ×/,'the first Elektramat parcel holds only the six');
 });
 
+test('every installation part links to a product page, not a shop homepage or search',()=>{
+ for(const p of PURCHASES.filter(p=>p.wave===2)){
+  for(const u of [p.url,...(p.more||[]).map(m=>m.url)]){
+   const url=new URL(u);
+   assert.ok(url.pathname.length>1,`${p.id}: ${u} is a homepage`);
+   assert.ok(!/search|wholesale|catalogsearch|\/s\//.test(u),`${p.id}: ${u} is a search page`);
+  }
+ }
+});
+
 test('a delivery is only expected once every order in it is placed: the installation parts are not ordered yet',async()=>{
  const {PRESET}=await import('../src/runbook/runbook.js');
  const steps=CHAPTERS.find(c=>c.id==='deliveries').steps.filter(s=>s.buys);
  const placed=s=>s.buys.every(id=>PRESET.includes(id));
  const expected=steps.filter(placed).map(s=>s.id).sort(),waiting=steps.filter(s=>!placed(s)).map(s=>s.id).sort();
  assert.deepEqual(expected,['arrive-aliexpress-1','arrive-bambu-1','arrive-bol-1','arrive-elektramat-1','arrive-elektramat-reorder','arrive-kunststofshop-1','arrive-ledshows-1','arrive-pixelimperium-1','arrive-propixeler-1','arrive-audiophonics-1'].sort());
- assert.deepEqual(waiting,['arrive-aliexpress-2','arrive-bol-2','arrive-elektramat-2','arrive-ledshows-2']);
+ assert.deepEqual(waiting,['arrive-aliexpress-2','arrive-bol-2','arrive-elektramat-2','arrive-ledshows-2','arrive-zelektro-2']);
  for(const s of steps.filter(s=>!placed(s)))assert.ok(!PRESET.includes(s.id),`${s.id} has not arrived`);
 });
