@@ -208,3 +208,13 @@ test('every installation part links to a product page, not a shop homepage or se
   }
  }
 });
+
+test('a delivery is only expected once every order in it is placed: the installation parts are not ordered yet',async()=>{
+ const {PRESET}=await import('../src/runbook/runbook.js');
+ const steps=CHAPTERS.find(c=>c.id==='deliveries').steps.filter(s=>s.buys);
+ const placed=s=>s.buys.every(id=>PRESET.includes(id));
+ const expected=steps.filter(placed).map(s=>s.id).sort(),waiting=steps.filter(s=>!placed(s)).map(s=>s.id).sort();
+ assert.deepEqual(expected,['arrive-aliexpress-1','arrive-bambu-1','arrive-bol-1','arrive-elektramat-1','arrive-elektramat-reorder','arrive-kunststofshop-1','arrive-ledshows-1','arrive-pixelimperium-1','arrive-propixeler-1','arrive-audiophonics-1'].sort());
+ assert.deepEqual(waiting,['arrive-aliexpress-2','arrive-bol-2','arrive-elektramat-2','arrive-ledshows-2','arrive-zelektro-2']);
+ for(const s of steps.filter(s=>!placed(s)))assert.ok(!PRESET.includes(s.id),`${s.id} has not arrived`);
+});
