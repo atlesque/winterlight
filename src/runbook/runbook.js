@@ -130,7 +130,7 @@ for(const o of new Set(PURCHASES.filter(p=>p.pixelsEach).map(p=>`${p.shop}-${p.w
 const addDays=(date,n)=>{const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
 const buy=wave=>PURCHASES.filter(p=>p.wave===wave).map(p=>({id:`buy-${p.id}`,buy:p.id}));
 // Deliveries already at the door, by delivery step id. These start ticked.
-const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09'};
+const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09','arrive-bambu-1':'2026-11-12'};
 // Deliveries that came in part: the date, and what is still missing. These stay unticked.
 const PARTLY={'arrive-bol-1':{date:'2026-11-10',note:'The Stanley blades and spray adhesive are in. The FM transmitter is due on 10 Nov. Only one of the four Wago gel boxes came, so they went back; four are reordered from Elektramat.'}};
 // One delivery check per shop and order wave, expected by the shop's slowest delivery.
