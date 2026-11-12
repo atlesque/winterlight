@@ -109,7 +109,7 @@ const ROWS=[
  {id:'connectorCare',name:'Dielectric grease, heat shrink and solder',qty:1,unit:'set',price:18,url:'https://www.gamma.be/',shop:'local',expense:'private',wave:2,estimate:true,tip:'A dab of grease in every xConnect joint before it is plugged; heat shrink and solder for the splices inside the props.'},
  {id:'ladder',name:'Ladder or scaffold tower, one day\'s rent',qty:1,unit:'day',price:40,url:'https://www.gamma.be/',shop:'local',expense:'private',wave:2,estimate:true,tip:'The upper strip hangs at 5.28 m; the ladder at home reaches about 3 m, which covers the letters, the eave strip and the outlines.'},
  {id:'soundCard',name:'USB sound card',qty:1,unit:'×',price:P.soundCard.price,url:P.soundCard.url,shop:'ledshows',expense:'private',wave:1,tip:'Audio out of the Pi for the FM transmitter. Ordered 6 Nov in the LEDshows basket.'},
- {id:'fm',name:'DrPhone FM7 car FM transmitter and 12 V socket lead',qty:1,unit:'set',price:25.54,url:search('fm transmitter 3.5 mm'),shop:'bol',expense:'private',wave:1,tip:'Transmitter €14.95 plus a 12 V socket lead €10.59, so it runs from one of the Mean Well power supplies. Place it on the street side of the garage, not in a metal box, and test from a parked car. Ordered 6 Nov in the bol.com order; the only part of it still on its way on 10 Nov, due that day.'},
+ {id:'fm',name:'DrPhone FM7 car FM transmitter and 12 V socket lead',qty:1,unit:'set',price:25.54,url:search('fm transmitter 3.5 mm'),shop:'bol',expense:'private',wave:1,tip:'Transmitter €14.95 plus a 12 V socket lead €10.59, so it runs from one of the Mean Well power supplies. Place it on the street side of the garage, not in a metal box, and test from a parked car. Ordered 6 Nov in the bol.com order; the last part of it to arrive, on 12 Nov.'},
 ];
 // Placed on 6 Nov 2026: €2,133.10 over nine shops. These start ticked.
 const BOUGHT=new Set(['pixels','pixelsRegulated','pixelShipping','controller','ledshowsShipping','pigtail','tSplitter','cable','injectWire','mountStrip','zipTies','psu','letters','letterShipping','coro','coroShipping','gelbox','gelboxMore','cutting','minitreeFrame','soundCard','fm']);
@@ -130,9 +130,10 @@ for(const o of new Set(PURCHASES.filter(p=>p.pixelsEach).map(p=>`${p.shop}-${p.w
 const addDays=(date,n)=>{const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
 const buy=wave=>PURCHASES.filter(p=>p.wave===wave).map(p=>({id:`buy-${p.id}`,buy:p.id}));
 // Deliveries already at the door, by delivery step id. These start ticked.
-const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09','arrive-bambu-1':'2026-11-12'};
+const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09','arrive-bambu-1':'2026-11-12','arrive-bol-1':'2026-11-12'};
 // Deliveries that came in part: the date, and what is still missing. These stay unticked.
-const PARTLY={'arrive-bol-1':{date:'2026-11-10',note:'The Stanley blades and spray adhesive are in. The FM transmitter is due on 10 Nov. Only one of the four Wago gel boxes came, so they went back; four are reordered from Elektramat.'}};
+// bol.com came in part on 10 Nov (the gel boxes went back) and the FM transmitter, its last part, on 12 Nov.
+const PARTLY={};
 // One delivery check per shop and order wave, expected by the shop's slowest delivery.
 // A row with its own delivery (a reorder) gets a delivery check of its own.
 const deliveries=[1,2,'reorder'].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const items=PURCHASES.filter(p=>p.shop===id&&(p.delivery||p.wave)===wave&&!p.returned);if(!items.length||id==='local')return null;
