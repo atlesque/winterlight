@@ -135,10 +135,11 @@ const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-0
 // bol.com came in part on 10 Nov (the gel boxes went back) and the FM transmitter, its last part, on 12 Nov.
 const PARTLY={};
 // One delivery check per shop and order wave, expected by the shop's slowest delivery.
+// buys lists the order steps it holds: it shows as expected only once they are all ticked.
 // A row with its own delivery (a reorder) gets a delivery check of its own.
 const deliveries=[1,2,'reorder'].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const items=PURCHASES.filter(p=>p.shop===id&&(p.delivery||p.wave)===wave&&!p.returned);if(!items.length||id==='local')return null;
  const key=`arrive-${id}-${wave}`,status=PARTLY[key];
- return {id:key,text:`${s.name} ${wave===2?'installation parts ':wave==='reorder'?'reorder ':''}delivered and checked`,due:addDays(items[0].orderBy,s.days[1]),tip:[status?.note,items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · ')].filter(Boolean).join(' '),...(ARRIVED[key]&&{arrived:ARRIVED[key]}),...(status&&{partly:status.date})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
+ return {id:key,text:`${s.name} ${wave===2?'installation parts ':wave==='reorder'?'reorder ':''}delivered and checked`,due:addDays(items[0].orderBy,s.days[1]),buys:items.map(p=>`buy-${p.id}`),tip:[status?.note,items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · ')].filter(Boolean).join(' '),...(ARRIVED[key]&&{arrived:ARRIVED[key]}),...(status&&{partly:status.date})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
 const g=Object.fromEntries(GROUP_LIST.map(x=>[x.id,{...x,pixels:group(x.id).pixels}]));
 const each=id=>Math.round(g[id].pixels/g[id].props.length);
 

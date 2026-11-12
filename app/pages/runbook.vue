@@ -139,7 +139,7 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
                 <template v-else>
                   <div class="step-body">
                     <span class="step-text">{{ stepText(s) }} <InfoTip v-if="s.tip" :text="s.tip" label="More about this step" /></span>
-                    <span v-if="s.due||links(s).length" class="step-meta"><template v-if="s.arrived">Arrived {{ day(s.arrived) }}</template><template v-else-if="s.partly">Partly arrived {{ day(s.partly) }}</template><template v-else-if="s.due">Expected {{ day(s.due) }}</template><template v-for="(l,i) in links(s)" :key="l.href"><template v-if="s.due||i"> · </template><a :href="l.href" target="_blank" rel="noopener">{{ l.label }}<UIcon name="i-lucide-external-link" /></a></template></span>
+                    <span v-if="s.due||links(s).length" class="step-meta"><template v-if="s.arrived">Arrived {{ day(s.arrived) }}</template><template v-else-if="s.partly">Partly arrived {{ day(s.partly) }}</template><template v-else-if="s.buys&&!s.buys.every(id=>done.has(id))">Not ordered yet</template><template v-else-if="s.due">Expected {{ day(s.due) }}</template><template v-for="(l,i) in links(s)" :key="l.href"><template v-if="s.due||i"> · </template><a :href="l.href" target="_blank" rel="noopener">{{ l.label }}<UIcon name="i-lucide-external-link" /></a></template></span>
                     <p v-for="(n,i) in measured.steps[s.id]?.notes||[]" :key="i" class="step-note" :class="{warn:n.warn}"><UIcon :name="n.warn?'i-lucide-triangle-alert':'i-lucide-ruler'" /> {{ n.text }}</p>
                     <dl v-if="s.measures" class="measures">
                       <div v-for="x in s.measures" :key="x.what" :data-from="tapeValue(x)?'measured':x.from">
