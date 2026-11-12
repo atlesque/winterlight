@@ -198,3 +198,13 @@ test('bol.com came in part on 10 Nov and the rest on 12 Nov: the Wago gel boxes 
  assert.deepEqual([again.due,again.arrived],['2026-11-13',undefined]);
  assert.match(steps.find(s=>s.id==='arrive-elektramat-1').tip,/^6 ×/,'the first Elektramat parcel holds only the six');
 });
+
+test('every installation part links to a product page, not a shop homepage or search',()=>{
+ for(const p of PURCHASES.filter(p=>p.wave===2)){
+  for(const u of [p.url,...(p.more||[]).map(m=>m.url)]){
+   const url=new URL(u);
+   assert.ok(url.pathname.length>1,`${p.id}: ${u} is a homepage`);
+   assert.ok(!/search|wholesale|catalogsearch|\/s\//.test(u),`${p.id}: ${u} is a search page`);
+  }
+ }
+});
