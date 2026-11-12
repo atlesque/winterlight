@@ -162,11 +162,11 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  for(const m of MEASUREMENTS){assert.ok(m.guess>=m.min&&m.guess<=m.max,m.id);assert.ok([...m.from,...m.to].every(Number.isFinite),m.id);assert.ok(STEP_IDS.includes(m.step),m.id);}
 });
 
-test('the LEDshows and Elektramat parcels arrived on 9 Nov and start ticked',async()=>{
+test('the LEDshows and Elektramat parcels arrived on 9 Nov, the Bambu Lab PETG and the rest of bol.com on 12 Nov, and start ticked',async()=>{
  const {PRESET}=await import('../src/runbook/runbook.js');
  const steps=CHAPTERS.find(c=>c.id==='deliveries').steps;
  const arrived=steps.filter(s=>s.arrived).map(s=>[s.id,s.arrived]);
- assert.deepEqual(arrived.sort(),[['arrive-elektramat-1','2026-11-09'],['arrive-ledshows-1','2026-11-09']]);
+ assert.deepEqual(arrived.sort(),[['arrive-bambu-1','2026-11-12'],['arrive-bol-1','2026-11-12'],['arrive-elektramat-1','2026-11-09'],['arrive-ledshows-1','2026-11-09']]);
  for(const [id] of arrived)assert.ok(PRESET.includes(id),id);
  assert.ok(!PRESET.includes('arrive-pixelimperium-1'),'the pixels are still on their way');
 });
@@ -184,7 +184,7 @@ test('the pixel order shows what each pixel cost, with and without shipping',asy
  assert.equal(Math.round(sum*100)/100,820.47);
 });
 
-test('bol.com came in part on 10 Nov: the Wago gel boxes went back and four were reordered from Elektramat',async()=>{
+test('bol.com came in part on 10 Nov and the rest on 12 Nov: the Wago gel boxes went back and four were reordered from Elektramat',async()=>{
  const {PRESET}=await import('../src/runbook/runbook.js');
  const steps=CHAPTERS.find(c=>c.id==='deliveries').steps,byId=Object.fromEntries(PURCHASES.map(p=>[p.id,p]));
  assert.equal(byId.gelbox.returned,'2026-11-10');
@@ -192,7 +192,7 @@ test('bol.com came in part on 10 Nov: the Wago gel boxes went back and four were
  assert.deepEqual([reorder.shop,reorder.qty,reorder.ordered,reorder.cost,reorder.expense],['elektramat',4,'2026-11-10',23.9,'business']);
  assert.ok(PRESET.includes('buy-gelboxReorder'),'the reorder was placed on 10 Nov');
  const bol=steps.find(s=>s.id==='arrive-bol-1');
- assert.equal(bol.partly,'2026-11-10');assert.ok(!bol.arrived&&!PRESET.includes(bol.id));
+ assert.equal(bol.arrived,'2026-11-12','the FM transmitter, the last part, came on 12 Nov');assert.ok(PRESET.includes(bol.id));
  assert.match(bol.tip,/FM transmitter/);assert.doesNotMatch(bol.tip,/1 pack WAGO/,'the returned pack is not awaited');
  const again=steps.find(s=>s.id==='arrive-elektramat-reorder');
  assert.deepEqual([again.due,again.arrived],['2026-11-13',undefined]);
