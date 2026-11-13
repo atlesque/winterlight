@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {estimate,ALL} from '../src/costs/estimate.js';
-import {CHAPTERS,PURCHASES,SHOPS,STEP_IDS,SHOW_DATE} from '../src/runbook/runbook.js';
+import {CHAPTERS,PURCHASES,SHOPS,STEP_IDS,SHOW_DATE,PRESET} from '../src/runbook/runbook.js';
 
 test('every to-do has a unique id and every chapter is due before show night',()=>{
  assert.equal(new Set(STEP_IDS).size,STEP_IDS.length);
@@ -13,8 +13,13 @@ test('every purchase is ordered once, links to a shop and has an expense tag',()
  assert.deepEqual([...buys].sort(),PURCHASES.map(p=>p.id).sort());
  for(const p of PURCHASES){
   assert.match(p.url,/^https:\/\//,p.id);assert.ok(SHOPS[p.shop],p.id);
-  assert.ok(['private','business'].includes(p.expense),p.id);assert.ok(p.qty>0&&p.cost>0,p.id);
+  assert.ok(['private','business'].includes(p.expense),p.id);assert.ok(p.qty>0&&(p.owned?p.cost===0:p.cost>0),p.id);
  }
+});
+
+test('gear already at hand is listed at no cost and starts ticked',()=>{
+ for(const p of PURCHASES.filter(p=>p.owned)){assert.equal(p.cost,0,p.id);assert.ok(PRESET.includes(`buy-${p.id}`),p.id);}
+ assert.deepEqual(PURCHASES.filter(p=>p.owned).map(p=>p.id).sort(),['gardenNetwork','wallHole']);
 });
 
 test('the shopping list covers the full show in the cost model',()=>{

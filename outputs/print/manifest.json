@@ -5,8 +5,8 @@
    162,
    31.9
   ],
-  "volume": 60.6,
-  "grams": 62
+  "volume": 61.6,
+  "grams": 63
  },
  "minitree-top": {
   "size": [
@@ -14,8 +14,8 @@
    79.4,
    32.4
   ],
-  "volume": 40.2,
-  "grams": 41
+  "volume": 41.9,
+  "grams": 43
  },
  "tree-crown": {
   "size": [
@@ -59,8 +59,8 @@
    251.2,
    115
   ],
-  "volume": 196.9,
-  "grams": 200
+  "volume": 190.9,
+  "grams": 194
  },
  "fence-foot": {
   "size": [

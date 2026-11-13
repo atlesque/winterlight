@@ -33,7 +33,7 @@ const SERVICES=[
  {device:'Raspberry Pi 5 (the spare one at hand)',where:'Garage, next to the facade board',software:'Falcon Player (FPP)',job:'Plays the sequence and the music together, sends every pixel\'s colour to both controllers 40 times a second, and starts the show on its evening schedule. Its web page is where it is set up.',status:'decided'},
  {device:'Facade controller, Baldrick 8',where:'Garage wall board',software:'Baldrick firmware',job:`Takes its block of ${n(facade.channels)} channels off the network and drives ${facade.ports.length} pixel ports (${n(facade.pixels)} pixels). Port lengths and colour order are set on its own web page.`,status:'bought'},
  {device:'Garden controller, Baldrick 8',where:'IP66 box behind the front-left bush',software:'Baldrick firmware',job:`The same for the garden: ${n(garden.channels)} channels, ${garden.ports.length} ports, ${n(garden.pixels)} pixels.`,status:'bought'},
- {device:'5-port switch',where:'Garage',software:'None',job:'Joins the Pi and both controllers on one wired network: a patch cable to the facade controller, 15 m of outdoor Cat5e to the garden box.',status:'decided'},
+ {device:'5-port switch',where:'Garage',software:'None',job:'Joins the Pi and both controllers on one wired network: a patch cable to the facade controller, 15 m of network cable to the garden box.',status:'decided'},
  {device:'USB sound card and FM transmitter',where:'Garage, street side',software:'None (the Pi\'s audio output)',job:'Carries the music from the Pi to car radios on the street.',status:'bought'},
  {device:'Laptop',where:'Anywhere at home',software:'A browser, the export script, xLights if wanted',job:'Setup only: makes the sequence, uploads it to the Pi and sets up the controllers. Not needed on show nights.',status:'proposal'},
  {device:'Home router',where:'House',software:'DHCP and internet time',job:'Fixed addresses for the Pi and the controllers, the clock the schedule runs on, and the way in from the laptop.',status:'open'},
@@ -111,7 +111,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
             <path :d="curve(SWITCH.x+SWITCH.w,SWITCH.y+30,FACADE.x,FACADE.y+40)" :stroke="C.data" class="wire" />
             <text :x="SWITCH.x+SWITCH.w+6" :y="SWITCH.y+56" class="t-wire" :fill="C.data">patch</text>
             <path :d="toGarden" :stroke="C.data" class="wire" />
-            <text :x="(SWITCH.x+GARDEN.x)/2+60" :y="H-54" class="t-wire" :fill="C.data" text-anchor="middle">15 m outdoor Cat5e, out through the jamb · DDP</text>
+            <text :x="(SWITCH.x+GARDEN.x)/2+60" :y="H-54" class="t-wire" :fill="C.data" text-anchor="middle">15 m network cable, out through the jamb · DDP</text>
             <path :d="`M${PI.x+PI.w},${SOUND.y+30} H${SOUND.x}`" :stroke="C.audio" class="wire" />
             <text :x="PI.x+PI.w+6" :y="SOUND.y+24" class="t-wire" :fill="C.audio">USB</text>
             <path :d="`M${SOUND.x+60},${SOUND.y+SOUND.h} V${FM.y}`" :stroke="C.audio" class="wire" />

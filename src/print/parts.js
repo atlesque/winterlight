@@ -37,7 +37,7 @@ export const MINI_SPOKE_CM=slope(mini.height-3-4,mini.r_base-34),STRAND_CM=slope
 // with concrete paving bricks, and the tree's pole in a parasol base. Only the
 // mini trees, on top of the bushes, have something to push into.
 export const BRICK={name:'Concrete paving brick (betonklinker), grey, 22 × 11 × 8 cm',size:[220,110,80],kg:4};
-export const PARASOL={name:'Granite parasol base, 30 kg, with a tube clamp for 25–50 mm poles',kg:30};
+export const PARASOL={name:'Parasol base, about 30 kg, whose tube or clamp takes the 34 mm pole',kg:30};
 const ringWeights=4;
 
 // Props, each with the parts it needs. `params` go to OpenSCAD as -D overrides;
@@ -60,7 +60,7 @@ export const PRINT_PROPS=[
  {id:'canes',name:'Candy canes',count:count('cane'),icon:'i-lucide-candy-cane',bricks:2*count('cane'),
   points:[`${count('cane')} coro canes along the street edge`,'Each in a base holding two bricks (about 8 kg)','The stem sits in a slot between the bricks'],
   parts:[
-   {id:'cane-base',name:'Cane base',per:1,spare:0,params:{},how:'A brick each side of the rib, the cane\'s stem in the slot, tied.'},
+   {id:'cane-base',name:'Cane base',per:1,spare:0,params:{},how:'A brick each side of the rib, the cane\'s stem and its aluminium stiffener in the slot, tied.'},
   ]},
  {id:'fence',name:'Ground strip',count:1,icon:'i-lucide-fence',bricks:FENCE_POSTS,
   points:[`${(Math.round(fenceLength*100)/100).toFixed(2)} m along the left side and front of the shrubbery, ${mm(L.fence.path[0][1])/10} cm up`,`${FENCE_POSTS} posts, at most ${POST_SPACING*100} cm apart`,'Each post stands in a foot holding one brick, hidden behind the strip'],
