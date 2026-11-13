@@ -143,6 +143,8 @@ const deliveries=[1,2,'reorder'].flatMap(wave=>Object.entries(SHOPS).map(([id,s]
  const key=`arrive-${id}-${wave}`,status=PARTLY[key];
  return {id:key,text:`${s.name} ${wave===2?'installation parts ':wave==='reorder'?'reorder ':''}delivered and checked`,due:addDays(items[0].orderBy,s.days[1]),buys:items.map(p=>`buy-${p.id}`),tip:[status?.note,items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · ')].filter(Boolean).join(' '),...(ARRIVED[key]&&{arrived:ARRIVED[key]}),...(status&&{partly:status.date})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
 const g=Object.fromEntries(GROUP_LIST.map(x=>[x.id,{...x,pixels:group(x.id).pixels}]));
+// Strings the regulated ports take: each port starts on a fresh string, so each rounds up on its own.
+const REGULATED_PORTS=['upper','lower','windows','letters'],REGULATED_USED=REGULATED_PORTS.reduce((n,id)=>n+Math.ceil(g[id].pixels/50),0);
 const each=id=>Math.round(g[id].pixels/g[id].props.length);
 
 // What the measuring steps need, read off the house model. Its frontage,
@@ -216,7 +218,7 @@ export const CHAPTERS=[
   {id:'flash-fpp',text:'Flash Falcon Player onto the Pi\'s card',link:{href:FPP,label:'FPP releases'}},
   {id:'bench-wire',text:'Wire one power supply and one controller on the table',tip:'Mains on the power supply terminals only with the plug out. Fuse each output.'},
   {id:'bench-ip',text:'Give both controllers their static IP',link:{href:BALDRICK,label:'Baldrick 8 manual'}},
-  {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:'Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). Keep the 27 regulated strings for the facade\'s upper strip, eave strip, outlines and letters (21 strings): they hold their brightness on the facade\'s data leads before the first injection, at full brightness.'},
+  {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:`Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). Keep the 27 regulated strings for the facade\'s upper strip, eave strip, outlines and letters (${REGULATED_USED} strings, as each port starts on a fresh string): they hold their brightness on the facade\'s data leads before the first injection, at full brightness.`},
  ]},
  {id:'build',title:'Build the props',icon:'i-lucide-hammer',due:'2026-11-24',steps:[
   {id:'build-boxes',text:'Build the facade board for the garage wall and the garden box: a controller, two power supplies and fuses in each',tip:'Fuse every power supply output and keep the mains side covered. In the garden box, mount the parts on its plate with room round the supplies, bring every cable in from below through a gland, and the data and injection leads in as pigtail tails.'},
