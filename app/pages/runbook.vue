@@ -130,6 +130,7 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
                       <template v-if="PER_PIXEL[s.buy]?.withShipping"> · <span class="per-pixel">{{ cents(PER_PIXEL[s.buy].each) }} a pixel, {{ cents(PER_PIXEL[s.buy].withShipping) }} with shipping</span></template>
                       <template v-else-if="PER_PIXEL[s.buy]"> · <span class="per-pixel">Whole order {{ euro(PER_PIXEL[s.buy].total) }} for {{ PER_PIXEL[s.buy].pixels.toLocaleString('en') }} pixels: {{ cents(PER_PIXEL[s.buy].each) }} a pixel with shipping</span></template>
                       <template v-if="byId[s.buy].estimate"> · <UBadge label="estimate" color="primary" variant="subtle" size="sm" /></template>
+                      <template v-if="byId[s.buy].owned"> · <UBadge label="already have" color="success" variant="subtle" size="sm" /></template>
                       <template v-if="byId[s.buy].optional"> · <UBadge label="optional" color="neutral" variant="subtle" size="sm" /></template>
                       <template v-if="byId[s.buy].returned"> · <UBadge :label="`returned ${day(byId[s.buy].returned)}`" color="warning" variant="subtle" size="sm" /></template></span>
                   </div>
