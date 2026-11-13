@@ -10,7 +10,7 @@ export const PRICES={
  pixels50reg:{name:'Regulated 12 V WS2811 12 mm bullet pixels, string of 50 (10 cm pitch, xConnect plugs)',price:17.18,url:'https://pixel-imperium.de/regulated-ws2811-pixel-string-12mm-12v-ip68-50px-xconnect-black',shop:'Pixel-Imperium'},
  controller:{name:'Baldrick 8 pixel controller (8 ports, 750 pixels per port at 40 fps, E1.31/DDP)',price:70,url:'https://shop.ledshows.nl/product/baldrick-8/',shop:'LEDshows.nl'},
  psu:{name:'Mean Well LRS-350-12 power supply (12 V, 29 A, 348 W)',price:39.9,url:'https://www.audiophonics.fr/en/smps-power-supply/mean-well-lrs-350-12-switch-power-supply-12v-29a-348w-p-17203.html',shop:'Audiophonics'},
- enclosure:{name:'IP65 enclosure about 400 × 300 × 170 mm with mounting plate and M20 cable glands',price:95,estimate:true},
+ enclosure:{name:'Rittal AX 1034.000 steel wall box, IP66, 300 × 400 × 210 mm, with mounting plate and gland plate',price:104.72,url:'https://benl.rs-online.com/web/p/wall-boxes/2023900',shop:'RS Belgium (€126.71 incl. VAT)'},
  player:{name:'Raspberry Pi 5 4 GB running Falcon Player (FPP)',price:120.99,url:'https://www.kiwi-electronics.com/nl/raspberry-pi-boards-behuizingen-uitbreidingen-en-accessoires-59/raspberry-pi-boards-363',shop:'Kiwi Electronics (€99.99 excl. VAT)'},
  mountStrip:{name:'Pixel mounting strip, per metre (50 m roll €60)',price:1.2,url:'https://shop.ledshows.nl/shop/pixel-mounting-strip-50-meter/',shop:'LEDshows.nl'},
  pigtail:{name:'xConnect pigtail pair (male + female), 50 cm',price:1.679,url:'https://www.aliexpress.com/item/1005006295131153.html',shop:'AliExpress (Shenzhen Rita Lighting, €16.79 per 10 pairs)'},

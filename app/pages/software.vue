@@ -32,7 +32,7 @@ const STATUS={done:'Done',bought:'Bought',decided:'Decided',proposal:'Proposal',
 const SERVICES=[
  {device:'Raspberry Pi 5 (the spare one at hand)',where:'Garage, next to the facade board',software:'Falcon Player (FPP)',job:'Plays the sequence and the music together, sends every pixel\'s colour to both controllers 40 times a second, and starts the show on its evening schedule. Its web page is where it is set up.',status:'decided'},
  {device:'Facade controller, Baldrick 8',where:'Garage wall board',software:'Baldrick firmware',job:`Takes its block of ${n(facade.channels)} channels off the network and drives ${facade.ports.length} pixel ports (${n(facade.pixels)} pixels). Port lengths and colour order are set on its own web page.`,status:'bought'},
- {device:'Garden controller, Baldrick 8',where:'IP65 box behind the front-left bush',software:'Baldrick firmware',job:`The same for the garden: ${n(garden.channels)} channels, ${garden.ports.length} ports, ${n(garden.pixels)} pixels.`,status:'bought'},
+ {device:'Garden controller, Baldrick 8',where:'IP66 box behind the front-left bush',software:'Baldrick firmware',job:`The same for the garden: ${n(garden.channels)} channels, ${garden.ports.length} ports, ${n(garden.pixels)} pixels.`,status:'bought'},
  {device:'5-port switch',where:'Garage',software:'None',job:'Joins the Pi and both controllers on one wired network: a patch cable to the facade controller, 15 m of outdoor Cat5e to the garden box.',status:'decided'},
  {device:'USB sound card and FM transmitter',where:'Garage, street side',software:'None (the Pi\'s audio output)',job:'Carries the music from the Pi to car radios on the street.',status:'bought'},
  {device:'Laptop',where:'Anywhere at home',software:'A browser, the export script, xLights if wanted',job:'Setup only: makes the sequence, uploads it to the Pi and sets up the controllers. Not needed on show nights.',status:'proposal'},
@@ -97,7 +97,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
             <rect v-bind="r(STREET)" rx="18" class="street" />
             <text :x="STREET.x+16" :y="STREET.y+24" class="t-room street-label">STREET</text>
             <rect v-bind="r(YARD)" rx="18" class="yard" />
-            <text :x="YARD.x+16" :y="YARD.y+22" class="t-room yard-label">GARDEN · IP65 BOX</text>
+            <text :x="YARD.x+16" :y="YARD.y+22" class="t-room yard-label">GARDEN · IP66 BOX</text>
 
             <!-- links, drawn under the cards -->
             <path :d="curve(LAPTOP.x+LAPTOP.w/2,LAPTOP.y+LAPTOP.h,CLOUD.x+CLOUD.w/2,CLOUD.y)" :stroke="C.setup" class="wire dashed" />
