@@ -80,7 +80,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
             <text :x="GARAGE.x+GARAGE.w-8" :y="GARAGE.y+26" class="t-dim" text-anchor="end">through the wall to the props →</text>
             <g v-for="(o,i) in yards" :key="`y${i}`">
               <rect :x="o.x" :y="o.y" :width="o.w" :height="o.h" rx="18" class="yard" />
-              <text :x="o.x+16" :y="o.y+18" class="t-room yard-label">GARDEN · IP65 BOX</text>
+              <text :x="o.x+16" :y="o.y+18" class="t-room yard-label">GARDEN · IP66 BOX</text>
             </g>
             <path v-for="(l,i) in links" :key="i" :d="l.d" fill="none" :stroke="l.color" stroke-width="2" :stroke-dasharray="l.dash" opacity=".85" />
             <text v-for="(l,i) in links.filter(l=>l.label)" :key="`n${i}`" :x="l.lx" :y="l.ly" class="t-wire" :fill="WIRE_COLORS.network" text-anchor="end">{{ l.label }}</text>
@@ -143,7 +143,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 
       <section v-for="z in zones" :id="z.id" :key="z.id" class="glass box-card">
         <h2>{{ z.name }}</h2>
-        <p v-if="z.outdoor" class="led">Outdoors, for {{ z.feeds }}: one {{ parts.controller.split(' (')[0] }} and {{ z.psus.length }} power supplies in an IP65 box on two bricks behind the front-left bush, fed by an outdoor mains cable from the power strip and an outdoor network cable from the switch. Cable lengths run from the box.</p>
+        <p v-if="z.outdoor" class="led">Outdoors, for {{ z.feeds }}: one {{ parts.controller.split(' (')[0] }} and {{ z.psus.length }} power supplies in an IP66 box on two bricks behind the front-left bush, fed by an outdoor mains cable from the power strip and an outdoor network cable from the switch. Cable lengths run from the box.</p>
         <p v-else class="led">In the garage, for {{ z.feeds }}: one {{ parts.controller.split(' (')[0] }} and {{ z.psus.length }} power supplies on a wall board, a patch cable to the switch and a plug in the power strip. Cable lengths run from the board, out through the jamb.</p>
         <div class="table-scroll">
           <table>

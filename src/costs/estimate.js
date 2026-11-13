@@ -8,7 +8,7 @@ import {PRICES as P,WATTS_PER_PIXEL,PSU_LOAD,PSU_WATTS,PORT_PIXELS,PORTS_PER_CON
 // 12 V WS2811 pixels on the mounts below. The facade's controller box sits on
 // a wall board inside the garage, about a metre in from the brick jamb right
 // of the garage door (`box`), where every facade chain leaves the garage. The
-// garden's controller box stands outside in an IP65 box just inside the ground
+// garden's controller box stands outside in an IP66 box just inside the ground
 // strip, behind the front-left bush, so the garden chains start there; only a
 // mains and a network cable run to it from the garage, over the front door
 // and down beside it (`feed`), so the door and the path stay clear. Props of a
@@ -20,7 +20,7 @@ export const INDOOR=1;
 export const GARDEN_BOX=[5.75,.3,2.2];
 export const ZONES={
  facade:{name:'Facade box',where:'in the garage, on a wall board',box:EXIT,via:[],indoor:INDOOR},
- garden:{name:'Garden box',where:'outside, in an IP65 box behind the front-left bush',box:GARDEN_BOX,via:[],indoor:0,outdoor:true,
+ garden:{name:'Garden box',where:'outside, in an IP66 box behind the front-left bush',box:GARDEN_BOX,via:[],indoor:0,outdoor:true,
   feed:[EXIT,[EXIT[0],OVER_DOOR,EXIT[2]],[GARDEN_X,OVER_DOOR,EXIT[2]],[GARDEN_X,.04,EXIT[2]],[GARDEN_X,.04,GARDEN_BOX[2]],GARDEN_BOX]},
 };
 // A gap between two pixels of one prop longer than this needs an extension cable
