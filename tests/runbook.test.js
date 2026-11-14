@@ -231,3 +231,9 @@ test('the 14 Nov Kiwi order is business gear, ordered, and kept out of the show\
  assert.equal(Math.round(kiwi.reduce((t,p)=>t+p.cost,0)*100)/100,378.11);
  for(const p of kiwi){assert.equal(p.expense,'business');assert.ok(p.outside,p.id);assert.equal(p.ordered,'2026-11-14');assert.ok(PRESET.includes(`buy-${p.id}`));}
 });
+test('every Zelektro and Elektramat part is a business expense',async()=>{
+ const {PURCHASES}=await import('../src/runbook/runbook.js');
+ const rows=PURCHASES.filter(p=>['zelektro','elektramat'].includes(p.shop));
+ assert.ok(rows.length);
+ for(const p of rows)assert.equal(p.expense,'business',p.id);
+});
