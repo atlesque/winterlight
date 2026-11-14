@@ -10,7 +10,7 @@ import {applyMeasures,completeSteps,validMeasure} from '~~/src/measures/measures
 // the database only holds changes to those defaults. Without the Worker (npm
 // run dev, previews) the page falls back to this browser's storage.
 definePageMeta({alias:['/runbook.html']});
-const API='/api/runbook',LOCAL='winterlight-runbook-v2',OLD='winterlight-runbook';
+const API='/api/runbook',LOCAL='winterlight-runbook-v2',PRICES='winterlight-runbook-prices',OLD='winterlight-runbook';
 const euro=v=>new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR',minimumFractionDigits:v>=1000?0:2,maximumFractionDigits:v>=1000?0:2}).format(v);
 // A price per pixel, to a tenth of a cent.
 const cents=v=>`€${v.toFixed(3)}`;
@@ -32,6 +32,9 @@ const mode=ref('loading'),status=ref(''),why=ref('');
 const canEdit=computed(()=>mode.value!=='loading');
 const store=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}catch{}};
 const load=k=>{try{return localStorage.getItem(k);}catch{return null;}};
+// Prices and totals stay hidden unless switched on; the choice is kept in this browser.
+const showPrices=ref(false);
+watch(showPrices,v=>store(PRICES,v?'1':null));
 const apply=s=>{over.done={...s.done};over.expense={...s.expense};over.measures={...s.measures};};
 
 async function send(change){
@@ -46,7 +49,8 @@ async function change(c){
  Object.assign(over.done,c.done||{});for(const [id,k] of Object.entries(c.expense||{}))k===null?delete over.expense[id]:over.expense[id]=k;
  if(!await send(c))apply(before);
 }
-const toggle=(id,on)=>change({done:{[id]:on}});
+let ticked=false;
+const toggle=(id,on)=>{ticked=true;change({done:{[id]:on}});};
 const flip=p=>{const k=KIND[kind(p)].other;change({expense:{[p.id]:k===p.expense?null:k}});};
 function reset(){if(confirm('Put every tick back to the start: only the placed orders and made decisions ticked?'))
  change({done:Object.fromEntries(STEP_IDS.map(id=>[id,DEFAULT.has(id)])),expense:Object.fromEntries(Object.keys(over.expense).map(id=>[id,null]))});}
@@ -62,6 +66,7 @@ async function migrate(){
 }
 
 onMounted(async()=>{
+ showPrices.value=load(PRICES)==='1';
  try{const r=await fetch(API,{headers:{accept:'application/json'},redirect:'manual'});if(!r.ok)throw new Error(r.type==='opaqueredirect'?'sign-in redirect':`HTTP ${r.status}`);
   apply(await r.json());mode.value='shared';await migrate();
  }catch(e){
@@ -89,6 +94,18 @@ const money=computed(()=>{const t={private:0,business:0,ordered:0,all:0,optional
  for(const p of PURCHASES){const bought=done.value.has(`buy-${p.id}`),cost=spent(p);
   if(p.outside){t.outside+=cost;continue;}if(bought)t.ordered+=cost;
   if(p.optional&&!bought){t.optional+=cost;continue;}t[kind(p)]+=cost;t.all+=cost;}return t;});
+// A finished chapter folds shut, a little after its last tick so the tick is seen;
+// a click opens or closes any chapter, and unticking a step opens its chapter again.
+const opened=reactive({});
+const isOpen=c=>opened[c.id]??c.count<c.steps.length;
+const toggleOpen=c=>{opened[c.id]=!isOpen(c);};
+const folding={};
+watch(()=>Object.fromEntries(chapters.value.map(c=>[c.id,c.count===c.steps.length])),(now,was)=>{
+ for(const [id,full] of Object.entries(now)){if(!was||full===was[id])continue;
+  clearTimeout(folding[id]);delete opened[id];
+  if(full&&ticked){opened[id]=true;folding[id]=setTimeout(()=>delete opened[id],900);}}
+ ticked=false;
+});
 const links=s=>s.links||(s.link?[s.link]:[]);
 const qty=p=>p.unit==='×'?`${p.qty} ×`:`${p.qty} ${p.unit}`;
 const checked=new Date(CHECKED).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
@@ -106,7 +123,7 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
   <div class="costs-shell">
     <FestiveSky />
     <AppHeader />
-    <main class="costs runbook">
+    <main class="costs runbook" :class="{'hide-prices':!showPrices}">
       <section class="intro">
         <h1>Build runbook</h1>
         <p>From ordering the parts to the first test run, for the full show. Show night {{ day(SHOW_DATE) }}. Ticks are shared across devices.
@@ -115,22 +132,24 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
 
       <div class="layout">
         <div class="chapters">
-          <article v-for="c in chapters" :id="c.id" :key="c.id" class="chapter glass" :class="{complete:c.count===c.steps.length}">
-            <header class="chapter-head">
+          <article v-for="c in chapters" :id="c.id" :key="c.id" class="chapter glass" :class="{complete:c.count===c.steps.length,closed:!isOpen(c)}">
+            <header class="chapter-head" @click="toggleOpen(c)">
               <span class="chapter-icon"><UIcon :name="c.count===c.steps.length?'i-lucide-circle-check':c.icon" /></span>
               <div>
                 <h2>{{ c.n }}. {{ c.title }} <InfoTip v-if="c.tip" :text="c.tip" :label="`About ${c.title.toLowerCase()}`" /></h2>
-                <small>By {{ day(c.due) }} · {{ c.count }} of {{ c.steps.length }} done<template v-if="c.cost"> · {{ euro(c.cost) }}</template></small>
+                <small>By {{ day(c.due) }} · {{ c.count }} of {{ c.steps.length }} done<template v-if="c.cost&&showPrices"> · {{ euro(c.cost) }}</template></small>
               </div>
+              <button type="button" class="chapter-toggle" :aria-expanded="isOpen(c)" :aria-controls="`${c.id}-steps`" :aria-label="`${isOpen(c)?'Collapse':'Expand'} ${c.title}`" @click.stop="toggleOpen(c)"><UIcon name="i-lucide-chevron-down" /></button>
             </header>
-            <ul class="steps">
+            <ul v-show="isOpen(c)" :id="`${c.id}-steps`" class="steps">
               <li v-for="s in c.steps" :key="s.id" :class="{done:done.has(s.id),buy:s.buy}" :data-step="s.id">
                 <UCheckbox :model-value="done.has(s.id)" :disabled="!canEdit" :aria-label="stepText(s)" @update:model-value="v=>toggle(s.id,v===true)" />
                 <template v-if="s.buy">
                   <div class="step-body">
                     <span class="step-text">{{ byId[s.buy].name }} <InfoTip v-if="byId[s.buy].tip" :text="byId[s.buy].tip" :label="`About ${byId[s.buy].name}`" /></span>
                     <span class="step-meta">{{ qty(byId[s.buy]) }} · <a :href="byId[s.buy].url" target="_blank" rel="noopener">{{ byId[s.buy].at||SHOPS[byId[s.buy].shop].name }}<UIcon name="i-lucide-external-link" /></a><template v-for="m in byId[s.buy].more||[]" :key="m.url"> · <a :href="m.url" target="_blank" rel="noopener">{{ m.label }}<UIcon name="i-lucide-external-link" /></a></template>
-                      <template v-if="PER_PIXEL[s.buy]?.withShipping"> · <span class="per-pixel">{{ cents(PER_PIXEL[s.buy].each) }} a pixel, {{ cents(PER_PIXEL[s.buy].withShipping) }} with shipping</span></template>
+                      <template v-if="!showPrices" />
+                      <template v-else-if="PER_PIXEL[s.buy]?.withShipping"> · <span class="per-pixel">{{ cents(PER_PIXEL[s.buy].each) }} a pixel, {{ cents(PER_PIXEL[s.buy].withShipping) }} with shipping</span></template>
                       <template v-else-if="PER_PIXEL[s.buy]"> · <span class="per-pixel">Whole order {{ euro(PER_PIXEL[s.buy].total) }} for {{ PER_PIXEL[s.buy].pixels.toLocaleString('en') }} pixels: {{ cents(PER_PIXEL[s.buy].each) }} a pixel with shipping</span></template>
                       <template v-if="byId[s.buy].estimate"> · <UBadge label="estimate" color="primary" variant="subtle" size="sm" /></template>
                       <template v-if="byId[s.buy].owned"> · <UBadge label="already have" color="success" variant="subtle" size="sm" /></template>
@@ -139,7 +158,7 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
                       <template v-if="byId[s.buy].returned"> · <UBadge :label="`returned ${day(byId[s.buy].returned)}`" color="warning" variant="subtle" size="sm" /></template></span>
                   </div>
                   <button type="button" class="expense" :disabled="!canEdit" :data-kind="kind(byId[s.buy])" :aria-label="`${KIND[kind(byId[s.buy])].label} expense, switch to ${KIND[kind(byId[s.buy])].other}`" @click="flip(byId[s.buy])">{{ KIND[kind(byId[s.buy])].label }}</button>
-                  <span class="price" :class="{returned:byId[s.buy].returned}">{{ euro(byId[s.buy].cost) }}</span>
+                  <span v-if="showPrices" class="price" :class="{returned:byId[s.buy].returned}">{{ euro(byId[s.buy].cost) }}</span>
                 </template>
                 <template v-else>
                   <div class="step-body">
@@ -166,8 +185,9 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
             <div class="bar progress-bar"><i :style="{width:`${progress.done/progress.of*100}%`}" /></div>
             <div id="next" class="delta">{{ next?`Next: ${stepText(next.s)}`:'Everything done. Enjoy the show.' }}</div>
           </div>
-          <div class="field-title">Spend <InfoTip text="Euro incl. VAT, without the cost page's contingency or the optional items. Click a Private or Business tag to move an item. Business VAT may be reclaimable." label="About the spend" /></div>
-          <dl id="money" class="money">
+          <div class="field-title spend-title"><span>Spend <InfoTip text="Euro incl. VAT, without the cost page's contingency or the optional items. Click a Private or Business tag to move an item. Business VAT may be reclaimable." label="About the spend" /></span>
+            <USwitch id="show-prices" v-model="showPrices" size="sm" label="Show prices" /></div>
+          <dl v-if="showPrices" id="money" class="money">
             <div><dt><i class="swatch private" /> Private</dt><dd>{{ euro(money.private) }}</dd></div>
             <div><dt><i class="swatch business" /> Business</dt><dd>{{ euro(money.business) }}</dd></div>
             <div class="grand"><dt>Total</dt><dd>{{ euro(money.all) }}</dd></div>

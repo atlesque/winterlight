@@ -286,7 +286,14 @@ aside.summary { position: sticky; top: 112px; padding: 22px; }
 .chapters { display: flex; flex-direction: column; gap: 12px; }
 .chapter { padding: 18px 20px 10px; scroll-margin-top: 100px; transition: border-color .25s; }
 .chapter.complete { border-color: #3fc68630; }
-.chapter-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+.chapter-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; cursor: pointer; user-select: none; }
+.chapter-head > div { flex: 1; min-width: 0; }
+.chapter.closed { padding-bottom: 14px; }
+.chapter.closed .chapter-head { margin-bottom: 0; }
+.chapter-toggle { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--ui-text-muted); font-size: 18px; transition: color .15s, background .15s; }
+.chapter-toggle:hover, .chapter-head:hover .chapter-toggle { color: var(--gold); background: #ffffff08; }
+.chapter-toggle .iconify, .chapter-toggle svg { transition: transform .2s; }
+.chapter.closed .chapter-toggle .iconify, .chapter.closed .chapter-toggle svg { transform: rotate(-90deg); }
 .chapter-icon { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px; font-size: 17px; color: var(--gold); background: #ffffff08; border: 1px solid var(--hairline); }
 .chapter.complete .chapter-icon { color: var(--pine); }
 .runbook .chapter h2 { display: flex; align-items: center; gap: 6px; font-size: 21px; margin: 0; }
@@ -315,6 +322,9 @@ aside.summary { position: sticky; top: 112px; padding: 22px; }
 .step-note.warn { color: #ffc27a; }
 @media (max-width: 640px) { .measures > div { grid-template-columns: minmax(0, 1fr); } }
 .steps li.done .step-text { color: #6c7f90; text-decoration: line-through; text-decoration-color: #6c7f9080; }
+.runbook.hide-prices .steps li.buy { grid-template-columns: auto minmax(0, 1fr) auto; }
+.spend-title { justify-content: space-between; }
+.spend-title > span { display: flex; align-items: center; gap: 7px; }
 .steps .price { text-align: right; font-variant-numeric: tabular-nums; color: #e3e9ee; white-space: nowrap; }
 .steps li.done .price { color: #6c7f90; }
 .steps .price.returned { text-decoration: line-through; }
@@ -349,6 +359,8 @@ aside.summary { position: sticky; top: 112px; padding: 22px; }
   .steps li.buy .step-body { grid-row: span 2; }
   .steps li.buy .price { grid-column: 3; grid-row: 1; }
   .steps li.buy .expense { grid-column: 3; grid-row: 2; justify-self: end; align-self: start; }
+  .runbook.hide-prices .steps li.buy .step-body { grid-row: auto; }
+  .runbook.hide-prices .steps li.buy .expense { grid-row: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
