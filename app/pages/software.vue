@@ -30,7 +30,7 @@ const portRows=(ctrl,box)=>ctrl.ports.map((p,i)=>({...p,y:box.y+70+i*ROW}));
 
 const STATUS={done:'Done',bought:'Bought',decided:'Decided',proposal:'Proposal',open:'To decide'};
 const SERVICES=[
- {device:'Raspberry Pi 5 (the spare one at hand)',where:'Garage, next to the facade board',software:'Falcon Player (FPP)',job:'Plays the sequence and the music together, sends every pixel\'s colour to both controllers 40 times a second, and starts the show on its evening schedule. Its web page is where it is set up.',status:'decided'},
+ {device:'Raspberry Pi (which one is to decide)',where:'Garage, next to the facade board',software:'Falcon Player (FPP)',job:'Plays the sequence and the music together, sends every pixel\'s colour to both controllers 40 times a second, and starts the show on its evening schedule. Its web page is where it is set up.',status:'open'},
  {device:'Facade controller, Baldrick 8',where:'Garage wall board',software:'Baldrick firmware',job:`Takes its block of ${n(facade.channels)} channels off the network and drives ${facade.ports.length} pixel ports (${n(facade.pixels)} pixels). Port lengths and colour order are set on its own web page.`,status:'bought'},
  {device:'Garden controller, Baldrick 8',where:'IP66 box behind the front-left bush',software:'Baldrick firmware',job:`The same for the garden: ${n(garden.channels)} channels, ${garden.ports.length} ports, ${n(garden.pixels)} pixels.`,status:'bought'},
  {device:'5-port switch',where:'Garage',software:'None',job:'Joins the Pi and both controllers on one wired network: a patch cable to the facade controller, 15 m of network cable to the garden box.',status:'decided'},
@@ -51,6 +51,7 @@ const STEPS=[
 
 const OPEN=[
  {title:'The converter',text:'A script that writes the sequence directly (recommended above), or one that writes an xLights sequence for xLights to render. The xLights way lets you tweak effects by hand, but it needs a second layout of all 56 props kept in step with the model, and what xLights renders may not match the site. Either way the runbook\'s xLights steps become optional.'},
+ {title:'Which Pi runs the show',text:'A spare Pi 2 Model B is at hand, and a Pi 4 (4 GB, in a fanless FLIRC case) and a Pi 5 (8 GB, in an Argon One case) were ordered on 14 Nov, each with its own power supply, plus two 64 GB cards. Any of them can run Falcon Player for this show; the Pi 4 is the likely pick, with the second card kept as a cloned backup.'},
  {title:'DDP or E1.31',text:`The Baldrick takes both. DDP sends each controller one block of channels; E1.31 would need ${UNIVERSES} universes of 170 pixels set up on both ends. Proposal: DDP.`},
  {title:'How the switch reaches the house network',text:'The laptop needs to reach the Pi, and the Pi needs the time for its schedule. Either the switch gets a cable to the router, or the Pi joins the home Wi-Fi and keeps its Ethernet for the show. Not decided yet.'},
  {title:'IP addresses',text:'Three fixed addresses, for the Pi and the two controllers, reserved on the router. The runbook step is still open.'},
@@ -143,7 +144,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 
             <g>
               <rect v-bind="r(PI)" rx="14" class="card pi" />
-              <text :x="PI.x+16" :y="PI.y+28" class="t-title">Raspberry Pi 5</text>
+              <text :x="PI.x+16" :y="PI.y+28" class="t-title">Raspberry Pi</text>
               <text :x="PI.x+16" :y="PI.y+44" class="t-dim">Falcon Player (FPP)</text>
               <text :x="PI.x+16" :y="PI.y+72" class="t-body">Scheduler: evenings</text>
               <text :x="PI.x+16" :y="PI.y+94" class="t-body">Player: show.fseq + show.mp3</text>
