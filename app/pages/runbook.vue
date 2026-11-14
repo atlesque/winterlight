@@ -74,7 +74,7 @@ onMounted(async()=>{
 });
 
 const chapters=computed(()=>CHAPTERS.map((c,i)=>({...c,n:i+1,count:c.steps.filter(s=>done.value.has(s.id)).length,
- cost:c.steps.reduce((t,s)=>t+(s.buy?spent(byId[s.buy]):0),0)})));
+ cost:c.steps.reduce((t,s)=>t+(s.buy?showSpent(byId[s.buy]):0),0)})));
 const progress=computed(()=>({done:STEP_IDS.filter(id=>done.value.has(id)).length,of:STEP_IDS.length}));
 const next=computed(()=>{for(const c of chapters.value)for(const s of c.steps)if(!done.value.has(s.id))return {c,s};return null;});
 const stepText=s=>s.buy?`Order: ${byId[s.buy].name}`:measured.value.steps[s.id]?.text||s.text;
@@ -82,9 +82,12 @@ const stepText=s=>s.buy?`Order: ${byId[s.buy].name}`:measured.value.steps[s.id]?
 const tapeValue=x=>x.ids&&x.ids.every(id=>id in over.measures)?x.ids.map(id=>fmtMeasure(over.measures[id],x.unit)).join(', '):null;
 // A returned item was refunded, so it counts for nothing.
 const spent=p=>p.returned?0:p.cost;
+// Business gear ordered alongside the show (outside) is listed but counts for nothing in the show's spend.
+const showSpent=p=>p.outside?0:spent(p);
 // Optional items (gear that may already be at hand) stay out of the totals until ticked as ordered.
-const money=computed(()=>{const t={private:0,business:0,ordered:0,all:0,optional:0};
- for(const p of PURCHASES){const bought=done.value.has(`buy-${p.id}`),cost=spent(p);if(bought)t.ordered+=cost;
+const money=computed(()=>{const t={private:0,business:0,ordered:0,all:0,optional:0,outside:0};
+ for(const p of PURCHASES){const bought=done.value.has(`buy-${p.id}`),cost=spent(p);
+  if(p.outside){t.outside+=cost;continue;}if(bought)t.ordered+=cost;
   if(p.optional&&!bought){t.optional+=cost;continue;}t[kind(p)]+=cost;t.all+=cost;}return t;});
 const links=s=>s.links||(s.link?[s.link]:[]);
 const qty=p=>p.unit==='×'?`${p.qty} ×`:`${p.qty} ${p.unit}`;
@@ -131,6 +134,7 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
                       <template v-else-if="PER_PIXEL[s.buy]"> · <span class="per-pixel">Whole order {{ euro(PER_PIXEL[s.buy].total) }} for {{ PER_PIXEL[s.buy].pixels.toLocaleString('en') }} pixels: {{ cents(PER_PIXEL[s.buy].each) }} a pixel with shipping</span></template>
                       <template v-if="byId[s.buy].estimate"> · <UBadge label="estimate" color="primary" variant="subtle" size="sm" /></template>
                       <template v-if="byId[s.buy].owned"> · <UBadge label="already have" color="success" variant="subtle" size="sm" /></template>
+                      <template v-if="byId[s.buy].outside"> · <UBadge label="outside the show's spend" color="neutral" variant="subtle" size="sm" /></template>
                       <template v-if="byId[s.buy].optional"> · <UBadge label="optional" color="neutral" variant="subtle" size="sm" /></template>
                       <template v-if="byId[s.buy].returned"> · <UBadge :label="`returned ${day(byId[s.buy].returned)}`" color="warning" variant="subtle" size="sm" /></template></span>
                   </div>
@@ -169,6 +173,7 @@ useSeoMeta({robots:'noindex',description:DESCRIPTION,ogType:'website',ogSiteName
             <div class="grand"><dt>Total</dt><dd>{{ euro(money.all) }}</dd></div>
             <div v-if="money.optional"><dt>Optional, if not at hand <InfoTip text="Gear that may already be at hand. Not in the total until ticked as ordered." label="About optional items" /></dt><dd>{{ euro(money.optional) }}</dd></div>
             <div><dt>Ordered so far</dt><dd>{{ euro(money.ordered) }}</dd></div>
+            <div v-if="money.outside"><dt>Business gear, outside the show <InfoTip text="Raspberry Pi gear ordered with the show as a business purchase (excluding VAT). Listed with its order, but not counted in the totals above." label="About business gear outside the show" /></dt><dd>{{ euro(money.outside) }}</dd></div>
           </dl>
           <nav class="chapter-nav" aria-label="Chapters">
             <a v-for="c in chapters" :key="c.id" :href="`#${c.id}`" :class="{complete:c.count===c.steps.length}"><span>{{ c.n }}. {{ c.title }}</span><b>{{ c.count }}/{{ c.steps.length }}</b></a>

@@ -30,7 +30,7 @@ const portRows=(ctrl,box)=>ctrl.ports.map((p,i)=>({...p,y:box.y+70+i*ROW}));
 
 const STATUS={done:'Done',bought:'Bought',decided:'Decided',proposal:'Proposal',open:'To decide'};
 const SERVICES=[
- {device:'Raspberry Pi 5 (the spare one at hand)',where:'Garage, next to the facade board',software:'Falcon Player (FPP)',job:'Plays the sequence and the music together, sends every pixel\'s colour to both controllers 40 times a second, and starts the show on its evening schedule. Its web page is where it is set up.',status:'decided'},
+ {device:'Raspberry Pi 4, 4 GB, in a fanless FLIRC case',where:'Garage, next to the facade board',software:'Falcon Player (FPP)',job:'Plays the sequence and the music together, sends every pixel\'s colour to both controllers 40 times a second, and starts the show on its evening schedule. Its web page is where it is set up.',status:'bought'},
  {device:'Facade controller, Baldrick 8',where:'Garage wall board',software:'Baldrick firmware',job:`Takes its block of ${n(facade.channels)} channels off the network and drives ${facade.ports.length} pixel ports (${n(facade.pixels)} pixels). Port lengths and colour order are set on its own web page.`,status:'bought'},
  {device:'Garden controller, Baldrick 8',where:'IP66 box behind the front-left bush',software:'Baldrick firmware',job:`The same for the garden: ${n(garden.channels)} channels, ${garden.ports.length} ports, ${n(garden.pixels)} pixels.`,status:'bought'},
  {device:'5-port switch',where:'Garage',software:'None',job:'Joins the Pi and both controllers on one wired network: a patch cable to the facade controller, 15 m of network cable to the garden box.',status:'decided'},
@@ -143,7 +143,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 
             <g>
               <rect v-bind="r(PI)" rx="14" class="card pi" />
-              <text :x="PI.x+16" :y="PI.y+28" class="t-title">Raspberry Pi 5</text>
+              <text :x="PI.x+16" :y="PI.y+28" class="t-title">Raspberry Pi 4</text>
               <text :x="PI.x+16" :y="PI.y+44" class="t-dim">Falcon Player (FPP)</text>
               <text :x="PI.x+16" :y="PI.y+72" class="t-body">Scheduler: evenings</text>
               <text :x="PI.x+16" :y="PI.y+94" class="t-body">Player: show.fseq + show.mp3</text>
