@@ -63,14 +63,14 @@ const WALL_FIXINGS=['upper','lower','windows'].reduce((n,id)=>n+FULL.groups.find
 // Everything to buy for the full show. qty is in the shop's own units.
 // Ordered from Kiwi Electronics on 14 Nov as a business purchase: €378.11
 // excluding VAT, free PostNL shipping. Pi gear for the business as well as the
-// show, so it stays out of the show's spend (outside:true); one of these Pis,
-// or the spare Pi 2 Model B, runs Falcon Player.
+// show, so it stays out of the show's spend (outside:true); the Pi 4 runs
+// Falcon Player (decided 14 Nov).
 const KIWI_ORDER={shop:'kiwi',expense:'business',wave:2,ordered:'2026-11-14',orderBy:'2026-11-14',outside:true},KIWI_TIP='Ordered 14 Nov from Kiwi Electronics as a business purchase, €378.11 for the order excluding VAT, free PostNL shipping. Kept out of the show\'s spend.';
 const KIWI_ROWS=[
  {id:'kiwiPi5',name:'Raspberry Pi 5, 8 GB',qty:1,unit:'×',price:158.99,url:'https://www.kiwi-electronics.com/nl/',tip:`Kiwi KW-3223, €158.99 excl. VAT. ${KIWI_TIP}`},
  {id:'kiwiArgon',name:'Argon One V3 M.2 NVMe case for the Pi 5',qty:1,unit:'×',price:43.99,url:'https://www.kiwi-electronics.com/nl/',tip:`Kiwi KW-3319, €43.99 excl. VAT. ${KIWI_TIP}`},
  {id:'kiwiPsu27',name:'Raspberry Pi 27 W USB-C power supply (Pi 5)',qty:1,unit:'×',price:9.99,url:'https://www.kiwi-electronics.com/nl/',tip:`Kiwi KW-3225, €9.99 excl. VAT. ${KIWI_TIP}`},
- {id:'kiwiPi4',name:'Raspberry Pi 4 Model B, 4 GB',qty:1,unit:'×',price:89.99,url:'https://www.kiwi-electronics.com/nl/',tip:`Kiwi KW-2504, €89.99 excl. VAT. ${KIWI_TIP}`},
+ {id:'kiwiPi4',name:'Raspberry Pi 4 Model B, 4 GB (runs the show)',qty:1,unit:'×',price:89.99,url:'https://www.kiwi-electronics.com/nl/',tip:`Kiwi KW-2504, €89.99 excl. VAT. This is the Pi that runs Falcon Player, in the FLIRC case with the USB-C supply. ${KIWI_TIP}`},
  {id:'kiwiFlirc',name:'FLIRC case for the Pi 4 (passive, fanless)',qty:1,unit:'×',price:17.49,url:'https://www.kiwi-electronics.com/nl/',tip:`Kiwi KW-3088, €17.49 excl. VAT. ${KIWI_TIP}`},
  {id:'kiwiPsu4',name:'Raspberry Pi 4 USB-C power supply (5.1 V 3 A)',qty:1,unit:'×',price:6.99,url:'https://www.kiwi-electronics.com/nl/raspberry-pi-4-usb-c-voeding-zwart-eu-4270',tip:`Kiwi KW-2505, €6.99 excl. VAT. ${KIWI_TIP}`},
  {id:'kiwiPsuMicro',name:'Raspberry Pi 5.1 V 2.5 A micro-USB power supply (Pi 2 Model B)',qty:1,unit:'×',price:6.99,url:'https://www.kiwi-electronics.com/nl/',tip:`Kiwi KW-2850, €6.99 excl. VAT. For the spare Pi 2 Model B. ${KIWI_TIP}`},
@@ -222,7 +222,7 @@ export const CHAPTERS=[
   {id:'rcd',text:'Check the garage socket is on a 30 mA RCD',tip:'Checked 8 Nov: not safe as it is. The garage socket is circuit S (Poort garage) on the top row, which is only certainly behind the 300 mA main RCD (2023 charging point inspection); 300 mA guards against fire, not shock. The only 30 mA RCD, the old Merlin Gerin at the start of the bottom row (A to G), failed its test: held on T it did not trip, its test circuit burnt out and the 40 A main breaker under the meter tripped. So the boxes go on S through a plug-in 30 mA RCD (PRCD, on the shopping list), never straight into the socket. Both boxes run from one power strip in the garage, about 1 kW at full white.'},
   {id:'rcd-electrician',text:'Have an electrician replace the faulty 30 mA RCD and put S on its own 30 mA',tip:'Replace the Merlin Gerin with a Schneider Resi9 4P 40 A 30 mA type A (R9R01440, 4 modules, about €80 to €120), and swap the Teco C20 on S (and on R, Stopkont. living) for a Resi9 RCBO 1P+N C20 30 mA type A, which fits the same space. Ask which circuits end up behind each 30 mA. Until then: don\'t press T again, check the Merlin for heat after heavy loads, and switch it off if it smells or warms up.'},
   {id:'accountant',text:'Confirm the business purchases with the accountant',tip:'The business tags below are a suggestion: show hardware and network gear. Business orders go on a separate invoice in the company name with its VAT number.'},
-  {id:'spare-gear',text:'Check for a spare Raspberry Pi, a switch, patch cables and a power strip',tip:'All four are at hand, so none of them is on the shopping list. The spare Pi is a Pi 2 Model B; on 14 Nov a Pi 4 (4 GB) and a Pi 5 (8 GB) with cases, power supplies and two 64 GB cards were ordered from Kiwi as business gear, outside the show\'s spend. Which Pi runs Falcon Player is still to decide.'},
+  {id:'spare-gear',text:'Check for a spare Raspberry Pi, a switch, patch cables and a power strip',tip:'All four are at hand, so none of them is on the shopping list. The spare Pi is a Pi 2 Model B; on 14 Nov a Pi 4 (4 GB) and a Pi 5 (8 GB) with cases, power supplies and two 64 GB cards were ordered from Kiwi as business gear, outside the show\'s spend. The Pi 4 runs Falcon Player (decided 14 Nov), in its fanless FLIRC case, with the second card as a cloned backup.'},
   {id:'tools',text:'Get the tools ready: multimeter, wire stripper, crimp pliers, step drill bit, drill'},
   {id:'ip-plan',text:'Reserve IP addresses for the Pi and both controllers'},
  ]},
