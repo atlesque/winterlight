@@ -174,6 +174,8 @@ test('the LEDshows and Elektramat parcels arrived on 9 Nov, the Bambu Lab PETG a
  assert.deepEqual(arrived.sort(),[['arrive-audiophonics-1','2026-11-13'],['arrive-bambu-1','2026-11-12'],['arrive-bol-1','2026-11-12'],['arrive-elektramat-1','2026-11-09'],['arrive-elektramat-reorder','2026-11-13'],['arrive-ledshows-1','2026-11-09'],['arrive-propixeler-1','2026-11-13']]);
  for(const [id] of arrived)assert.ok(PRESET.includes(id),id);
  assert.ok(!PRESET.includes('arrive-pixelimperium-1'),'the pixels are still on their way');
+ const pixels=steps.find(s=>s.id==='arrive-pixelimperium-1');
+ assert.equal(pixels.due,'2026-11-16','PostNL moved the pixels to Monday 16 Nov');assert.match(pixels.tip,/PostNL/);
 });
 
 test('the pixel order shows what each pixel cost, with and without shipping',async()=>{

@@ -154,12 +154,14 @@ const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-0
 // Deliveries that came in part: the date, and what is still missing. These stay unticked.
 // bol.com came in part on 10 Nov (the gel boxes went back) and the FM transmitter, its last part, on 12 Nov.
 const PARTLY={};
+// Deliveries the shop or carrier has moved: the new expected date, and why.
+const DELAYED={'arrive-pixelimperium-1':{date:'2026-11-16',note:'Delayed: PostNL now delivers on Mon 16 Nov.'}};
 // One delivery check per shop and order wave, expected by the shop's slowest delivery.
 // buys lists the order steps it holds: it shows as expected only once they are all ticked.
 // A row with its own delivery (a reorder) gets a delivery check of its own.
 const deliveries=[1,2,'reorder'].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const items=PURCHASES.filter(p=>p.shop===id&&(p.delivery||p.wave)===wave&&!p.returned);if(!items.length||id==='local')return null;
- const key=`arrive-${id}-${wave}`,status=PARTLY[key];
- return {id:key,text:`${s.name} ${wave===2?'installation parts ':wave==='reorder'?'reorder ':''}delivered and checked`,due:addDays(items[0].orderBy,s.days[1]),buys:items.map(p=>`buy-${p.id}`),tip:[status?.note,items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · ')].filter(Boolean).join(' '),...(ARRIVED[key]&&{arrived:ARRIVED[key]}),...(status&&{partly:status.date})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
+ const key=`arrive-${id}-${wave}`,status=PARTLY[key],late=DELAYED[key];
+ return {id:key,text:`${s.name} ${wave===2?'installation parts ':wave==='reorder'?'reorder ':''}delivered and checked`,due:late?.date||addDays(items[0].orderBy,s.days[1]),buys:items.map(p=>`buy-${p.id}`),tip:[late?.note,status?.note,items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · ')].filter(Boolean).join(' '),...(ARRIVED[key]&&{arrived:ARRIVED[key]}),...(status&&{partly:status.date})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
 const g=Object.fromEntries(GROUP_LIST.map(x=>[x.id,{...x,pixels:group(x.id).pixels}]));
 // Strings the regulated ports take: each port starts on a fresh string, so each rounds up on its own.
 const REGULATED_PORTS=['upper','lower','windows','letters'],REGULATED_USED=REGULATED_PORTS.reduce((n,id)=>n+Math.ceil(g[id].pixels/50),0);
