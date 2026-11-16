@@ -167,15 +167,19 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  for(const m of MEASUREMENTS){assert.ok(m.guess>=m.min&&m.guess<=m.max,m.id);assert.ok([...m.from,...m.to].every(Number.isFinite),m.id);assert.ok(STEP_IDS.includes(m.step),m.id);}
 });
 
-test('the LEDshows and Elektramat parcels arrived on 9 Nov, the Bambu Lab PETG and the rest of bol.com on 12 Nov, the Elektramat reorder, ProPixeler and Audiophonics on 13 Nov, and start ticked',async()=>{
+test('the LEDshows and Elektramat parcels arrived on 9 Nov, the Bambu Lab PETG and the rest of bol.com on 12 Nov, the Elektramat reorder, ProPixeler and Audiophonics on 13 Nov, the AliExpress pigtails on 16 Nov, and start ticked',async()=>{
  const {PRESET}=await import('../src/runbook/runbook.js');
  const steps=CHAPTERS.find(c=>c.id==='deliveries').steps;
  const arrived=steps.filter(s=>s.arrived).map(s=>[s.id,s.arrived]);
- assert.deepEqual(arrived.sort(),[['arrive-audiophonics-1','2026-11-13'],['arrive-bambu-1','2026-11-12'],['arrive-bol-1','2026-11-12'],['arrive-elektramat-1','2026-11-09'],['arrive-elektramat-reorder','2026-11-13'],['arrive-ledshows-1','2026-11-09'],['arrive-propixeler-1','2026-11-13']]);
+ assert.deepEqual(arrived.sort(),[['arrive-aliexpress-1','2026-11-16'],['arrive-audiophonics-1','2026-11-13'],['arrive-bambu-1','2026-11-12'],['arrive-bol-1','2026-11-12'],['arrive-elektramat-1','2026-11-09'],['arrive-elektramat-reorder','2026-11-13'],['arrive-ledshows-1','2026-11-09'],['arrive-propixeler-1','2026-11-13']]);
  for(const [id] of arrived)assert.ok(PRESET.includes(id),id);
  assert.ok(!PRESET.includes('arrive-pixelimperium-1'),'the pixels are still on their way');
  const pixels=steps.find(s=>s.id==='arrive-pixelimperium-1');
  assert.equal(pixels.due,'2026-11-16','PostNL moved the pixels to Monday 16 Nov');assert.match(pixels.tip,/PostNL/);
+ const pigtails=steps.find(s=>s.id==='arrive-aliexpress-1'),cables=steps.find(s=>s.id==='arrive-aliexpress-cables');
+ assert.deepEqual(pigtails.buys,['buy-pigtail'],'AliExpress split the 6 Nov order: the pigtails came on their own');
+ assert.deepEqual(cables.buys,['buy-cable']);assert.ok(!cables.arrived&&!PRESET.includes(cables.id),'the extension cables are still in transit');
+ assert.equal(cables.due,'2026-11-22');assert.match(cables.text,/extension cables/);
 });
 
 test('the pixel order shows what each pixel cost, with and without shipping',async()=>{
@@ -221,7 +225,7 @@ test('a delivery is only expected once every order in it is placed: most install
  const steps=CHAPTERS.find(c=>c.id==='deliveries').steps.filter(s=>s.buys);
  const placed=s=>s.buys.every(id=>PRESET.includes(id));
  const expected=steps.filter(placed).map(s=>s.id).sort(),waiting=steps.filter(s=>!placed(s)).map(s=>s.id).sort();
- assert.deepEqual(expected,['arrive-aliexpress-1','arrive-bambu-1','arrive-bol-1','arrive-elektramat-1','arrive-elektramat-reorder','arrive-kunststofshop-1','arrive-ledshows-1','arrive-pixelimperium-1','arrive-propixeler-1','arrive-audiophonics-1','arrive-aliexpress-2','arrive-ledshows-2','arrive-kiwi-2'].sort());
+ assert.deepEqual(expected,['arrive-aliexpress-1','arrive-aliexpress-cables','arrive-bambu-1','arrive-bol-1','arrive-elektramat-1','arrive-elektramat-reorder','arrive-kunststofshop-1','arrive-ledshows-1','arrive-pixelimperium-1','arrive-propixeler-1','arrive-audiophonics-1','arrive-aliexpress-2','arrive-ledshows-2','arrive-kiwi-2'].sort());
  assert.deepEqual(waiting,['arrive-bol-2','arrive-elektramat-2','arrive-zelektro-2']);
  for(const s of steps.filter(s=>!placed(s)))assert.ok(!PRESET.includes(s.id),`${s.id} has not arrived`);
 });
