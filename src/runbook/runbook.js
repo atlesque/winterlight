@@ -150,7 +150,7 @@ for(const o of new Set(PURCHASES.filter(p=>p.pixelsEach).map(p=>`${p.shop}-${p.w
 const addDays=(date,n)=>{const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
 const buy=wave=>PURCHASES.filter(p=>p.wave===wave).map(p=>({id:`buy-${p.id}`,buy:p.id}));
 // Deliveries already at the door, by delivery step id. These start ticked.
-const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09','arrive-bambu-1':'2026-11-12','arrive-bol-1':'2026-11-12','arrive-elektramat-reorder':'2026-11-13','arrive-propixeler-1':'2026-11-13','arrive-audiophonics-1':'2026-11-13','arrive-aliexpress-1':'2026-11-16','arrive-ledshows-2':'2026-11-17','arrive-kiwi-2':'2026-11-17'};
+const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09','arrive-bambu-1':'2026-11-12','arrive-bol-1':'2026-11-12','arrive-elektramat-reorder':'2026-11-13','arrive-propixeler-1':'2026-11-13','arrive-audiophonics-1':'2026-11-13','arrive-aliexpress-1':'2026-11-16','arrive-ledshows-2':'2026-11-17','arrive-kiwi-2':'2026-11-17','arrive-aliexpress-2':'2026-11-21'};
 // Deliveries that came in part: the date, and what is still missing. These stay unticked.
 // bol.com came in part on 10 Nov (the gel boxes went back) and the FM transmitter, its last part, on 12 Nov.
 const PARTLY={};
