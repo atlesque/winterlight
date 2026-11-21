@@ -229,7 +229,7 @@ export const MEASURES={
  ],
 };
 
-const FPP='https://github.com/FalconChristmas/fpp/releases',BALDRICK='https://www.baldrickboard.com/en/boards/baldrick8/manual';
+const BALDRICK='https://www.baldrickboard.com/en/boards/baldrick8/manual';
 
 export const CHAPTERS=[
  {id:'plan',title:'Plan and measure',icon:'i-lucide-ruler',due:'2026-11-05',steps:[
@@ -251,7 +251,7 @@ export const CHAPTERS=[
   {id:'count-pixels',text:'Count the pixel strings and look for damaged plugs'},
  ]},
  {id:'bench',title:'Bench test',icon:'i-lucide-cpu',due:'2026-11-17',steps:[
-  {id:'flash-fpp',text:'Flash Falcon Player onto the Pi\'s card',link:{href:FPP,label:'FPP releases'}},
+  {id:'flash-fpp',text:'Flash Falcon Player onto the Pi\'s card',link:{href:'/setup.html',label:'Pi and controller setup'}},
   {id:'bench-wire',text:'Wire one power supply and one controller on the table',tip:'Mains on the power supply terminals only with the plug out. Fuse each output.'},
   {id:'bench-ip',text:'Give both controllers their static IP',link:{href:BALDRICK,label:'Baldrick 8 manual'}},
   {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:`Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). All the AliExpress strings are regulated, so they hold their brightness on the facade\'s data leads before the first injection. Cut the 100-pixel strings at pixel 50 only where two props aren\'t side by side, and fit a pigtail pair. Where one string serves two props, cut out the pixels left between them.`},
@@ -288,8 +288,8 @@ export const CHAPTERS=[
   {id:'place-network',text:'Patch the facade controller and the Pi into the switch, run the outdoor cable to the garden controller, and plug both into the power strip behind the RCD'},
  ]},
  {id:'software',title:'Configure the software',icon:'i-lucide-monitor-cog',due:'2026-12-09',steps:[
-  {id:'sw-fpp',text:'Set up Falcon Player: static IP, time zone, the USB sound card as audio out'},
-  {id:'sw-controllers',text:'Set each controller port\'s pixel count, start channel and colour order, with DDP as input',link:{href:BALDRICK,label:'Baldrick 8 manual'},tip:'From outputs/fpp/controller-ports.csv. Full brightness, gamma 1.0, and no port reversed: the show file is already in the order the strings are wired. docs/falcon-player.md has the steps.'},
+  {id:'sw-fpp',text:'Set up Falcon Player: static IP, time zone, the USB sound card as audio out',link:{href:'/setup.html',label:'Pi and controller setup'}},
+  {id:'sw-controllers',text:'Set each controller port\'s pixel count, start channel and colour order, with DDP as input',link:{href:BALDRICK,label:'Baldrick 8 manual'},tip:'From outputs/fpp/controller-ports.csv. Full brightness, gamma 1.0, and no port reversed: the show file is already in the order the strings are wired. The setup page has the port tables.'},
   {id:'sw-outputs',text:'Add Falcon Player\'s two DDP outputs, one per controller',tip:`Channel Outputs, E1.31 / ArtNet / DDP: ${CONTROLLERS.map(c=>`${c.id} from channel ${c.start}, ${c.channels} channels`).join('; ')}; both "DDP - One Based", or post outputs/fpp/co-universes.json. Re-run the export with the controllers\' real IPs first.`},
   {id:'sw-sequence',text:'Export the show file: node tools/fseq/export.mjs',link:{href:'/software.html',label:'Show software'},tip:'Writes show.fseq (every pixel, 40 frames a second) and show.mp3 to outputs/fpp; the committed copies are ready to use. Re-run it after any change to a prop\'s pixel count. xLights isn\'t needed.'},
   {id:'sw-upload',text:'Upload show.fseq and show.mp3 to Falcon Player and make a playlist with one Seq+Med entry'},

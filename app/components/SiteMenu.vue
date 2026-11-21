@@ -5,6 +5,7 @@ const PAGES=[
   {label:'LED cost estimate',description:'LEDs and euro costs per prop',icon:'i-lucide-gift',to:'/costs.html',paths:['/costs','/costs.html']},
   {label:'Wiring plan',description:'Boxes, power and pixel runs',icon:'i-lucide-cable',to:'/wiring.html',paths:['/wiring','/wiring.html']},
   {label:'Show software',description:'Data, services and the show file',icon:'i-lucide-network',to:'/software.html',paths:['/software','/software.html']},
+  {label:'Pi and controller setup',description:'Falcon Player and the controllers',icon:'i-lucide-cpu',to:'/setup.html',paths:['/setup','/setup.html']},
   {label:'Build runbook',description:'From ordering to the first test run',icon:'i-lucide-list-checks',to:'/runbook.html',paths:['/runbook','/runbook.html']},
   {label:'3D prints',description:'PETG parts for the A1',icon:'i-lucide-printer',to:'/print.html',paths:['/print','/print.html']},
   {label:'Measure the house',description:'What to measure, on the 3D model',icon:'i-lucide-ruler',to:'/measure.html',paths:['/measure','/measure.html']},
