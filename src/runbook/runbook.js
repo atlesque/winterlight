@@ -5,6 +5,7 @@ import {OWN_CHANNELS} from '../props.js';
 import {MEASUREMENTS} from '../measures/measures.js';
 import {PARTS as PRINT_PARTS,BRICK,BRICKS,PARASOL} from '../print/parts.js';
 import PRINT_MANIFEST from '../../outputs/print/manifest.json' with {type:'json'};
+import {CONTROLLERS} from '../software/plan.js';
 // The 3D prints page (print.html): how many parts, how much PETG, and a link to a prop's section.
 const PRINT_COUNT=PRINT_PARTS.reduce((s,p)=>s+p.qty,0),PRINT_GRAMS=PRINT_PARTS.reduce((s,p)=>s+p.qty*(PRINT_MANIFEST[p.id]?.grams??0),0);
 const PRINT_LINK=id=>({href:`/print.html#${id}`,label:'3D prints'});
@@ -221,7 +222,7 @@ export const MEASURES={
  ],
 };
 
-const FPP='https://github.com/FalconChristmas/fpp/releases',XLIGHTS='https://xlights.org/releases/',BALDRICK='https://www.baldrickboard.com/en/boards/baldrick8/manual';
+const FPP='https://github.com/FalconChristmas/fpp/releases',BALDRICK='https://www.baldrickboard.com/en/boards/baldrick8/manual';
 
 export const CHAPTERS=[
  {id:'plan',title:'Plan and measure',icon:'i-lucide-ruler',due:'2026-11-05',steps:[
@@ -246,7 +247,7 @@ export const CHAPTERS=[
   {id:'flash-fpp',text:'Flash Falcon Player onto the Pi\'s card',link:{href:FPP,label:'FPP releases'}},
   {id:'bench-wire',text:'Wire one power supply and one controller on the table',tip:'Mains on the power supply terminals only with the plug out. Fuse each output.'},
   {id:'bench-ip',text:'Give both controllers their static IP',link:{href:BALDRICK,label:'Baldrick 8 manual'}},
-  {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:`Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). All the AliExpress strings are regulated, so they hold their brightness on the facade\'s data leads before the first injection. Cut the 100-pixel strings at pixel 50 only where two props aren\'t side by side, and fit a pigtail pair.`},
+  {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:`Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). All the AliExpress strings are regulated, so they hold their brightness on the facade\'s data leads before the first injection. Cut the 100-pixel strings at pixel 50 only where two props aren\'t side by side, and fit a pigtail pair. Where one string serves two props, cut out the pixels left between them.`},
  ]},
  {id:'build',title:'Build the props',icon:'i-lucide-hammer',due:'2026-11-24',steps:[
   {id:'build-boxes',text:'Build the facade board for the garage wall and the garden box: a controller, two power supplies and fuses in each',tip:'Fuse every power supply output and keep the mains side covered. In the garden box, mount the parts on its plate with room round the supplies, bring every cable in from below through a gland, and the data and injection leads in as pigtail tails.'},
@@ -258,7 +259,7 @@ export const CHAPTERS=[
   {id:'build-canes',text:`Cut and drill the ${g.canes.props.length} candy canes`},
   {id:'build-star',text:'Cut and drill the tree star',link:PRINT_LINK('tree'),tip:'One star from the template: cut the outer and inner edges of the grey band, drill the 30 pixel holes with the 12 mm step drill, then two 5 mm holes just above the bottom notch to tie it into the star holder\'s slot.'},
   {id:'build-letters',text:`Check the ${g.letters.props.length} letters: ${g.letters.pixels} holes, all taking a 12 mm pixel`},
-  {id:'build-push',text:'Push the pixels into the letters and coro props and tie the spare wire behind',tip:'Start each prop at the corner nearest its box, so the data runs the same way as in the model. Where two pixels sit further apart than the string\'s 10 cm (between the circles\' rings, the peace sign\'s strokes, some letters\' strokes), cut and solder in a short piece of 3-core wire.'},
+  {id:'build-push',text:'Push the pixels into the letters and coro props and tie the spare wire behind',tip:'Start each prop at the corner nearest its box, so the data runs the same way as in the model. Where two pixels sit further apart than the string\'s 10 cm (between the circles\' rings, the peace sign\'s strokes, some letters\' strokes), cut and solder in a short piece of 3-core wire. Cut off the pixels a prop doesn\'t use: every prop must carry exactly its pixel count, or every prop after it on the port lights the wrong pixels.'},
   {id:'build-strips',text:`Fix the house strips to mounting strip: upper ${g.upper.pixels}, lower ${g.lower.pixels} pixels with icicle drops`,tip:'With 10 cm between pixels the string can\'t drop and come straight back up: make each drop a loop, pixels going down and coming back up, and wire the eave strip from its right end, nearest the garage hole.'},
   {id:'build-windows',text:`Fix the window outlines to mounting strip: ${g.windows.pixels} pixels at 10 cm`,tip:'In data order: the garage door first (starting at its left foot), then the small window, the front door and the kitchen window. A 2 m extension bridges each opening to the next. The outlines sit on the brick 12 cm outside each opening, so the built-in shutters still close; fix nothing to the shutter boxes or guides.'},
   {id:'build-minitrees',text:`String the ${g.minitrees.props.length} mini trees on their printed frames, ${each('minitrees')} pixels each`,link:PRINT_LINK('minitrees'),tip:'Up one spoke and down the next, so the string never has to jump from the top back to the base.'},
@@ -281,11 +282,10 @@ export const CHAPTERS=[
  ]},
  {id:'software',title:'Configure the software',icon:'i-lucide-monitor-cog',due:'2026-11-28',steps:[
   {id:'sw-fpp',text:'Set up Falcon Player: static IP, time zone, the USB sound card as audio out'},
-  {id:'sw-controllers',text:'Set each controller port\'s pixel count and colour order',link:{href:BALDRICK,label:'Baldrick 8 manual'},tip:'Full brightness. Reverse every other tree strand and mini-tree spoke, and the eave strip, to match how they are wired.'},
-  {id:'sw-xlights',text:'Install xLights on the laptop',link:{href:XLIGHTS,label:'xLights downloads'}},
-  {id:'sw-layout',text:`Build the layout in xLights: ${FULL.groups.reduce((n,x)=>n+x.count,0)} props on two controllers`,tip:'One model per channel on the show page, with the same pixel counts.'},
-  {id:'sw-sequence',text:'Turn the detected show into an xLights sequence',link:{href:'/software.html',label:'Show software'},tip:'The cue file has one brightness per channel per video frame. There is no exporter yet; the proposal on the show software page is a small script that writes Falcon Player\'s .fseq straight from it, with xLights optional.'},
-  {id:'sw-upload',text:'Upload the sequence and the music to Falcon Player and make a playlist'},
+  {id:'sw-controllers',text:'Set each controller port\'s pixel count, start channel and colour order, with DDP as input',link:{href:BALDRICK,label:'Baldrick 8 manual'},tip:'From outputs/fpp/controller-ports.csv. Full brightness, gamma 1.0, and no port reversed: the show file is already in the order the strings are wired. docs/falcon-player.md has the steps.'},
+  {id:'sw-outputs',text:'Add Falcon Player\'s two DDP outputs, one per controller',tip:`Channel Outputs, E1.31 / ArtNet / DDP: ${CONTROLLERS.map(c=>`${c.id} from channel ${c.start}, ${c.channels} channels`).join('; ')}; both "DDP - One Based", or post outputs/fpp/co-universes.json. Re-run the export with the controllers\' real IPs first.`},
+  {id:'sw-sequence',text:'Export the show file: node tools/fseq/export.mjs',link:{href:'/software.html',label:'Show software'},tip:'Writes show.fseq (every pixel, 40 frames a second) and show.mp3 to outputs/fpp; the committed copies are ready to use. Re-run it after any change to a prop\'s pixel count. xLights isn\'t needed.'},
+  {id:'sw-upload',text:'Upload show.fseq and show.mp3 to Falcon Player and make a playlist with one Seq+Med entry'},
   {id:'sw-schedule',text:'Schedule the playlist for the evenings'},
   {id:'sw-fm',text:'Tune the FM transmitter to a free frequency'},
  ]},

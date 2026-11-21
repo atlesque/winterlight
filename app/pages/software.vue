@@ -1,11 +1,11 @@
 <script setup>
-import {CUE,SHOW_SECONDS,FSEQ_FPS,FSEQ_FRAMES,FSEQ_MB,CONTROLLERS,TOTAL_CHANNELS,UNIVERSES} from '~~/src/software/plan.js';
+import {CUE,SHOW_SECONDS,FSEQ_FPS,FSEQ_FRAMES,FSEQ_MB,CONTROLLERS,TOTAL_CHANNELS} from '~~/src/software/plan.js';
 import {WIRE_COLORS} from '~~/src/wiring/plan.js';
 
 // The show software: one diagram of how the devices talk during the show, what
 // runs where, and how the detected 3-minute show becomes a sequence Falcon
 // Player can play on the real controllers. Hardware numbers come from the
-// wiring plan; the conversion is still a proposal and the page says so.
+// wiring plan; the conversion is tools/fseq/export.mjs (docs/falcon-player.md).
 definePageMeta({alias:['/software.html']});
 const n=v=>v.toLocaleString('en');
 const mmss=s=>`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
@@ -35,31 +35,29 @@ const SERVICES=[
  {device:'Garden controller, Baldrick 8',where:'IP65 box behind the front-left bush',software:'Baldrick firmware',job:`The same for the garden: ${n(garden.channels)} channels, ${garden.ports.length} ports, ${n(garden.pixels)} pixels.`,status:'bought'},
  {device:'5-port switch',where:'Garage',software:'None',job:'Joins the Pi and both controllers on one wired network: a patch cable to the facade controller, 15 m of network cable to the garden box.',status:'decided'},
  {device:'USB sound card and FM transmitter',where:'Garage, street side',software:'None (the Pi\'s audio output)',job:'Carries the music from the Pi to car radios on the street.',status:'bought'},
- {device:'Laptop',where:'Anywhere at home',software:'A browser, the export script, xLights if wanted',job:'Setup only: makes the sequence, uploads it to the Pi and sets up the controllers. Not needed on show nights.',status:'proposal'},
+ {device:'Laptop',where:'Anywhere at home',software:'A browser, the export script, xLights if wanted',job:'Setup only: runs the export, uploads show.fseq and show.mp3 to the Pi and sets up the controllers. Not needed on show nights.',status:'done'},
  {device:'Home router',where:'House',software:'DHCP and internet time',job:'Fixed addresses for the Pi and the controllers, the clock the schedule runs on, and the way in from the laptop.',status:'open'},
  {device:'Winterlight site',where:'Cloudflare',software:'Static pages, a Worker and a D1 database',job:'The 3D preview of the show, the cue file and the runbook. Nothing in the garage talks to it during the show.',status:'done'},
 ];
 
 const STEPS=[
  {status:'done',icon:'i-lucide-scan-eye',title:'Detected cues',text:`The cue file the site plays: ${CUE.channels} channels × ${n(CUE.frames)} video frames at 29.97 fps, ${mmss(SHOW_SECONDS)} of show. For each frame a channel has a colour (off, on, or yellow, blue or both on the two-colour strips) and a brightness in 5% steps.`},
- {status:'proposal',icon:'i-lucide-git-fork',title:'Channels to pixels',text:'Each channel lights its own pixels: src/props.js says which bulbs, the wiring plan their order on each port. A pixel\'s red, green and blue are its bulb colour times the channel\'s brightness; on the two-colour strips the yellow bulbs follow yellow, the blue ones blue, both follow both.'},
- {status:'proposal',icon:'i-lucide-timer',title:`Resample to ${FSEQ_FPS} fps`,text:`Falcon Player's frames are whole milliseconds, so the video's 33.37 ms frames can't be kept. Every ${1000/FSEQ_FPS} ms output frame shows the video frame on screen at that moment, never more than one frame off. ${FSEQ_FPS} fps also fits the Baldrick's ports.`},
- {status:'proposal',icon:'i-lucide-file-cog',title:'Write show.fseq',text:`One Node script in the repo (tools/fseq/export.mjs) that reads the same files the site does and writes Falcon Player's sequence: ${n(TOTAL_CHANNELS)} channels × ${n(FSEQ_FRAMES)} frames, about ${FSEQ_MB} MB before compression and far less after.`},
- {status:'proposal',icon:'i-lucide-music',title:'The music',text:'The site\'s soundtrack was taken from the same video, so second 0 of the audio is frame 0 of the cues. Converted to MP3 it plays on the Pi, and Falcon Player keeps the lights on the music\'s clock.'},
- {status:'decided',icon:'i-lucide-calendar-clock',title:'Playlist and schedule',text:'Upload show.fseq and the MP3 in Falcon Player\'s web page, put them in a playlist and schedule it for the evenings. These steps are already in the runbook\'s software chapter.'},
+ {status:'done',icon:'i-lucide-git-fork',title:'Channels to pixels',text:'Each channel lights its own pixels: src/props.js says which bulbs, the wiring plan their order on each port. A pixel\'s red, green and blue are its bulb colour times the channel\'s brightness, through a 2.2 gamma curve for the LEDs; on the two-colour strips the yellow bulbs follow yellow, the blue ones blue, both follow both.'},
+ {status:'done',icon:'i-lucide-timer',title:`Resample to ${FSEQ_FPS} fps`,text:`Falcon Player's frames are whole milliseconds, so the video's 33.37 ms frames can't be kept. Every ${1000/FSEQ_FPS} ms output frame shows the video frame on screen at that moment, never more than one frame off. ${FSEQ_FPS} fps also fits the Baldrick's ports.`},
+ {status:'done',icon:'i-lucide-file-cog',title:'Write show.fseq',text:`tools/fseq/export.mjs reads the same files the site does and writes Falcon Player's sequence to outputs/fpp: ${n(TOTAL_CHANNELS)} channels × ${n(FSEQ_FRAMES)} frames, ${FSEQ_MB} MB before compression and 0.3 MB after. A test checks it against the site's player.`},
+ {status:'done',icon:'i-lucide-music',title:'The music',text:'The site\'s soundtrack was taken from the same video, so second 0 of the audio is frame 0 of the cues. The export converts it to show.mp3 for the Pi, and Falcon Player keeps the lights on the music\'s clock.'},
+ {status:'decided',icon:'i-lucide-calendar-clock',title:'Playlist and schedule',text:'Upload show.fseq and show.mp3 in Falcon Player\'s web page, put them in a playlist and schedule it for the evenings. docs/falcon-player.md has the steps, and the runbook\'s software chapter lists them.'},
 ];
 
 const OPEN=[
- {title:'The converter',text:'A script that writes the sequence directly (recommended above), or one that writes an xLights sequence for xLights to render. The xLights way lets you tweak effects by hand, but it needs a second layout of all 56 props kept in step with the model, and what xLights renders may not match the site. Either way the runbook\'s xLights steps become optional.'},
- {title:'DDP or E1.31',text:`The Baldrick takes both. DDP sends each controller one block of channels; E1.31 would need ${UNIVERSES} universes of 170 pixels set up on both ends. Proposal: DDP.`},
  {title:'How the switch reaches the house network',text:'The laptop needs to reach the Pi, and the Pi needs the time for its schedule. Either the switch gets a cable to the router, or the Pi joins the home Wi-Fi and keeps its Ethernet for the show. Not decided yet.'},
  {title:'IP addresses',text:'Three fixed addresses, for the Pi and the two controllers, reserved on the router. The runbook step is still open.'},
- {title:'Brightness on real pixels',text:'The cue levels are what the camera saw. Real pixels will likely need a gamma curve and an overall brightness limit, tuned at the test run in Falcon Player or in the export.'},
+ {title:'Brightness on real pixels',text:'The cue levels are what the camera saw. The export applies a 2.2 gamma curve at full brightness; both are options of the export script, to tune at the test run.'},
 ];
 const ROUTE=[
  'Only one place describes the props: the export reads the same layout and wiring the site and the cost page use, so a prop that changes there changes in the sequence.',
  'What plays on the house is what plays on the site. A test can check sample frames of the sequence against the site\'s player.',
- 'Because every pixel of a single-colour prop shows the same thing, the tree strands and mini-tree spokes that are wired up one and down the next need no reversing in the file; only the two-colour strips care about pixel order, and the controller can reverse a whole port.',
+ 'The file follows the model\'s wiring order, the eave strip from its right end and the tree strands and mini-tree spokes up one and down the next, so no port is reversed on the controllers.',
  'Colour order (RGB or GRB, found at the bench test) is set per port on the controllers, so the file stays plain RGB.',
 ];
 
@@ -80,7 +78,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
       <section class="intro">
         <h1>Show software</h1>
         <p>During the show a Raspberry Pi in the garage runs Falcon Player. It plays the music and, {{ FSEQ_FPS }} times a second, sends the colour of all {{ n(TOTAL_CHANNELS/3) }} pixels over the network to the two Baldrick 8 controllers, which drive the pixel strings.
-          The music goes out to car radios through an FM transmitter. The hardware below is what was ordered and wired (see the <a href="/wiring.html">wiring plan</a>); how the {{ mmss(SHOW_SECONDS) }} show on this site becomes a file the Pi can play is still a <b class="tag proposal">proposal</b>.</p>
+          The music goes out to car radios through an FM transmitter. The hardware below is what was ordered and wired (see the <a href="/wiring.html">wiring plan</a>); the {{ mmss(SHOW_SECONDS) }} show on this site is exported as a file the Pi plays, show.fseq, with its music.</p>
       </section>
 
       <section class="diagram glass" aria-label="Data diagram">
@@ -192,7 +190,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
       <div class="wiring-kpis">
         <div class="glass"><b>{{ CONTROLLERS.length }}</b><span>controllers on the network</span></div>
         <div class="glass"><b>{{ n(TOTAL_CHANNELS) }}</b><span>channels a frame (3 per pixel)</span></div>
-        <div class="glass"><b>{{ FSEQ_FPS }} fps</b><span>show sequence, proposed</span></div>
+        <div class="glass"><b>{{ FSEQ_FPS }} fps</b><span>show sequence</span></div>
         <div class="glass"><b>{{ mmss(SHOW_SECONDS) }}</b><span>show length</span></div>
       </div>
 
@@ -215,7 +213,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 
       <section class="pipeline-head">
         <h2>From the simulation to the controllers</h2>
-        <p class="lead">The show on this site is not a video: it is the detected cue file, played on the 3D model. The plan is to turn that same file into Falcon Player's sequence format (.fseq), which holds every pixel's colour for every frame, and play it with the music. Only the first step exists today.</p>
+        <p class="lead">The show on this site is not a video: it is the detected cue file, played on the 3D model. The export turns that same file into Falcon Player's sequence format (.fseq), which holds every pixel's colour for every frame, to play with the music.</p>
       </section>
       <ol class="pipeline">
         <li v-for="(s,i) in STEPS" :key="s.title" class="glass">
@@ -227,7 +225,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 
       <section class="glass box-card">
         <h2>Where each pixel lands</h2>
-        <p class="led">The sequence numbers its channels in wiring order: the facade controller first, then the garden one, each port's chain in data order. Falcon Player gets two outputs, one per controller IP, each with its own block; each controller maps its block onto its ports. <span class="tag proposal">Proposal</span></p>
+        <p class="led">The sequence numbers its channels in wiring order: the facade controller first, then the garden one, each port's chain in data order. Falcon Player gets two DDP outputs (one based), one per controller IP, each with its own block; each controller maps its block onto its ports from its channel 1. The export writes these outputs as co-universes.json. <span class="tag done">Done</span></p>
         <div class="table-scroll">
           <table class="map">
             <thead><tr><th>Controller</th><th>Port</th><th>Chain</th><th class="num">Pixels</th><th class="num">Channels</th></tr></thead>

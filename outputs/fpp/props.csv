@@ -1,0 +1,57 @@
+controller,port,prop,id,pixels,firstPixel,lastPixel,showStart,showEnd
+Facade controller,1,Upper floor strip,upper,180,1,180,1,540
+Facade controller,2,Lower floor strip,lower,148,1,148,541,984
+Facade controller,3,Window strips,windows,222,1,222,985,1650
+Facade controller,4,Letter 1 · H,letter-01,46,1,46,1651,1788
+Facade controller,4,Letter 2 · A,letter-02,41,47,87,1789,1911
+Facade controller,4,Letter 3 · P,letter-03,39,88,126,1912,2028
+Facade controller,4,Letter 4 · P,letter-04,39,127,165,2029,2145
+Facade controller,4,Letter 5 · Y,letter-05,31,166,196,2146,2238
+Facade controller,4,Letter 6 · H,letter-06,46,197,242,2239,2376
+Facade controller,4,Letter 7 · O,letter-07,42,243,284,2377,2502
+Facade controller,4,Letter 8 · L,letter-08,28,285,312,2503,2586
+Facade controller,4,Letter 9 · I,letter-09,18,313,330,2587,2640
+Facade controller,4,Letter 10 · D,letter-10,46,331,376,2641,2778
+Facade controller,4,Letter 11 · A,letter-11,41,377,417,2779,2901
+Facade controller,4,Letter 12 · Y,letter-12,31,418,448,2902,2994
+Facade controller,4,Letter 13 · S,letter-13,40,449,488,2995,3114
+Facade controller,5,Left circle,wreath-left,44,1,44,3115,3246
+Facade controller,5,Right circle,wreath-right,44,45,88,3247,3378
+Facade controller,6,Peace sign,peace,45,1,45,3379,3513
+Garden controller,1,Candy cane 1,cane-1,16,1,16,3514,3561
+Garden controller,1,Candy cane 2,cane-2,16,17,32,3562,3609
+Garden controller,1,Candy cane 3,cane-3,16,33,48,3610,3657
+Garden controller,1,Candy cane 4,cane-4,16,49,64,3658,3705
+Garden controller,1,Candy cane 5,cane-5,16,65,80,3706,3753
+Garden controller,1,Candy cane 6,cane-6,16,81,96,3754,3801
+Garden controller,1,Candy cane 7,cane-7,16,97,112,3802,3849
+Garden controller,1,Candy cane 8,cane-8,16,113,128,3850,3897
+Garden controller,2,Mini tree 1,minitree-1,54,1,54,3898,4059
+Garden controller,2,Mini tree 2,minitree-2,54,55,108,4060,4221
+Garden controller,2,Mini tree 3,minitree-3,54,109,162,4222,4383
+Garden controller,2,Mini tree 4,minitree-4,54,163,216,4384,4545
+Garden controller,2,Mini tree 5,minitree-5,54,217,270,4546,4707
+Garden controller,2,Mini tree 6,minitree-6,54,271,324,4708,4869
+Garden controller,2,Mini tree 7,minitree-7,54,325,378,4870,5031
+Garden controller,2,Mini tree 8,minitree-8,54,379,432,5032,5193
+Garden controller,2,Mini tree 9,minitree-9,54,433,486,5194,5355
+Garden controller,2,Mini tree 10,minitree-10,54,487,540,5356,5517
+Garden controller,2,Mini tree 11,minitree-11,54,541,594,5518,5679
+Garden controller,3,Ground strip,fence,126,1,126,5680,6057
+Garden controller,4,Tree strip 1,tree-01,21,1,21,6058,6120
+Garden controller,4,Tree strip 2,tree-02,21,22,42,6121,6183
+Garden controller,4,Tree strip 3,tree-03,21,43,63,6184,6246
+Garden controller,4,Tree strip 4,tree-04,21,64,84,6247,6309
+Garden controller,4,Tree strip 5,tree-05,21,85,105,6310,6372
+Garden controller,4,Tree strip 6,tree-06,21,106,126,6373,6435
+Garden controller,4,Tree strip 7,tree-07,21,127,147,6436,6498
+Garden controller,4,Tree strip 8,tree-08,21,148,168,6499,6561
+Garden controller,4,Tree strip 9,tree-09,21,169,189,6562,6624
+Garden controller,4,Tree strip 10,tree-10,21,190,210,6625,6687
+Garden controller,4,Tree strip 11,tree-11,21,211,231,6688,6750
+Garden controller,4,Tree strip 12,tree-12,21,232,252,6751,6813
+Garden controller,4,Tree strip 13,tree-13,21,253,273,6814,6876
+Garden controller,4,Tree strip 14,tree-14,21,274,294,6877,6939
+Garden controller,4,Tree strip 15,tree-15,21,295,315,6940,7002
+Garden controller,4,Tree strip 16,tree-16,21,316,336,7003,7065
+Garden controller,4,Tree star,tree-star,30,337,366,7066,7155

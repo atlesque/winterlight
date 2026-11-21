@@ -1,0 +1,11 @@
+controller,port,chain,pixels,localStart,localEnd,showStart,showEnd
+Facade controller,1,Upper floor strip,180,1,540,1,540
+Facade controller,2,Lower floor strip,148,541,984,541,984
+Facade controller,3,Window strips,222,985,1650,985,1650
+Facade controller,4,HAPPY HOLIDAYS letters,488,1651,3114,1651,3114
+Facade controller,5,Christmas circles,88,3115,3378,3115,3378
+Facade controller,6,Peace sign,45,3379,3513,3379,3513
+Garden controller,1,Candy canes,128,1,384,3514,3897
+Garden controller,2,Mini trees,594,385,2166,3898,5679
+Garden controller,3,Ground strip (30 cm),126,2167,2544,5680,6057
+Garden controller,4,Wireframe tree,366,2545,3642,6058,7155

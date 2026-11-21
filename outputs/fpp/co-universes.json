@@ -1,0 +1,39 @@
+{
+  "channelOutputs": [
+    {
+      "type": "universes",
+      "enabled": 1,
+      "interface": "eth0",
+      "startChannel": 1,
+      "channelCount": -1,
+      "universes": [
+        {
+          "active": 1,
+          "description": "Facade controller",
+          "id": 1,
+          "startChannel": 1,
+          "channelCount": 3513,
+          "type": 5,
+          "universeCount": 1,
+          "address": "192.168.1.201",
+          "priority": 0,
+          "monitor": 1,
+          "deDuplicate": 0
+        },
+        {
+          "active": 1,
+          "description": "Garden controller",
+          "id": 2,
+          "startChannel": 3514,
+          "channelCount": 3642,
+          "type": 5,
+          "universeCount": 1,
+          "address": "192.168.1.202",
+          "priority": 0,
+          "monitor": 1,
+          "deDuplicate": 0
+        }
+      ]
+    }
+  ]
+}

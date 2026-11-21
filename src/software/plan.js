@@ -12,7 +12,7 @@ import {OWN_CHANNELS} from '../props.js';
 export const CUE={frames:5569,rate:30000/1001,channels:OWN_CHANNELS.length};
 export const SHOW_SECONDS=CUE.frames/CUE.rate;
 
-// Proposal: Falcon Player's sequence at 40 frames a second (25 ms a frame).
+// Falcon Player's sequence at 40 frames a second (25 ms a frame).
 // The Baldrick 8 drives 750 pixels a port at 40 fps and our fullest port has
 // under 600, so 40 fps fits every port; FSEQ frame times are whole milliseconds,
 // so the video's 33.37 ms frames can't be kept exactly.
