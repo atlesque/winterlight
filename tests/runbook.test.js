@@ -24,7 +24,7 @@ test('gear already at hand is listed at no cost and starts ticked',()=>{
 
 test('the shopping list covers the full show in the cost model',()=>{
  const e=estimate(ALL),get=id=>PURCHASES.find(p=>p.id===id);
- assert.ok((get('pixels').qty+get('pixelsRegulated').qty)*50>=e.pixels);
+ assert.ok(PURCHASES.filter(p=>p.pixelsEach&&!p.outside).reduce((n,p)=>n+p.qty*p.pixelsEach,0)>=e.pixels,'the AliExpress strings cover the show');
  const z=Object.values(e.zones);
  assert.equal(get('controller').qty,z.reduce((s,x)=>s+x.controllers,0));
  assert.equal(get('psu').qty,z.reduce((s,x)=>s+x.psus,0));
@@ -137,7 +137,7 @@ test('measured values flow into the runbook: outlines, ground strip, pixel strin
  assert.equal(same.windows,BASELINE.windows,'the guesses rebuild the model\'s outlines');
  assert.equal(same.fence,BASELINE.fence,'and its ground strip');
  assert.equal(same.pixels,BASELINE.pixels);
- assert.equal(BASELINE.strings,PURCHASES.filter(p=>p.id.startsWith('pixels')).reduce((n,p)=>n+p.qty,0),'the strings ordered');
+ assert.ok(PURCHASES.filter(p=>p.pixelsEach&&!p.outside).reduce((n,p)=>n+p.qty*p.pixelsEach/50,0)>=BASELINE.strings,'the strings ordered for the show');
  assert.equal(BASELINE.rolls,PURCHASES.filter(p=>p.id.startsWith('mountStrip')).reduce((n,p)=>n+p.qty,0),'the rolls bought');
  assert.deepEqual(applyMeasures({}).steps,{},'nothing measured, nothing changes');
  // The model now carries the taped values of 8 Nov 2026: entering them changes no count.
@@ -225,7 +225,7 @@ test('a delivery is only expected once every order in it is placed: most install
  const steps=CHAPTERS.find(c=>c.id==='deliveries').steps.filter(s=>s.buys);
  const placed=s=>s.buys.every(id=>PRESET.includes(id));
  const expected=steps.filter(placed).map(s=>s.id).sort(),waiting=steps.filter(s=>!placed(s)).map(s=>s.id).sort();
- assert.deepEqual(expected,['arrive-aliexpress-1','arrive-aliexpress-cables','arrive-bambu-1','arrive-bol-1','arrive-elektramat-1','arrive-elektramat-reorder','arrive-kunststofshop-1','arrive-ledshows-1','arrive-pixelimperium-1','arrive-propixeler-1','arrive-audiophonics-1','arrive-aliexpress-2','arrive-ledshows-2','arrive-kiwi-2'].sort());
+ assert.deepEqual(expected,['arrive-aliexpress-1','arrive-aliexpress-cables','arrive-bambu-1','arrive-bol-1','arrive-elektramat-1','arrive-elektramat-reorder','arrive-kunststofshop-1','arrive-ledshows-1','arrive-pixelimperium-1','arrive-propixeler-1','arrive-audiophonics-1','arrive-aliexpress-2','arrive-ledshows-2','arrive-kiwi-2','arrive-aliexpress-pixels'].sort());
  assert.deepEqual(waiting,['arrive-bol-2','arrive-elektramat-2','arrive-zelektro-2']);
  for(const s of steps.filter(s=>!placed(s)))assert.ok(!PRESET.includes(s.id),`${s.id} has not arrived`);
 });
@@ -240,4 +240,17 @@ test('every Zelektro and Elektramat part is a business expense',async()=>{
  const rows=PURCHASES.filter(p=>['zelektro','elektramat'].includes(p.shop));
  assert.ok(rows.length);
  for(const p of rows)assert.equal(p.expense,'business',p.id);
+});
+
+test('the show\'s pixels were reordered from AliExpress on 21 Nov; the Pixel-Imperium strings go to another project',async()=>{
+ const {PER_PIXEL}=await import('../src/runbook/runbook.js');
+ const byId=Object.fromEntries(PURCHASES.map(p=>[p.id,p]));
+ for(const id of ['pixels','pixelsRegulated','pixelShipping'])assert.ok(byId[id].outside,id);
+ const ali=['pixelsAli50','pixelsAli100','pixelShippingAli'].map(id=>byId[id]);
+ for(const p of ali){assert.equal(p.shop,'aliexpress');assert.equal(p.ordered,'2026-11-21');assert.ok(PRESET.includes(`buy-${p.id}`),p.id);}
+ assert.equal(Math.round(ali.reduce((t,p)=>t+p.cost,0)*100)/100,884.38,'what was paid at checkout');
+ assert.equal(byId.pixelsAli50.qty*50+byId.pixelsAli100.qty*100,2600);
+ assert.equal(PER_PIXEL.pixelShippingAli.pixels,2600);
+ const d=CHAPTERS.find(c=>c.id==='deliveries').steps.find(s=>s.id==='arrive-aliexpress-pixels');
+ assert.equal(d.due,'2026-11-30');assert.match(d.tip,/28 Nov to 2 Dec/);assert.deepEqual(d.buys,['buy-pixelsAli50','buy-pixelsAli100','buy-pixelShippingAli']);
 });

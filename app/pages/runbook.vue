@@ -87,7 +87,7 @@ const stepText=s=>s.buy?`Order: ${byId[s.buy].name}`:measured.value.steps[s.id]?
 const tapeValue=x=>x.ids&&x.ids.every(id=>id in over.measures)?x.ids.map(id=>fmtMeasure(over.measures[id],x.unit)).join(', '):null;
 // A returned item was refunded, so it counts for nothing.
 const spent=p=>p.returned?0:p.cost;
-// Business gear ordered alongside the show (outside) is listed but counts for nothing in the show's spend.
+// Business gear ordered alongside the show, and the Pixel-Imperium strings kept for another project (outside), are listed but count for nothing in the show's spend.
 const showSpent=p=>p.outside?0:spent(p);
 // Optional items (gear that may already be at hand) stay out of the totals until ticked as ordered.
 const money=computed(()=>{const t={private:0,business:0,ordered:0,all:0,optional:0,outside:0};
