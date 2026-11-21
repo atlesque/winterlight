@@ -19,7 +19,7 @@ export const TEMPLATES=[
 // (src/costs/estimate.js), so the shopping list follows any change there.
 // Prices are euro incl. VAT; each purchase has a default expense (private or
 // business) that the page lets you switch.
-export const SHOW_DATE='2026-12-01';
+export const SHOW_DATE='2026-12-12';
 export {CHECKED};
 const WAVE1='2026-11-06',WAVE2='2026-11-13',ORDERED='2026-11-06';
 
@@ -157,12 +157,12 @@ for(const o of new Set(PURCHASES.filter(p=>p.pixelsEach).map(p=>`${p.shop}-${p.d
 const addDays=(date,n)=>{const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
 const buy=wave=>PURCHASES.filter(p=>p.wave===wave).map(p=>({id:`buy-${p.id}`,buy:p.id}));
 // Deliveries already at the door, by delivery step id. These start ticked.
-const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09','arrive-bambu-1':'2026-11-12','arrive-bol-1':'2026-11-12','arrive-elektramat-reorder':'2026-11-13','arrive-propixeler-1':'2026-11-13','arrive-audiophonics-1':'2026-11-13','arrive-aliexpress-1':'2026-11-16','arrive-ledshows-2':'2026-11-17','arrive-kiwi-2':'2026-11-17','arrive-aliexpress-2':'2026-11-21'};
+const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-09','arrive-bambu-1':'2026-11-12','arrive-bol-1':'2026-11-12','arrive-elektramat-reorder':'2026-11-13','arrive-propixeler-1':'2026-11-13','arrive-audiophonics-1':'2026-11-13','arrive-aliexpress-1':'2026-11-16','arrive-ledshows-2':'2026-11-17','arrive-kiwi-2':'2026-11-17','arrive-aliexpress-2':'2026-11-21','arrive-kunststofshop-1':'2026-11-19'};
 // Deliveries that came in part: the date, and what is still missing. These stay unticked.
 // bol.com came in part on 10 Nov (the gel boxes went back) and the FM transmitter, its last part, on 12 Nov.
 const PARTLY={};
 // Deliveries the shop or carrier has moved or given a window for: the expected date, and why.
-const DELAYED={'arrive-aliexpress-pixels':{date:'2026-11-30',note:'Express from Ray Wu\'s store: AliExpress gives a delivery window of 28 Nov to 2 Dec, so the last day falls after the show starts. Due here as the day before the show.'},'arrive-pixelimperium-1':{date:'2026-11-16',note:'Delayed: PostNL now delivers on Mon 16 Nov.'},'arrive-aliexpress-cables':{date:'2026-11-22',note:'In transit from Ray Wu\'s store, split off from the pigtails (which arrived 16 Nov): AliExpress gives a delivery window of 16 to 22 Nov.'}};
+const DELAYED={'arrive-aliexpress-pixels':{date:'2026-12-02',note:'Express from Ray Wu\'s store: AliExpress gives a delivery window of 28 Nov to 2 Dec.'},'arrive-pixelimperium-1':{date:'2026-11-16',note:'Delayed: PostNL now delivers on Mon 16 Nov.'},'arrive-aliexpress-cables':{date:'2026-11-23',note:'In transit from Ray Wu\'s store, split off from the pigtails (which arrived 16 Nov): AliExpress gave a delivery window of 16 to 22 Nov, but nothing is delivered on Sunday 22 Nov, so expected Monday 23 Nov.'}};
 // One delivery check per shop and order wave, expected by the shop's slowest delivery.
 // buys lists the order steps it holds: it shows as expected only once they are all ticked.
 // A row with its own delivery (a reorder, or part of an order the shop split) gets a delivery check of its own.
@@ -248,7 +248,7 @@ export const CHAPTERS=[
   {id:'bench-ip',text:'Give both controllers their static IP',link:{href:BALDRICK,label:'Baldrick 8 manual'}},
   {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:`Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). All the AliExpress strings are regulated, so they hold their brightness on the facade\'s data leads before the first injection. Cut the 100-pixel strings at pixel 50 only where two props aren\'t side by side, and fit a pigtail pair.`},
  ]},
- {id:'build',title:'Build the props',icon:'i-lucide-hammer',due:'2026-11-24',steps:[
+ {id:'build',title:'Build the props',icon:'i-lucide-hammer',due:'2026-12-05',steps:[
   {id:'build-boxes',text:'Build the facade board for the garage wall and the garden box: a controller, two power supplies and fuses in each',tip:'Fuse every power supply output and keep the mains side covered. In the garden box, mount the parts on its plate with room round the supplies, bring every cable in from below through a gland, and the data and injection leads in as pigtail tails.'},
   {id:'build-fm',text:'Wire the FM transmitter\'s 12 V socket lead to a power supply',tip:'Fused, off the facade board. The transmitter goes on the street side of the garage, out of any metal box, with the USB sound card\'s output in its 3.5 mm input.'},
   {id:'build-print',text:`Print the ${PRINT_COUNT} PETG parts on the A1: mini-tree frames, the tree's hub, ring and star holder, cane bases and ground strip posts`,link:{href:'/print.html',label:'3D prints'},tip:'Print one mini-tree base and one post foot first to check the mounting strip and a brick fit; the sizes can be changed before the rest.'},
@@ -268,7 +268,7 @@ export const CHAPTERS=[
   {id:'build-labels',text:'Label every prop with its name and the end the data goes in'},
   {id:'build-test',text:'Light each finished prop at full white for 10 minutes',tip:'The last pixel should still be white, not yellowish. If not, inject power closer to it.'},
  ]},
- {id:'place',title:'Hang and place',icon:'i-lucide-map-pin',due:'2026-11-27',steps:[
+ {id:'place',title:'Hang and place',icon:'i-lucide-map-pin',due:'2026-12-08',steps:[
   {id:'place-boxes',text:'Mount the facade board in the garage and set the garden box on two bricks behind the front-left bush',tip:'Drill the two 25 mm holes in the jamb first. Run the garden box\'s mains and network cables over the front door and down beside it; the mains plugs into the power strip only once the box is closed.'},
   {id:'place-strips',text:'Hang the upper floor strip and the strip under the garage eave',tip:'From the rented ladder or tower: a stainless screw eye every 50 cm in the mortar joint about 27 cm above the upstairs windows, never in the PVC frames or the shutter boxes. Let the shutters down once afterwards: the icicles must hang clear of them. Under the garage eave, small screw hooks into the fascia.'},
   {id:'place-windows',text:'Fix the outlines round the small window, door, kitchen window and garage door'},
@@ -279,7 +279,7 @@ export const CHAPTERS=[
   {id:'place-cables',text:'Run the extension cables from the boxes and connect the props',tip:'Keep the drive and the path to the door clear of cables. In the garden, tie the cables along the ground strip\'s posts, off the paving. A dab of dielectric grease in every plug, a drip loop before it, every joint lifted off the ground, and the open end of each chain capped. Seal each facade injection joint in a gel box; the garden\'s injections plug straight into their T-splitters.'},
   {id:'place-network',text:'Patch the facade controller and the Pi into the switch, run the outdoor cable to the garden controller, and plug both into the power strip behind the RCD'},
  ]},
- {id:'software',title:'Configure the software',icon:'i-lucide-monitor-cog',due:'2026-11-28',steps:[
+ {id:'software',title:'Configure the software',icon:'i-lucide-monitor-cog',due:'2026-12-09',steps:[
   {id:'sw-fpp',text:'Set up Falcon Player: static IP, time zone, the USB sound card as audio out'},
   {id:'sw-controllers',text:'Set each controller port\'s pixel count and colour order',link:{href:BALDRICK,label:'Baldrick 8 manual'},tip:'Full brightness. Reverse every other tree strand and mini-tree spoke, and the eave strip, to match how they are wired.'},
   {id:'sw-xlights',text:'Install xLights on the laptop',link:{href:XLIGHTS,label:'xLights downloads'}},
@@ -289,7 +289,7 @@ export const CHAPTERS=[
   {id:'sw-schedule',text:'Schedule the playlist for the evenings'},
   {id:'sw-fm',text:'Tune the FM transmitter to a free frequency'},
  ]},
- {id:'test',title:'Test run',icon:'i-lucide-play',due:'2026-11-30',steps:[
+ {id:'test',title:'Test run',icon:'i-lucide-play',due:'2026-12-11',steps:[
   {id:'test-pattern',text:'Run Falcon Player\'s test pattern across every prop',tip:'Each prop lights on its own channel in the right colour.'},
   {id:'test-show',text:'Play the full show after dark and watch from the street'},
   {id:'test-sync',text:'Check the music in the car is in time with the lights'},
