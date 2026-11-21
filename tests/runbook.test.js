@@ -19,7 +19,7 @@ test('every purchase is ordered once, links to a shop and has an expense tag',()
 
 test('gear already at hand is listed at no cost and starts ticked',()=>{
  for(const p of PURCHASES.filter(p=>p.owned)){assert.equal(p.cost,0,p.id);assert.ok(PRESET.includes(`buy-${p.id}`),p.id);}
- assert.deepEqual(PURCHASES.filter(p=>p.owned).map(p=>p.id).sort(),['gardenNetwork','wallHole']);
+ assert.deepEqual(PURCHASES.filter(p=>p.owned).map(p=>p.id).sort(),['wallHole']);
 });
 
 test('the shopping list covers the full show in the cost model',()=>{
@@ -226,7 +226,7 @@ test('a delivery is only expected once every order in it is placed: most install
  const placed=s=>s.buys.every(id=>PRESET.includes(id));
  const expected=steps.filter(placed).map(s=>s.id).sort(),waiting=steps.filter(s=>!placed(s)).map(s=>s.id).sort();
  assert.deepEqual(expected,['arrive-aliexpress-1','arrive-aliexpress-cables','arrive-bambu-1','arrive-bol-1','arrive-elektramat-1','arrive-elektramat-reorder','arrive-kunststofshop-1','arrive-ledshows-1','arrive-pixelimperium-1','arrive-propixeler-1','arrive-audiophonics-1','arrive-aliexpress-2','arrive-ledshows-2','arrive-kiwi-2','arrive-aliexpress-pixels'].sort());
- assert.deepEqual(waiting,['arrive-bol-2','arrive-elektramat-2','arrive-zelektro-2']);
+ assert.deepEqual(waiting,['arrive-bol-2','arrive-conrad-2','arrive-elektramat-2','arrive-zelektro-2']);
  for(const s of steps.filter(s=>!placed(s)))assert.ok(!PRESET.includes(s.id),`${s.id} has not arrived`);
 });
 test('the 14 Nov Kiwi order is business gear, ordered, and kept out of the show\'s spend',async()=>{
