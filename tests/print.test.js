@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
-import {PARTS,PRINT_PROPS,BED,FILAMENT,FENCE_POSTS} from '../src/print/parts.js';
+import {PARTS,PRINT_PROPS,BED,FILAMENT,FENCE_POSTS,PLATES,NOZZLES,BASE_PARTS} from '../src/print/parts.js';
 import {OWN_CHANNELS} from '../src/props.js';
 import {measure} from '../tools/print/make.mjs';
 import {ASSEMBLIES} from '../src/print/assembly.js';
@@ -43,4 +43,21 @@ test('the finished props are drawn from the printed parts, nothing staked into t
   if(id!=='minitrees')for(const i of a.items.filter(i=>i.cyl))assert.ok(i.cyl.z0>=0,id);
  }
  for(const p of PRINT_PROPS)assert.ok(ASSEMBLIES[p.id],p.id);
+});
+
+test('the plate plan prints every part exactly as many times as needed, each plate fitting the bed',()=>{
+ const n={};
+ for(const pl of PLATES)for(const [id,k] of Object.entries(pl.parts)){
+  assert.ok(MANIFEST[id],`${pl.id}: ${id}`);n[id]=(n[id]??0)+k*pl.count;
+ }
+ for(const p of PARTS)assert.equal(n[p.id],p.qty,p.id);
+ for(const pl of PLATES){
+  const sizes=Object.entries(pl.parts).flatMap(([id,k])=>Array(k).fill(MANIFEST[id].size));
+  // Shortest side of each part along X (it can be turned), longest along Y.
+  const x=sizes.reduce((s,v)=>s+Math.min(v[0],v[1]),0)+5*(sizes.length-1);
+  assert.ok(x<=BED.x&&sizes.every(v=>Math.max(v[0],v[1])<=BED.y),`${pl.id}: ${x} mm`);
+ }
+ assert.equal(PLATES.filter(p=>p.test).length,2);
+ for(const id of BASE_PARTS)assert.ok(MANIFEST[id],id);
+ assert.ok(NOZZLES.find(z=>z.id==='n06').speed<1);
 });
