@@ -37,7 +37,7 @@ const group=id=>FULL.groups.find(g=>g.id===id);
 export const SHOPS={
  ledshows:{name:'LEDshows.nl',days:[5,10],tip:'Controllers, mounting strip and X-con splitters in one basket. LEDshows sells to private buyers only, and its pixels were sold out in November.'},
  pixelimperium:{name:'Pixel-Imperium',days:[3,7],tip:'Ships from Germany; Belgian VAT is charged in the basket. Same stock as Xmas-Land.'},
- aliexpress:{name:'AliExpress',days:[9,16],tip:'Under €150, so VAT is paid at checkout and nothing is due on delivery.'},
+ aliexpress:{name:'AliExpress',days:[9,16],tip:'Under €150, VAT is paid at checkout and nothing is due on delivery. Above that, AliExpress can add the import charges at checkout too, as on the 21 Nov pixel order.'},
  local:{name:'Local DIY store',days:[0,1]},
  bambu:{name:'Bambu Lab store',days:[3,7],tip:'Bought as a business. 6 rolls get 35% off in the Black Friday bulk deal.'},
  kunststofshop:{name:'kunststofshop.nl',days:[5,8],tip:'Sheets ship in 3 to 5 working days; shipping to Belgium shows at checkout.'},
@@ -79,11 +79,18 @@ const KIWI_ROWS=[
 const ROWS=[
  // Wave 1: parts with the longest delivery or needed first on the bench.
  // Pixel-Imperium had 24 standard strings; the regulated strings make up the rest.
- {id:'pixels',name:'12 V WS2811 bullet pixels, strings of 50',qty:STANDARD_STRINGS,unit:'strings',price:P.pixels50.price,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,pixelsEach:50,
-  tip:`${FULL.pixels.toLocaleString('en')} pixels in the props plus ${DEFAULTS.spare}% spare make ${STRINGS} strings of 50. Only ${STANDARD_STRINGS} standard strings were in stock. Ordered 6 Nov with the regulated strings: €820.47 including shipping.`},
- {id:'pixelsRegulated',name:'Regulated 12 V WS2811 bullet pixels, strings of 50',qty:STRINGS-STANDARD_STRINGS,unit:'strings',price:P.pixels50reg.price,url:P.pixels50reg.url,shop:'pixelimperium',expense:'private',wave:1,pixelsEach:50,
-  tip:'The same pixels with a constant-current driver, so they stay evenly bright along a run. Same xConnect plugs and 10 cm pitch. Ordered 6 Nov with the standard strings.'},
- {id:'pixelShipping',name:'Pixel-Imperium shipping to Belgium',qty:1,unit:'×',price:64.05,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,shipping:true,tip:'Paid with the pixel order on 6 Nov: €820.47 in all for 24 standard and 27 regulated strings plus shipping. Delivery in 3 to 7 days.'},
+ {id:'pixels',outside:true,name:'12 V WS2811 bullet pixels, strings of 50',qty:STANDARD_STRINGS,unit:'strings',price:P.pixels50.price,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,pixelsEach:50,
+  tip:`${FULL.pixels.toLocaleString('en')} pixels in the props plus ${DEFAULTS.spare}% spare make ${STRINGS} strings of 50. Only ${STANDARD_STRINGS} standard strings were in stock. Ordered 6 Nov with the regulated strings: €820.47 including shipping. Replaced on 21 Nov by the AliExpress Express order; these go to another project when they come.`},
+ {id:'pixelsRegulated',outside:true,name:'Regulated 12 V WS2811 bullet pixels, strings of 50',qty:STRINGS-STANDARD_STRINGS,unit:'strings',price:P.pixels50reg.price,url:P.pixels50reg.url,shop:'pixelimperium',expense:'private',wave:1,pixelsEach:50,
+  tip:'The same pixels with a constant-current driver, so they stay evenly bright along a run. Same xConnect plugs and 10 cm pitch. Ordered 6 Nov with the standard strings. Replaced on 21 Nov by the AliExpress Express order; these go to another project when they come.'},
+ {id:'pixelShipping',outside:true,name:'Pixel-Imperium shipping to Belgium',qty:1,unit:'×',price:64.05,url:P.pixels50.url,shop:'pixelimperium',expense:'private',wave:1,shipping:true,tip:'Paid with the pixel order on 6 Nov: €820.47 in all for 24 standard and 27 regulated strings plus shipping. Delivery in 3 to 7 days. Still missing on 21 Nov, so the show\'s pixels were reordered from AliExpress; this order stays open for another project.'},
+ // 21 Nov: the Pixel-Imperium parcel was still missing, so the show's pixels were reordered from Ray Wu's AliExpress store by Express. The Pixel-Imperium strings go to another project when they come.
+ {id:'pixelsAli50',name:'Regulated 12 V WS2811 bullet pixels, strings of 50 (Ray Wu)',qty:34,unit:'strings',price:10.09,url:'https://www.aliexpress.com/item/32968306780.html',shop:'aliexpress',expense:'private',wave:2,delivery:'pixels',orderBy:'2026-11-21',ordered:'2026-11-21',pixelsEach:50,
+  tip:'12 mm bullets, 10 cm pitch, black 18 AWG wire, IP68, 0.2 m xConnect leads at both ends: a drop-in for the Pixel-Imperium strings. Only 34 were in stock, so 100-pixel strings make up the rest. Ordered and paid 21 Nov with Express shipping.'},
+ {id:'pixelsAli100',name:'Regulated 12 V WS2811 bullet pixels, strings of 100 (Ray Wu)',qty:9,unit:'strings',price:17.89,url:'https://www.aliexpress.com/item/1005009115560418.html',shop:'aliexpress',expense:'private',wave:2,delivery:'pixels',orderBy:'2026-11-21',ordered:'2026-11-21',pixelsEach:100,
+  tip:`Same pixels and plugs, but each string is two 50-pixel runs in one piece (${STRINGS-34} of the ${STRINGS} strings of 50 needed, one half spare). Use one for two props side by side; otherwise cut it after pixel 50 and fit a pigtail pair to both ends. Ordered and paid 21 Nov with Express shipping.`},
+ {id:'pixelShippingAli',name:'AliExpress Express shipping and import charges for the pixels',qty:1,unit:'×',price:380.31,url:'https://www.aliexpress.com/item/32968306780.html',shop:'aliexpress',expense:'private',wave:2,delivery:'pixels',orderBy:'2026-11-21',ordered:'2026-11-21',shipping:true,
+  tip:'Express €135.38 for the 100-pixel strings and €219.30 for the 50-pixel strings, plus €25.63 import charges paid at checkout, so nothing is due on delivery. €884.38 in all, paid 21 Nov.'},
  {id:'controller',name:'Baldrick 8 pixel controller',qty:zoneSum('controllers'),unit:'×',price:P.controller.price,url:P.controller.url,shop:'ledshows',expense:'private',wave:1,tip:'One for the facade box, one for the garden box. Private: LEDshows doesn\'t sell to businesses. Ordered 6 Nov with the rest of the LEDshows basket: €391 in all.'},
  {id:'ledshowsShipping',name:'LEDshows shipping to Belgium',qty:1,unit:'×',price:9,url:P.controller.url,shop:'ledshows',expense:'private',wave:1,tip:'Paid with the LEDshows basket on 6 Nov: €391 in all for the controllers, T-splitters, wire, mounting strip, cable ties and sound card.'},
  {id:'pigtail',name:'xConnect pigtail pairs, 50 cm, packs of 10',qty:Math.ceil(modelQty('pigtail')/10),unit:'packs',price:Math.round(P.pigtail.price*10*100)/100,url:P.pigtail.url,shop:'aliexpress',expense:'private',wave:1,tip:`One pair per prop, ${modelQty('pigtail')} in all. LEDshows and Pixel-Imperium had none in stock. Ordered 6 Nov with the extension cables, €407.46 for both. AliExpress split the order: these came on their own from Shenzhen Rita Lighting (order 3077377684163921, €106.80) and arrived on 16 Nov.`},
@@ -139,8 +146,8 @@ export const PURCHASES=ROWS.map(r=>({...r,cost:Math.round(r.qty*r.price*100)/100
 // order's shipping (split by pixel); the order's shipping row gets the whole
 // order's cost per pixel, shipping included.
 export const PER_PIXEL={};
-for(const o of new Set(PURCHASES.filter(p=>p.pixelsEach).map(p=>`${p.shop}-${p.wave}`))){
- const rows=PURCHASES.filter(p=>`${p.shop}-${p.wave}`===o),strings=rows.filter(p=>p.pixelsEach);
+for(const o of new Set(PURCHASES.filter(p=>p.pixelsEach).map(p=>`${p.shop}-${p.delivery||p.wave}`))){
+ const rows=PURCHASES.filter(p=>`${p.shop}-${p.delivery||p.wave}`===o),strings=rows.filter(p=>p.pixelsEach);
  const pixels=strings.reduce((n,p)=>n+p.qty*p.pixelsEach,0),shipping=rows.filter(p=>p.shipping).reduce((t,p)=>t+p.cost,0);
  for(const p of strings){const each=p.cost/(p.qty*p.pixelsEach);PER_PIXEL[p.id]={each,withShipping:each+shipping/pixels};}
  const total=rows.reduce((t,p)=>t+p.cost,0);
@@ -155,12 +162,12 @@ const ARRIVED={'arrive-ledshows-1':'2026-11-09','arrive-elektramat-1':'2026-11-0
 // bol.com came in part on 10 Nov (the gel boxes went back) and the FM transmitter, its last part, on 12 Nov.
 const PARTLY={};
 // Deliveries the shop or carrier has moved or given a window for: the expected date, and why.
-const DELAYED={'arrive-pixelimperium-1':{date:'2026-11-16',note:'Delayed: PostNL now delivers on Mon 16 Nov.'},'arrive-aliexpress-cables':{date:'2026-11-22',note:'In transit from Ray Wu\'s store, split off from the pigtails (which arrived 16 Nov): AliExpress gives a delivery window of 16 to 22 Nov.'}};
+const DELAYED={'arrive-aliexpress-pixels':{date:'2026-11-30',note:'Express from Ray Wu\'s store: AliExpress gives a delivery window of 28 Nov to 2 Dec, so the last day falls after the show starts. Due here as the day before the show.'},'arrive-pixelimperium-1':{date:'2026-11-16',note:'Delayed: PostNL now delivers on Mon 16 Nov.'},'arrive-aliexpress-cables':{date:'2026-11-22',note:'In transit from Ray Wu\'s store, split off from the pigtails (which arrived 16 Nov): AliExpress gives a delivery window of 16 to 22 Nov.'}};
 // One delivery check per shop and order wave, expected by the shop's slowest delivery.
 // buys lists the order steps it holds: it shows as expected only once they are all ticked.
 // A row with its own delivery (a reorder, or part of an order the shop split) gets a delivery check of its own.
-const DELIVERY_LABEL={2:'installation parts ',reorder:'reorder ',cables:'extension cables '};
-const deliveries=[1,2,'reorder','cables'].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const items=PURCHASES.filter(p=>p.shop===id&&(p.delivery||p.wave)===wave&&!p.returned);if(!items.length||id==='local')return null;
+const DELIVERY_LABEL={2:'installation parts ',reorder:'reorder ',cables:'extension cables ',pixels:'pixel strings '};
+const deliveries=[1,2,'reorder','cables','pixels'].flatMap(wave=>Object.entries(SHOPS).map(([id,s])=>{const items=PURCHASES.filter(p=>p.shop===id&&(p.delivery||p.wave)===wave&&!p.returned);if(!items.length||id==='local')return null;
  const key=`arrive-${id}-${wave}`,status=PARTLY[key],late=DELAYED[key];
  return {id:key,text:`${s.name} ${DELIVERY_LABEL[wave]||''}delivered and checked`,due:late?.date||addDays(items[0].orderBy,s.days[1]),buys:items.map(p=>`buy-${p.id}`),tip:[late?.note,status?.note,items.map(p=>`${p.qty} ${p.unit==='×'?'×':p.unit} ${p.name}`).join(' · ')].filter(Boolean).join(' '),...(ARRIVED[key]&&{arrived:ARRIVED[key]}),...(status&&{partly:status.date})};}).filter(Boolean)).sort((a,b)=>a.due.localeCompare(b.due));
 const g=Object.fromEntries(GROUP_LIST.map(x=>[x.id,{...x,pixels:group(x.id).pixels}]));
@@ -239,7 +246,7 @@ export const CHAPTERS=[
   {id:'flash-fpp',text:'Flash Falcon Player onto the Pi\'s card',link:{href:FPP,label:'FPP releases'}},
   {id:'bench-wire',text:'Wire one power supply and one controller on the table',tip:'Mains on the power supply terminals only with the plug out. Fuse each output.'},
   {id:'bench-ip',text:'Give both controllers their static IP',link:{href:BALDRICK,label:'Baldrick 8 manual'}},
-  {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:`Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). Keep the 27 regulated strings for the facade\'s upper strip, eave strip, outlines and letters (${REGULATED_USED} strings, as each port starts on a fresh string): they hold their brightness on the facade\'s data leads before the first injection, at full brightness.`},
+  {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:`Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). All the AliExpress strings are regulated, so they hold their brightness on the facade\'s data leads before the first injection. Cut the 100-pixel strings at pixel 50 only where two props aren\'t side by side, and fit a pigtail pair.`},
  ]},
  {id:'build',title:'Build the props',icon:'i-lucide-hammer',due:'2026-11-24',steps:[
   {id:'build-boxes',text:'Build the facade board for the garage wall and the garden box: a controller, two power supplies and fuses in each',tip:'Fuse every power supply output and keep the mains side covered. In the garden box, mount the parts on its plate with room round the supplies, bring every cable in from below through a gland, and the data and injection leads in as pigtail tails.'},
