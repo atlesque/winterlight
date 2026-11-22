@@ -77,8 +77,8 @@ export const PRINT_PROPS=[
  {id:'minitrees',name:'Mini trees',count:count('minitree'),icon:'i-lucide-tree-pine',bricks:0,
   points:[`${count('minitree')} trees, each standing on top of a clipped bush`,`6 spokes of mounting strip, ${MINI_SPOKE_CM} cm each, between a printed base and top cap`,'A rod of about 1.2 m through the middle, down through the bush into the soil','Base ring tied to a couple of branches'],
   parts:[
-   {id:'minitree-base',name:'Base ring',per:1,spare:1,params:{...mini},how:'Flat side down. Stand a spoke in each channel and tie it.'},
-   {id:'minitree-top',name:'Top cap',per:1,spare:1,params:{...mini},how:'Prints upside down. Push onto the rod, spokes into the channels, tie.'},
+   {id:'minitree-base',name:'Base ring',per:1,spare:1,params:{...mini},how:'Flat side down. Stand a spoke in each channel, drill 4.5 mm through the tie holes into the strip, and tie it through them.'},
+   {id:'minitree-top',name:'Top cap',per:1,spare:1,params:{...mini},how:'Prints upside down. Push onto the rod, spokes into the channels, drill through the tie holes and tie.'},
   ]},
  {id:'tree',name:'Wireframe tree',count:1,icon:'i-lucide-triangle',bricks:ringWeights,
   points:[`Pole in a ${PARASOL.kg} kg parasol base, cut to about 2.6 m`,`${count('treeStrip')} strands of mounting strip, about ${STRAND_CM} cm each, from a ring on the ground up to a crown hub`,`The ring is ${count('treeStrip')} puzzle segments, ${mm(L.tree.radius)*2/10} cm across; ${ringWeights} of them hold a brick`,'The base and bricks hold it to about 60 km/h; four guy lines from the hub to the planting tiles\' soil hold it in a storm','The coro star sits on a holder on top of the pole'],
@@ -111,7 +111,7 @@ export const BRICKS=PRINT_PROPS.reduce((s,p)=>s+p.bricks,0);
 const times=(n,parts)=>Array.from({length:n},()=>parts);
 export const PLATES=[
  {id:'test-mini',name:'Test plate: one mini tree',plates:times(1,{'minitree-base':1,'minitree-top':1}),when:'First',test:true,
-  why:'Small and quick, and it checks the two fits most parts share: the mounting strip should slide snugly into a channel and a bamboo cane through the rod hole. If both fit, print everything else as it is.'},
+  why:'Small and quick, and it checks the two fits most parts share: the mounting strip should sit snugly in a channel and lock with a cable tie through the holes in its back, and a bamboo cane should go through the rod hole. If both fit, print everything else as it is.'},
  {id:'minitree',name:'Mini trees',plates:times(11,{'minitree-base':1,'minitree-top':1}),when:'By 28 Nov',
   why:'The other 11 base rings and top caps: a short plate each, flat on the bed, nothing to measure.'},
  {id:'post',name:'Ground strip posts',plates:[{'fence-post':6},{'fence-post':5}],when:'By 28 Nov',

@@ -22,18 +22,18 @@ ch_depth = pocket_t + wall;
 ch_width = pocket_w + 2*wall;
 
 // A channel that holds a strip's end: the strip runs up +Z with its face
-// (and its pixels) towards +X. Open on the +X side so the strip drops in,
-// with a groove round the outside where a cable tie pulls it home.
+// (and its pixels) towards +X. Open on the +X side so the strip drops in.
+// Two pairs of holes go through the back wall: with the strip in place, drill
+// through them into the strip (the part is the drill guide), then thread a
+// cable tie in through one hole of a pair, across the strip's face and back
+// out through the other, and close it behind the wall. One or two ties.
+tie_pitch = 14;  // centre to centre of the two holes of a pair
 module channel(h, floor = 3) {
-  z0 = h*0.55;
   difference() {
     translate([-ch_depth, -ch_width/2, 0]) cube([ch_depth, ch_width, h]);
     translate([-pocket_t, -pocket_w/2, floor]) cube([pocket_t + 1, pocket_w, h]);
-    // Tie groove, 1 mm deep, round the back and both sides.
-    difference() {
-      translate([-ch_depth - 1, -ch_width/2 - 1, z0]) cube([ch_depth + 2, ch_width + 2, 5]);
-      translate([-ch_depth + 1, -ch_width/2 + 1, z0 - 1]) cube([ch_depth + 2, ch_width - 2, 7]);
-    }
+    for (z = [floor + 7, h - 8], y = [-tie_pitch/2, tie_pitch/2])
+      translate([-ch_depth - 1, y, z]) rotate([0, 90, 0]) cylinder(d = tie_d, h = ch_depth + 2, $fn = 24);
   }
 }
 

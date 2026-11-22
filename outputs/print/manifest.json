@@ -5,7 +5,7 @@
    162,
    31.9
   ],
-  "volume": 60.2,
+  "volume": 60.4,
   "grams": 61
  },
  "minitree-top": {
@@ -14,7 +14,7 @@
    94.8,
    32.2
   ],
-  "volume": 50.5,
+  "volume": 50.6,
   "grams": 51
  },
  "tree-crown": {
@@ -23,8 +23,8 @@
    209.1,
    60
   ],
-  "volume": 159.9,
-  "grams": 162
+  "volume": 160.4,
+  "grams": 163
  },
  "tree-star-holder": {
   "size": [
@@ -41,7 +41,7 @@
    183.2,
    36.7
   ],
-  "volume": 44.8,
+  "volume": 44.9,
   "grams": 46
  },
  "tree-ring-weight": {
