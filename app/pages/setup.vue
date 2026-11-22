@@ -1,5 +1,5 @@
 <script setup>
-import {IPS,FPP_RELEASES,BALDRICK_MANUAL,PORT_TABLES,OUTPUTS,PROP_RANGES,FILES} from '~~/src/software/setup.js';
+import {IPS,PORT_TABLES,OUTPUTS,PROP_RANGES,FILES,STEPS,SETUP_GUIDE_KEY} from '~~/src/software/setup.js';
 import {CONTROLLERS,TOTAL_CHANNELS} from '~~/src/software/plan.js';
 
 // Pi and controller setup: step by step from a blank card to the first test
@@ -7,7 +7,6 @@ import {CONTROLLERS,TOTAL_CHANNELS} from '~~/src/software/plan.js';
 // which reads the wiring plan the same way tools/fseq/export.mjs does.
 definePageMeta({alias:['/setup.html']});
 const n=v=>v.toLocaleString('en');
-const [facade,garden]=PORT_TABLES;
 const CURL=`curl -X POST -H 'Content-Type: application/json' --data @outputs/fpp/co-universes.json http://fpp.local/api/channel/output/universeOutputs`;
 const EXPORT='node tools/fseq/export.mjs --facade-ip <facade IP> --garden-ip <garden IP>';
 
@@ -28,7 +27,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
       <section class="intro">
         <h1>Pi and controller setup</h1>
         <p>The Raspberry Pi 4 runs Falcon Player (FPP), which streams the colour of all {{ n(TOTAL_CHANNELS/3) }} pixels over the network to the two Baldrick 8 controllers using DDP, and plays the music to the FM transmitter.
-          Plan about an evening at the bench and an hour on site. How the pieces fit is on the <a href="/software.html">show software</a> page; the runbook's bench test and software chapters tick these steps off.</p>
+          Work through the guide below one step at a time and tick each task off; your ticks stay in this browser. Plan about an evening at the bench and an hour on site. How the pieces fit is on the <a href="/software.html">show software</a> page; the runbook's bench test and software chapters tick these steps off.</p>
       </section>
 
       <section class="glass card">
@@ -55,42 +54,8 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
         </ul>
       </section>
 
-      <ol class="setup-steps">
-        <li class="glass card">
-          <div class="step-head"><span class="step-n">1</span><h2>Flash Falcon Player onto the Pi</h2></div>
-          <ol>
-            <li>On the laptop, download the latest stable Raspberry Pi image from the <a :href="FPP_RELEASES" target="_blank" rel="noopener">FPP releases page</a> (a zipped .img).</li>
-            <li>Write it to one of the 64 GB cards with Raspberry Pi Imager ("Use custom") or balenaEtcher. Skip Imager's OS customisation; FPP sets itself up.</li>
-            <li>Put the card in the Pi in its FLIRC case, plug the network cable into the switch, then the USB-C supply. The first boot expands the card and reboots once; give it about 5 minutes.</li>
-            <li>On the laptop, on the same network, open <span class="mono">http://fpp.local</span>. If that doesn't load, find the Pi in the router's client list, or join the "FPP" Wi-Fi hotspot the Pi starts when it has no network and open <span class="mono">http://192.168.8.1</span>.</li>
-            <li>Work through the first-run wizard if it appears; it asks for the same things as step 2.</li>
-          </ol>
-        </li>
-
-        <li class="glass card">
-          <div class="step-head"><span class="step-n">2</span><h2>Pi settings</h2></div>
-          <p class="lead">Under Status/Control, then Settings or Network. Menu names shift a little between FPP versions.</p>
-          <ol>
-            <li><b>Network (eth0):</b> static, IP <span class="mono">{{ IPS.pi }}</span>, netmask 255.255.255.0, gateway and DNS the router's address. Save, reboot, and reconnect at the new address.</li>
-            <li><b>Time:</b> time zone Europe/Brussels, NTP on. The Status page should show the right local time.</li>
-            <li><b>Audio:</b> plug the USB sound card in before booting, then choose it as the audio output device. Volume about 80%; fine-tune it at the FM transmitter.</li>
-            <li><b>Mode:</b> leave FPP in Player mode, the default. It's the only player on the network.</li>
-            <li><b>Backup:</b> once step 5 works, shut the Pi down from the menu and clone its card to the second 64 GB card. If the first card dies on a show night, swap and reboot.</li>
-          </ol>
-          <p class="note">Always shut the Pi down from FPP's menu, not by pulling the plug: the card can corrupt.</p>
-        </li>
-
-        <li class="glass card">
-          <div class="step-head"><span class="step-n">3</span><h2>Set up each Baldrick 8</h2></div>
-          <p class="lead">On the bench, one controller at a time, powered from its 12 V supply and patched into the switch. The <a :href="BALDRICK_MANUAL" target="_blank" rel="noopener">Baldrick 8 manual</a> gives its factory address and the exact page names.</p>
-          <ol>
-            <li>Open the controller's web page at its factory address, or find it in the router's client list.</li>
-            <li><b>Network:</b> static IP, <span class="mono">{{ facade.ip }}</span> for the facade one, <span class="mono">{{ garden.ip }}</span> for the garden one. Label each board with its IP.</li>
-            <li><b>Input:</b> DDP.</li>
-            <li><b>Ports:</b> for each port in use, the pixels and start channel below. Leave the other ports off.</li>
-            <li><b>Every port:</b> pixel type WS2811, colour order from the bench test (RGB or GRB), reverse off, null pixels 0, gamma 1.0, brightness 100%. The show file already has the gamma curve, so a second one on the controller would make fades too dark.</li>
-            <li>Save, reboot the controller, and use its own test pattern to check each string lights to its end.</li>
-          </ol>
+      <StepGuide :steps="STEPS" :storage-key="SETUP_GUIDE_KEY">
+        <template #step-baldrick>
           <div class="port-tables">
             <div v-for="t in PORT_TABLES" :key="t.id">
               <h3>{{ t.name }} <span class="mono dim">{{ t.ip }}</span></h3>
@@ -101,43 +66,20 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
             </div>
           </div>
           <p class="note">Both controllers count from channel 1: FPP sends each its own block ("one based"). Use the start pixel column if the port page asks for pixels rather than channels. Don't reverse any port: the show file is already in the order the strings are wired, from the end nearest the box.</p>
-        </li>
-
-        <li class="glass card">
-          <div class="step-head"><span class="step-n">4</span><h2>Falcon Player's two DDP outputs</h2></div>
-          <p class="lead">Input/Output Setup, then Channel Outputs, then the E1.31 / ArtNet / DDP / KiNet tab. Tick "Enable Output", add two rows, save, and restart FPPD when FPP asks.</p>
+        </template>
+        <template #step-outputs>
           <div class="table-scroll">
             <table>
               <thead><tr><th>Active</th><th>Description</th><th class="num">Start</th><th class="num">Size</th><th>Type</th><th>IP</th></tr></thead>
               <tbody><tr v-for="o in OUTPUTS" :key="o.name"><td>yes</td><td>{{ o.name }}</td><td class="num">{{ o.start }}</td><td class="num">{{ o.size }}</td><td>DDP - One Based</td><td class="mono">{{ o.ip }}</td></tr></tbody>
             </table>
           </div>
-          <p class="lead"><b>No re-export needed for other IPs.</b> The addresses only end up in co-universes.json, not in show.fseq, so the show file stays the same whatever addresses you pick. With the addresses above, post the file instead of typing, from the repo folder on the laptop (it replaces whatever is on that tab):</p>
+          <p class="lead"><b>No re-export needed for other IPs.</b> The addresses only end up in co-universes.json, not in show.fseq. With the addresses above, post the file instead of typing, from the repo folder on the laptop (it replaces whatever is on that tab):</p>
           <pre class="code">{{ CURL }}</pre>
           <p class="lead">With other addresses, type them into the table, or run this and post the new file:</p>
           <pre class="code">{{ EXPORT }}</pre>
-        </li>
-
-        <li class="glass card">
-          <div class="step-head"><span class="step-n">5</span><h2>Upload the show, playlist and schedule</h2></div>
-          <ol>
-            <li>Content Setup, File Manager: upload show.fseq on the Sequences tab and show.mp3 on the Audio tab (the files above).</li>
-            <li>Content Setup, Playlists: a new playlist "Winterlight" with one "Sequence and Media" entry, show.fseq with show.mp3. Save, and play it once from the Status page.</li>
-            <li>Content Setup, Scheduler: the Winterlight playlist on the show evenings, repeating, for example 17:00 to 22:00 from Sat 12 Dec. Check the Status page shows the next run.</li>
-            <li>Tune the FM transmitter to a free frequency and listen from a parked car: the music and the lights should match.</li>
-          </ol>
-        </li>
-
-        <li class="glass card">
-          <div class="step-head"><span class="step-n">6</span><h2>Test run checks</h2></div>
-          <ol>
-            <li><b>Test pattern first.</b> Status/Control, Display Testing: run "RGB Cycle" over one prop's channels at a time (the ranges below). Only that prop should light, from its first pixel to its last.</li>
-            <li><b>A prop starts a few pixels early or late:</b> a prop before it on the same port has more or fewer pixels in the chain than the model. Count and cut, so every prop carries exactly its pixel count; spare pixels folded behind a prop still count.</li>
-            <li><b>Wrong colours (red shows green):</b> change that port's colour order on the controller, RGB to GRB or back.</li>
-            <li><b>A whole controller stays dark:</b> check it answers at its IP from the laptop, that its input is DDP, and that its output row in FPP is ticked with the right IP.</li>
-            <li><b>Fades too dark:</b> re-export with <span class="mono">--gamma 1.8</span>. Too bright, or the supplies run warm: <span class="mono">--brightness 70</span>. Then upload the new show.fseq.</li>
-            <li><b>Spare pixels that must stay on a prop:</b> change its count in src/props.js and re-run the export; the show file and the port tables both change.</li>
-          </ol>
+        </template>
+        <template #step-test>
           <details v-for="c in PROP_RANGES" :key="c.id">
             <summary>{{ c.name }}: channels per prop</summary>
             <div class="table-scroll">
@@ -147,9 +89,9 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
               </table>
             </div>
           </details>
-          <p class="note">Before each show night: press the RCD adapter's test button, check the Pi's clock on the Status page, and keep the cloned backup card in the facade box.</p>
-        </li>
-      </ol>
+          <p class="note">A prop that starts a few pixels early or late means a prop before it on the same port has more or fewer pixels in the chain than the model: count and cut, so every prop carries exactly its pixel count. If spare pixels must stay, change the prop's count in src/props.js and re-run the export. Before each show night: press the RCD adapter's test button, check the Pi's clock, and keep the backup card in the facade box.</p>
+        </template>
+      </StepGuide>
     </main>
   </div>
 </template>
@@ -159,7 +101,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 .card{padding:20px 22px;margin-top:14px}
 .intro+.card{margin-top:30px}
 .lead{margin:0 0 12px;font-size:13px;line-height:1.7;color:#a3b3c3;max-width:820px}
-.lead b,.setup li b{color:#e3e9ee;font-weight:600}
+.lead b{color:#e3e9ee;font-weight:600}
 .table-scroll{overflow-x:auto;margin-bottom:12px}
 .table-scroll table{min-width:520px}
 .costs th.num,.costs td.num{text-align:right}
@@ -174,16 +116,10 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 .files a:hover{color:var(--gold)}
 .files span{color:#a3b3c3;line-height:1.6}
 .file-icon{width:15px;height:15px;flex-shrink:0}
-.setup-steps{list-style:none;margin:0;padding:0}
-.step-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.step-head h2{margin:0}
-.step-n{display:grid;place-items:center;flex-shrink:0;width:28px;height:28px;border-radius:50%;font-size:13px;font-weight:700;color:#10141c;background:var(--gold)}
-.setup-steps ol{list-style:decimal;margin:0 0 12px;padding-left:20px;font-size:13px;line-height:1.7;color:#cbd6df;max-width:860px}
-.setup-steps ol li+li{margin-top:6px}
 .port-tables{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin:16px 0 4px}
 .port-tables h3{margin-bottom:4px}
 .port-tables .table-scroll table{min-width:420px}
-.lead,.setup-steps ol,.note,.callout{overflow-wrap:anywhere}
+.lead,.note,.callout{overflow-wrap:anywhere}
 .code{margin:0 0 12px;padding:12px 14px;border-radius:10px;background:#0a1120;border:1px solid #ffffff14;font-size:12px;line-height:1.6;color:#e8d3b5;white-space:pre-wrap;word-break:break-all}
 .note{max-width:820px}
 @media (max-width:900px){.port-tables{grid-template-columns:minmax(0,1fr)}}

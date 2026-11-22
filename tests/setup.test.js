@@ -20,3 +20,10 @@ test('every prop has its channels listed, and every file on the page exists',()=
  for(const c of PROP_RANGES)assert.ok(c.props.length>0);
  for(const f of FILES)readFileSync(new URL(`../outputs/fpp/${f.file}`,import.meta.url));
 });
+import {STEPS,SETUP_TICK_IDS} from '../src/software/setup.js';
+test('every guide step has tasks, and every saved tick id is unique and short',()=>{
+ assert.equal(new Set(STEPS.map(s=>s.id)).size,STEPS.length);
+ for(const s of STEPS)assert.ok(s.tasks.length>0,s.id);
+ assert.equal(new Set(SETUP_TICK_IDS).size,SETUP_TICK_IDS.length);
+ for(const id of SETUP_TICK_IDS)assert.match(id,/^setup\/[a-z0-9-]+\/[a-z0-9-]+$/),assert.ok(id.length<=80);
+});
