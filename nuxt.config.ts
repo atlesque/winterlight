@@ -25,15 +25,16 @@ export default defineNuxtConfig({
   // Fonts are self-hosted from @fontsource packages (main.css), so builds need no font API.
   ui: {fonts: false, theme: {colors: ['primary', 'secondary', 'success', 'info', 'warning', 'error', 'neutral']}},
   // Icons are bundled into the client, so the static site never asks an icon API.
-  // The runbook's chapter icons (src/runbook/runbook.js) and the 3D prints page's prop
-  // icons (src/print/parts.js) live outside app/, which the scan doesn't see.
-  icon: {provider: 'none', clientBundle: {scan: true, icons: ['lucide:play', 'lucide:pause', 'lucide:ruler', 'lucide:shopping-cart', 'lucide:package-plus', 'lucide:truck', 'lucide:cpu', 'lucide:hammer', 'lucide:map-pin', 'lucide:monitor-cog', 'lucide:circle-check', 'lucide:warehouse', 'lucide:triangle-alert', 'lucide:house', 'lucide:tree-pine', 'lucide:triangle', 'lucide:candy-cane', 'lucide:fence', 'lucide:printer']}},
+  // The runbook's chapter icons (src/runbook/runbook.js), the 3D prints page's prop
+  // icons (src/print/parts.js) and the cutting page's prop icons (src/coro.js) live
+  // outside app/, which the scan doesn't see.
+  icon: {provider: 'none', clientBundle: {scan: true, icons: ['lucide:play', 'lucide:pause', 'lucide:ruler', 'lucide:shopping-cart', 'lucide:package-plus', 'lucide:truck', 'lucide:cpu', 'lucide:hammer', 'lucide:map-pin', 'lucide:monitor-cog', 'lucide:circle-check', 'lucide:warehouse', 'lucide:triangle-alert', 'lucide:house', 'lucide:tree-pine', 'lucide:triangle', 'lucide:candy-cane', 'lucide:fence', 'lucide:printer', 'lucide:circle-dot', 'lucide:heart-handshake', 'lucide:star']}},
   nitro: {
     preset: 'static',
     output: {publicDir: fileURLToPath(new URL('./dist', import.meta.url))},
     // The detected cue file and the project guides are served from /outputs, as before.
     publicAssets: [{dir: fileURLToPath(new URL('./outputs', import.meta.url)), baseURL: '/outputs', maxAge: 0}],
-    prerender: {routes: ['/', '/costs', '/runbook', '/wiring', '/software', '/measure', '/print'], autoSubfolderIndex: false, crawlLinks: false},
+    prerender: {routes: ['/', '/costs', '/runbook', '/wiring', '/software', '/measure', '/print', '/cutting'], autoSubfolderIndex: false, crawlLinks: false},
   },
   vite: {
     build: {
