@@ -21,11 +21,13 @@ const spare=FILAMENT.rolls*FILAMENT.grams-total.grams;
 // faster on the 0.6 mm nozzle and with the bases' coarser settings.
 const nozzle=ref('n06');
 const currentNozzle=computed(()=>NOZZLES.find(n=>n.id===nozzle.value));
-const plateGrams=pl=>Object.entries(pl.parts).reduce((s,[id,n])=>s+n*info(id).grams,0);
-const plateHours=(pl,nz)=>Object.entries(pl.parts).reduce((s,[id,n])=>s+n*info(id).grams/GRAMS_PER_HOUR*nz.speed*(BASE_PARTS.includes(id)?BASE_SPEED:1),0);
-const plateParts=pl=>Object.entries(pl.parts).map(([id,n])=>`${n} × ${PARTS.find(p=>p.id===id).name.toLowerCase()}`).join(', ');
-const hoursFor=nz=>PLATES.reduce((s,pl)=>s+pl.count*plateHours(pl,nz),0);
-const plateCount=PLATES.reduce((s,pl)=>s+pl.count,0);
+const grams=parts=>Object.entries(parts).reduce((s,[id,n])=>s+n*info(id).grams,0);
+const plateGrams=st=>st.plates.reduce((s,pl)=>s+grams(pl),0);
+const hours=(parts,nz)=>Object.entries(parts).reduce((s,[id,n])=>s+n*info(id).grams/GRAMS_PER_HOUR*nz.speed*(BASE_PARTS.includes(id)?BASE_SPEED:1),0);
+const plateHours=(st,nz)=>st.plates.reduce((s,pl)=>s+hours(pl,nz),0);
+const plateParts=st=>Object.entries(st.plates[0]).map(([id,n])=>`${n} × ${PARTS.find(p=>p.id===id).name.toLowerCase()}`).join(', ');
+const hoursFor=nz=>PLATES.reduce((s,st)=>s+plateHours(st,nz),0);
+const plateCount=PLATES.reduce((s,st)=>s+st.plates.length,0);
 const fmtHours=h=>h<10?`${Math.round(h*2)/2} h`:`${Math.round(h)} h`;
 const mode=ref('prop'),prop=ref(PRINT_PROPS[0].id),part=ref(PARTS[0].id);
 const currentProp=computed(()=>PRINT_PROPS.find(p=>p.id===prop.value));
@@ -174,11 +176,11 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
         <p class="lead">{{ plateCount }} plates and about {{ Math.round(hoursFor(currentNozzle)) }} hours on the {{ currentNozzle.short }} nozzle. Parts that fit the bed together share a plate; the rest nearly fill it alone, so more per plate would only save the few minutes of heating and calibration each. The frames that get pixels go first, since the pixels land from 28 Nov; the bases only hold bricks, so they go last.</p>
         <div class="glass guide-table">
           <table class="plates">
-            <thead><tr><th>Plate</th><th class="num">Plates</th><th class="num">PETG each</th><th class="num">Time each</th><th class="when">When</th></tr></thead>
+            <thead><tr><th>Plate</th><th class="num">Plates</th><th class="num">PETG</th><th class="num">Time</th><th class="when">When</th></tr></thead>
             <tbody>
               <tr v-for="pl in PLATES" :key="pl.id" :class="{test:pl.test}">
                 <td><b>{{ pl.name }}</b><small>{{ plateParts(pl) }}</small><small class="when-m">{{ pl.when }}</small></td>
-                <td class="num">{{ pl.count }}</td>
+                <td class="num">{{ pl.plates.length }}</td>
                 <td class="num">{{ plateGrams(pl) }} g</td>
                 <td class="num">{{ fmtHours(plateHours(pl,currentNozzle)) }}</td>
                 <td class="when">{{ pl.when }}</td>
