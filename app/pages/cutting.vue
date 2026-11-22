@@ -1,18 +1,19 @@
 <script setup>
 import {CORO_PROPS,CORO_PIECES,CORO_HOLES,CORO_SHEETS,SHEET,HOLE,BAND,PITCH,coroOutline} from '~~/src/coro.js';
+import {CUTTING_STEPS,CUTTING_KEY} from '~~/src/guides/cutting.js';
 
 // The coro cutting page: which props to cut from the blank sheets, how to lay
 // them out, and how to cut and drill them. Sizes, hole counts and the pixels
 // that need a hole of their own all come from the 3D model (src/coro.js).
+// The step-by-step guide at the top (src/guides/cutting.js) walks through it
+// one piece at a time, with the sheet drawn under each step.
 definePageMeta({alias:['/cutting.html']});
 const outline=Object.fromEntries(CORO_PROPS.map(p=>[p.kind,coroOutline(p)]));
 const cm=mm=>Math.round(mm/10);
 const sheetsUsed=CORO_SHEETS.length;
 const list=a=>a.length<2?a.join(''):`${a.slice(0,-1).join(', ')} and ${a.at(-1)}`;
-// The pieces side by side on each sheet, in mm, for the drawing.
 const name=(t,n)=>{const w=t.replace(/^(?!Christmas)\w/,c=>c.toLowerCase()).replace(/^(\w+) (\w)/,(m,a,b)=>`${a} ${b.toLowerCase()}`);return n>1?`${n} ${w}s`:`1 ${w}`;};
 const captions=CORO_SHEETS.map(s=>list(Object.entries(s.pieces.reduce((m,p)=>(m[p.title]=(m[p.title]||0)+1,m),{})).map(([t,n])=>name(t,n))));
-const placed=CORO_SHEETS.map(s=>{let x=(SHEET.w-s.width)/2;return s.pieces.map(p=>{const at={p,x,y:(SHEET.h-p.h)/2};x+=p.w+s.gap;return at;});});
 
 const SITE='https://winterlight.alexander-df0.workers.dev';
 const TITLE='Winterlight · Cutting the coro props';
@@ -32,8 +33,9 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
         <h1>Cutting the coro props</h1>
         <p>The circles, the peace sign, the candy canes and the tree star are cut from blank {{ SHEET.t }} mm coro sheets. Each one is an outline band {{ BAND/10 }} cm wide, with the pixel holes in the middle of the band. The HAPPY HOLIDAYS letters come pre-drilled, so they need no cutting.</p>
         <p class="actions">
-          <UButton to="#props" icon="i-lucide-file-down" label="Templates" color="primary" />
-          <UButton to="/runbook.html#build" external icon="i-lucide-list-checks" label="Build steps in the runbook" color="neutral" variant="subtle" />
+          <UButton to="#guide" icon="i-lucide-list-checks" label="Step by step" color="primary" />
+          <UButton to="#props" icon="i-lucide-file-down" label="Templates" color="neutral" variant="subtle" />
+          <UButton to="/runbook.html#build" external icon="i-lucide-book-open-check" label="Build steps in the runbook" color="neutral" variant="subtle" />
         </p>
       </section>
 
@@ -43,6 +45,28 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
         <div class="glass"><b>{{ sheetsUsed }} of {{ SHEET.bought }}</b><span>sheets of {{ cm(SHEET.w) }} × {{ cm(SHEET.h) }} cm, the rest spare</span></div>
         <div class="glass"><b>{{ CORO_PROPS.length }}</b><span>templates to print, one of each</span></div>
       </div>
+
+      <section id="guide" class="block">
+        <h2>Step by step</h2>
+        <p class="lead">One piece at a time, in the order of the sheet plan. Tick each task as you go; the guide opens where you left off.</p>
+        <StepGuide :steps="CUTTING_STEPS" :storage-key="CUTTING_KEY">
+          <template #step-ready>
+            <div class="guide-files">
+              <span v-for="p in CORO_PROPS" :key="p.kind" class="guide-file">
+                <b>{{ p.title }}</b>
+                <a :href="`/outputs/templates/${p.file}-a4.pdf`" download>A4 pages</a>
+                <a :href="`/outputs/templates/${p.file}.pdf`" download>full size</a>
+              </span>
+            </div>
+          </template>
+          <template v-for="s in CUTTING_STEPS.filter(x=>x.sheet!==null)" :key="s.id" #[`step-${s.id}`]>
+            <figure class="guide-sheet">
+              <CoroSheet :sheet="s.sheet" :focus="s.slot" :cut="Array.from({length:s.slot},(_,i)=>i)" />
+              <figcaption>Sheet {{ s.sheet+1 }}: <span class="key focus" /> this piece <span class="key cut" /> cut already <span class="key later" /> still to come</figcaption>
+            </figure>
+          </template>
+        </StepGuide>
+      </section>
 
       <section id="props" class="block">
         <h2>What to cut</h2>
@@ -67,7 +91,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
               </dl>
               <p v-if="p.kind==='wreath'" class="how">Cut the first one from the template. For the second, lay the finished circle face down on a blank area, trace it with a marker on what will be the back, and drill through its holes. The four short bridges at the diagonals hold the inner ring; the two bumps at the bottom carry the red bow pixels.</p>
               <p v-else-if="p.kind==='peace'" class="how">Cut straight from the template. Take your time in the sharp inside corners where the strokes meet the ring. Where the strokes meet, one hole serves two pixels, so it has {{ p.holes }} holes for {{ p.pixels }} pixels.</p>
-              <p v-else-if="p.kind==='cane'" class="how">Cut all {{ p.cut }} the same, using the first as the master and drill guide. The coro is plain on both sides, so turn four of them over for the hooks that point the other way. The bottom 5 cm of the stem goes into the slot of the printed cane base with its aluminium stiffener: drill the two tie holes through the base's holes once it's printed.</p>
+              <p v-else-if="p.kind==='cane'" class="how">Cut the first from the template and trace the other {{ p.cut-1 }} from it, drilling through its holes. Lay it face down to trace canes 3, 5 and 7, and face up for canes 2, 4, 6 and 8, whose hooks point the other way: the marker lines then always end up on the back. The bottom 5 cm of the stem goes into the slot of the printed cane base with its aluminium stiffener: drill the two tie holes through the base's holes once it's printed.</p>
               <p v-else-if="p.kind==='star'" class="how">Cut the outer edge and the middle, drill the {{ p.holes }} pixel holes, then two 5 mm holes just above the notch between the two lower points, to tie it into the printed star holder's slot.</p>
               <p class="files">
                 <UButton :to="`/outputs/templates/${p.file}.pdf`" external download size="sm" icon="i-lucide-download" label="Full size PDF" color="primary" variant="subtle" />
@@ -83,15 +107,8 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
         <h2>Layout on the sheets</h2>
         <p class="lead">Lay every template so the prop's up-down runs along the flutes: rain drains out of the channels, and the canes and the star are stiff where it counts. With the flutes along the {{ cm(SHEET.h) }} cm side, everything fits on {{ sheetsUsed }} sheets. If yours run along the {{ cm(SHEET.w) }} cm side, turn the layout: one circle per row, with canes in the gaps.</p>
         <div class="sheets">
-          <figure v-for="(s,i) in placed" :key="i" class="sheet glass">
-            <svg :viewBox="`-20 -20 ${SHEET.w+40} ${SHEET.h+40}`" role="img" :aria-label="`Sheet ${i+1}`">
-              <rect class="board" :width="SHEET.w" :height="SHEET.h" rx="6" />
-              <g class="flutes"><line v-for="x in 27" :key="x" :x1="x*50" :x2="x*50" y1="0" :y2="SHEET.h" /></g>
-              <g v-for="(a,j) in s" :key="j" :transform="`translate(${a.x} ${a.y})`">
-                <g class="band" :stroke-width="BAND"><polyline v-for="(l,k) in outline[a.p.kind].lines" :key="k" :points="l.map(q=>q.join(',')).join(' ')" /></g>
-                <circle v-for="(b,k) in outline[a.p.kind].bulbs" :key="`b${k}`" class="band-dot" :cx="b[0]" :cy="b[1]" :r="BAND/2" />
-              </g>
-            </svg>
+          <figure v-for="(s,i) in CORO_SHEETS" :key="i" class="sheet glass">
+            <CoroSheet :sheet="i" />
             <figcaption><b>Sheet {{ i+1 }}</b> · {{ captions[i] }} · {{ cm(CORO_SHEETS[i].width) }} of {{ cm(SHEET.w) }} cm</figcaption>
           </figure>
         </div>
@@ -188,10 +205,14 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 .tip{font-size:12px;line-height:1.6;color:#8397a9;margin:12px 0 0;max-width:900px}
 .sheets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .sheet{margin:0;padding:12px}
-.sheet svg{width:100%;height:auto;display:block}
-.board{fill:#ffffff08;stroke:#ffffff30;stroke-width:3}
-.flutes line{stroke:#ffffff0c;stroke-width:2}
-.sheet .band{stroke:#e8e6dfcc}.sheet .band-dot{fill:#e8e6dfcc}
+.guide-files{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:#a3b3c3}
+.guide-file{display:inline-flex;gap:8px;align-items:baseline}
+.guide-file b{color:#e3e9ee;font-weight:600}
+.guide-file a{color:var(--gold-soft);text-decoration:underline;text-underline-offset:3px}
+.guide-sheet{margin:0;max-width:640px}
+.guide-sheet figcaption{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:11.5px;color:#8397a9;margin-top:6px}
+.key{display:inline-block;width:10px;height:10px;border-radius:3px}
+.key.focus{background:#f0c49a}.key.cut{background:#7fd0a080}.key.later{background:#e8e6df47}
 .sheet figcaption{font-size:12px;color:#a3b3c3;margin-top:8px}
 .sheet figcaption b{color:#e3e9ee;font-weight:600}
 .two{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}

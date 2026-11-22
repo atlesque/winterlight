@@ -2,7 +2,8 @@
 // A step-by-step guide: one step on screen at a time, a checkbox per task,
 // Back and Next, and a row of numbered pills to jump between steps. Ticks and
 // the open step are kept by useGuideTicks under storageKey, so reopening the
-// page carries on where you left off.
+// page carries on where you left off. Ticks are shared between devices through
+// the site's Worker when it can be reached (see useGuideTicks).
 //
 //   <StepGuide :steps="[{id,title,intro?,tasks:[{id,html,note?}]}]" storage-key="..." >
 //     <template #step-<id>>extra content under that step's tasks</template>
@@ -14,7 +15,7 @@ const slots=useSlots();
 
 const key=(s,t)=>`${props.storageKey}/${s.id}/${t.id}`;
 const taskIds=new Set(props.steps.flatMap(s=>s.tasks.map(t=>key(s,t))));
-const {done,toggle:flip,reset:clear,step:openId,open}=useGuideTicks(props.storageKey,[...taskIds]);
+const {done,toggle:flip,reset:clear,step:openId,open,mode,status}=useGuideTicks(props.storageKey,[...taskIds]);
 const current=computed(()=>Math.max(0,props.steps.findIndex(s=>s.id===openId.value)));
 const stepDone=s=>s.tasks.every(t=>done[key(s,t)]);
 const stepCount=s=>s.tasks.filter(t=>done[key(s,t)]).length;
@@ -66,7 +67,8 @@ function reset(){if(!confirm('Untick every step and start again from step 1?'))r
         <span v-else-if="allDone" class="finished"><UIcon name="i-lucide-party-popper" /> All {{ taskIds.size }} tasks done</span>
       </div>
     </section>
-    <p class="guide-foot">{{ total }} of {{ taskIds.size }} tasks done, saved in this browser. <button type="button" class="text-button" @click="reset">Start again</button></p>
+    <p v-if="status" class="guide-foot error">{{ status }}</p>
+    <p class="guide-foot">{{ total }} of {{ taskIds.size }} tasks done<template v-if="mode==='shared'">, shared with every device signed in to the runbook.</template><template v-else-if="mode==='local'">, saved in this browser only. <a href="/runbook.html">Sign in through the runbook</a> to share ticks between devices.</template><template v-else>.</template> <button type="button" class="text-button" @click="reset">Start again</button></p>
   </div>
 </template>
 
@@ -106,5 +108,7 @@ function reset(){if(!confirm('Untick every step and start again from step 1?'))r
 .spacer{flex:1}
 .finished{display:inline-flex;align-items:center;gap:8px;color:#7ee081;font-size:13px;font-weight:600}
 .guide-foot{margin:10px 2px 0;font-size:11px;color:var(--ui-text-muted)}
+.guide-foot a{color:var(--gold-soft);text-decoration:underline;text-underline-offset:3px}
+.guide-foot.error{color:#f59e8b}
 @media (max-width:720px){.step-card{padding:18px 16px}.pill-label{display:none}.pill{padding:0 6px}.pill.current .pill-label{display:inline}.pill.current{padding-right:14px}}
 </style>
