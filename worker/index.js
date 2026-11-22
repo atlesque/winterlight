@@ -1,16 +1,18 @@
 import {STEP_IDS,PURCHASES} from '../src/runbook/runbook.js';
 import {MEASUREMENTS,validMeasure,completeSteps} from '../src/measures/measures.js';
+import {GUIDE_STEP_IDS} from '../src/guides/index.js';
 
 // The site is static (nuxt generate into dist/), served as Workers Static
 // Assets. Only /api/* reaches this Worker (run_worker_first in wrangler.jsonc):
-// the runbook's ticks, expense switches and tape measurements, kept in D1 so every device sees
+// the runbook's ticks, expense switches and tape measurements, and the ticks of the
+// step-by-step guides (src/guides/index.js), kept in D1 so every device sees
 // the same state. Cloudflare Access ("Winterlight runbook": /runbook,
 // /runbook.html, /measure, /measure.html and /api/runbook, Alex only) signs people in before a request
 // gets here. As a second check, a request with no sign-in from Access at all
 // (its JWT header, identity header or CF_Authorization cookie) is refused,
 // unless RUNBOOK_OPEN=1 (local wrangler dev, in .dev.vars). On workers.dev the
 // identity header alone isn't always passed on, so any of the three will do.
-const STEPS=new Set(STEP_IDS),BUYS=new Set(PURCHASES.map(p=>p.id)),KINDS=new Set(['private','business']);
+const STEPS=new Set([...STEP_IDS,...GUIDE_STEP_IDS]),BUYS=new Set(PURCHASES.map(p=>p.id)),KINDS=new Set(['private','business']);
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
 const signedIn=(request,env)=>{const h=request.headers;return env.RUNBOOK_OPEN==='1'||Boolean(h.get('cf-access-jwt-assertion')||h.get('cf-access-authenticated-user-email')||/(?:^|;\s*)CF_Authorization=/.test(h.get('cookie')||''));};
 

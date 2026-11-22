@@ -14,13 +14,14 @@ import {resolve,relative} from 'node:path';
 import {parseArgs} from 'node:util';
 import {renderShow,encodeFseq,fppOutputs,portRows,propRows,DEFAULT_OPTIONS,PIXELS} from '../../src/software/fseq.js';
 import {FSEQ_FPS,FSEQ_FRAMES,TOTAL_CHANNELS,SHOW_SECONDS} from '../../src/software/plan.js';
+import {IPS} from '../../src/software/setup.js';
 
 const root=new URL('../../',import.meta.url);
 const {values:a}=parseArgs({options:{
  gamma:{type:'string',default:String(DEFAULT_OPTIONS.gamma)},
  brightness:{type:'string',default:String(DEFAULT_OPTIONS.brightness)},
- 'facade-ip':{type:'string',default:'192.168.1.201'},
- 'garden-ip':{type:'string',default:'192.168.1.202'},
+ 'facade-ip':{type:'string',default:IPS.facade},
+ 'garden-ip':{type:'string',default:IPS.garden},
  out:{type:'string',default:'outputs/fpp'},
  'no-audio':{type:'boolean',default:false},
 }});

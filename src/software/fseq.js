@@ -118,15 +118,5 @@ export function fppOutputs(addresses){
    address:addresses[c.id],priority:0,monitor:1,deDuplicate:0}))}]};
 }
 
-// One row per controller port, for its own setup page: the port's pixels and
-// where its block starts in the controller's own numbering (1-based).
-export function portRows(){
- return CONTROLLERS.flatMap(c=>c.ports.map(p=>({controller:c.name,port:p.n,chain:p.name,pixels:p.pixels,
-  localStart:p.start-c.start+1,localEnd:p.end-c.start+1,showStart:p.start,showEnd:p.end})));
-}
-// One row per prop: which pixels of its port it owns, to check at the test pattern.
-export function propRows(){
- return WIRING.zones.flatMap((z,zi)=>z.ports.flatMap(p=>{const c=CONTROLLERS[zi],port=c.ports.find(x=>x.n===p.n);
-  return p.props.map(prop=>({controller:c.name,port:p.n,prop:prop.name,id:prop.id,pixels:prop.pixels,firstPixel:prop.first+1,lastPixel:prop.first+prop.pixels,
-   showStart:port.start+prop.first*3,showEnd:port.start+(prop.first+prop.pixels)*3-1}));}));
-}
+// The port and prop tables live in plan.js, so the site can show them too.
+export {portRows,propRows} from './plan.js';

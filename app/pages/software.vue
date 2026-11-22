@@ -46,7 +46,7 @@ const STEPS=[
  {status:'done',icon:'i-lucide-timer',title:`Resample to ${FSEQ_FPS} fps`,text:`Falcon Player's frames are whole milliseconds, so the video's 33.37 ms frames can't be kept. Every ${1000/FSEQ_FPS} ms output frame shows the video frame on screen at that moment, never more than one frame off. ${FSEQ_FPS} fps also fits the Baldrick's ports.`},
  {status:'done',icon:'i-lucide-file-cog',title:'Write show.fseq',text:`tools/fseq/export.mjs reads the same files the site does and writes Falcon Player's sequence to outputs/fpp: ${n(TOTAL_CHANNELS)} channels × ${n(FSEQ_FRAMES)} frames, ${FSEQ_MB} MB before compression and 0.3 MB after. A test checks it against the site's player.`},
  {status:'done',icon:'i-lucide-music',title:'The music',text:'The site\'s soundtrack was taken from the same video, so second 0 of the audio is frame 0 of the cues. The export converts it to show.mp3 for the Pi, and Falcon Player keeps the lights on the music\'s clock.'},
- {status:'decided',icon:'i-lucide-calendar-clock',title:'Playlist and schedule',text:'Upload show.fseq and show.mp3 in Falcon Player\'s web page, put them in a playlist and schedule it for the evenings. docs/falcon-player.md has the steps, and the runbook\'s software chapter lists them.'},
+ {status:'decided',icon:'i-lucide-calendar-clock',title:'Playlist and schedule',text:'Upload show.fseq and show.mp3 in Falcon Player\'s web page, put them in a playlist and schedule it for the evenings. The Pi and controller setup page has the steps.'},
 ];
 
 const OPEN=[
@@ -78,7 +78,7 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
       <section class="intro">
         <h1>Show software</h1>
         <p>During the show a Raspberry Pi in the garage runs Falcon Player. It plays the music and, {{ FSEQ_FPS }} times a second, sends the colour of all {{ n(TOTAL_CHANNELS/3) }} pixels over the network to the two Baldrick 8 controllers, which drive the pixel strings.
-          The music goes out to car radios through an FM transmitter. The hardware below is what was ordered and wired (see the <a href="/wiring.html">wiring plan</a>); the {{ mmss(SHOW_SECONDS) }} show on this site is exported as a file the Pi plays, show.fseq, with its music.</p>
+          The music goes out to car radios through an FM transmitter. The hardware below is what was ordered and wired (see the <a href="/wiring.html">wiring plan</a>); the {{ mmss(SHOW_SECONDS) }} show on this site is exported as a file the Pi plays, show.fseq, with its music. The <a href="/setup.html">Pi and controller setup</a> page says how to set it all up.</p>
       </section>
 
       <section class="diagram glass" aria-label="Data diagram">

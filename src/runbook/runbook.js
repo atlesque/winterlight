@@ -230,7 +230,7 @@ export const MEASURES={
  ],
 };
 
-const FPP='https://github.com/FalconChristmas/fpp/releases',BALDRICK='https://www.baldrickboard.com/en/boards/baldrick8/manual';
+const BALDRICK='https://www.baldrickboard.com/en/boards/baldrick8/manual';
 
 export const CHAPTERS=[
  {id:'plan',title:'Plan and measure',icon:'i-lucide-ruler',due:'2026-11-05',steps:[
@@ -252,7 +252,7 @@ export const CHAPTERS=[
   {id:'count-pixels',text:'Count the pixel strings and look for damaged plugs'},
  ]},
  {id:'bench',title:'Bench test',icon:'i-lucide-cpu',due:'2026-11-17',steps:[
-  {id:'flash-fpp',text:'Flash Falcon Player onto the Pi\'s card',link:{href:FPP,label:'FPP releases'}},
+  {id:'flash-fpp',text:'Flash Falcon Player onto the Pi\'s card',link:{href:'/setup.html',label:'Pi and controller setup'}},
   {id:'bench-wire',text:'Wire one power supply and one controller on the table',tip:'Mains on the power supply terminals only with the plug out. Fuse each output.'},
   {id:'bench-ip',text:'Give both controllers their static IP',link:{href:BALDRICK,label:'Baldrick 8 manual'}},
   {id:'bench-strings',text:'Light every pixel string with the controller\'s test pattern',tip:`Mark and set aside strings with dead or wrong-coloured pixels. Note the colour order (RGB or GRB). All the AliExpress strings are regulated, so they hold their brightness on the facade\'s data leads before the first injection. Cut the 100-pixel strings at pixel 50 only where two props aren\'t side by side, and fit a pigtail pair. Where one string serves two props, cut out the pixels left between them.`},
@@ -264,7 +264,7 @@ export const CHAPTERS=[
   {id:'build-templates',text:'Print the prop templates 1:1 and stick them on the coro',links:[CUT_LINK(),...TEMPLATES.map(t=>({href:`/outputs/templates/${t.file}.pdf`,label:`${t.title} (cut ${t.cut})`}))],tip:'One print of each is enough: the first circle and the first cane are the masters for the rest. Print them on A4 at home (the cutting guide has tiled versions) or as one sheet at a copy shop (the circle needs A0). Lay them with the flutes running vertically, so rain drains out and the props stay stiff.'},
   {id:'build-wreaths',text:'Cut and drill the two Christmas circles',link:CUT_LINK('wreath'),tip:`On a scrap board: drill the ${coro('wreath').holes} holes with the 12 mm step drill through the template marks while the piece is still in the sheet, cut the ${coro('wreath').openings} openings inside, then the outer edge. Straight edges with the FatMax and a fresh trapezoid blade along a steel ruler, in two or three light passes across the flutes; curves in short cuts. Use the first circle as the tracing master and drill guide for the second.`},
   {id:'build-peace',text:'Cut and drill the peace sign',link:CUT_LINK('peace')},
-  {id:'build-canes',text:`Cut and drill the ${g.canes.props.length} candy canes`,link:CUT_LINK('cane'),tip:'Cut them all the same, using the first as the master and drill guide. The coro is plain on both sides, so turn four of them over for the hooks that point the other way.'},
+  {id:'build-canes',text:`Cut and drill the ${g.canes.props.length} candy canes`,link:CUT_LINK('cane'),tip:'Cut the first from the template and trace the rest from it, drilling through its holes: face down for canes 3, 5 and 7, face up for canes 2, 4, 6 and 8, whose hooks point the other way. The marker lines then end up on the back.'},
   {id:'build-star',text:'Cut and drill the tree star',links:[CUT_LINK('star'),PRINT_LINK('tree')],tip:'One star from the template: cut the outer and inner edges of the grey band, drill the 30 pixel holes with the 12 mm step drill, then two 5 mm holes just above the bottom notch to tie it into the star holder\'s slot.'},
   {id:'build-letters',text:`Check the ${g.letters.props.length} letters: ${g.letters.pixels} holes, all taking a 12 mm pixel`},
   {id:'build-push',text:'Push the pixels into the letters and coro props and tie the spare wire behind',tip:'Start each prop at the corner nearest its box, so the data runs the same way as in the model. Where two pixels sit further apart than the string\'s 10 cm (between the circles\' rings and at their bow, some letters\' strokes), cut and solder in a short piece of 3-core wire. The peace sign needs none: its pixels without a hole of their own give the string enough slack. Cut off the pixels a prop doesn\'t use: every prop must carry exactly its pixel count, or every prop after it on the port lights the wrong pixels.'},
@@ -289,8 +289,8 @@ export const CHAPTERS=[
   {id:'place-network',text:'Patch the facade controller and the Pi into the switch, run the outdoor cable to the garden controller, and plug both into the power strip behind the RCD'},
  ]},
  {id:'software',title:'Configure the software',icon:'i-lucide-monitor-cog',due:'2026-12-09',steps:[
-  {id:'sw-fpp',text:'Set up Falcon Player: static IP, time zone, the USB sound card as audio out'},
-  {id:'sw-controllers',text:'Set each controller port\'s pixel count, start channel and colour order, with DDP as input',link:{href:BALDRICK,label:'Baldrick 8 manual'},tip:'From outputs/fpp/controller-ports.csv. Full brightness, gamma 1.0, and no port reversed: the show file is already in the order the strings are wired. docs/falcon-player.md has the steps.'},
+  {id:'sw-fpp',text:'Set up Falcon Player: static IP, time zone, the USB sound card as audio out',link:{href:'/setup.html',label:'Pi and controller setup'}},
+  {id:'sw-controllers',text:'Set each controller port\'s pixel count, start channel and colour order, with DDP as input',link:{href:BALDRICK,label:'Baldrick 8 manual'},tip:'From outputs/fpp/controller-ports.csv. Full brightness, gamma 1.0, and no port reversed: the show file is already in the order the strings are wired. The setup page has the port tables.'},
   {id:'sw-outputs',text:'Add Falcon Player\'s two DDP outputs, one per controller',tip:`Channel Outputs, E1.31 / ArtNet / DDP: ${CONTROLLERS.map(c=>`${c.id} from channel ${c.start}, ${c.channels} channels`).join('; ')}; both "DDP - One Based", or post outputs/fpp/co-universes.json. Re-run the export with the controllers\' real IPs first.`},
   {id:'sw-sequence',text:'Export the show file: node tools/fseq/export.mjs',link:{href:'/software.html',label:'Show software'},tip:'Writes show.fseq (every pixel, 40 frames a second) and show.mp3 to outputs/fpp; the committed copies are ready to use. Re-run it after any change to a prop\'s pixel count. xLights isn\'t needed.'},
   {id:'sw-upload',text:'Upload show.fseq and show.mp3 to Falcon Player and make a playlist with one Seq+Med entry'},
