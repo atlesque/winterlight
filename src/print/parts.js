@@ -103,18 +103,33 @@ export const PRINT_PROPS=[
 export const PARTS=PRINT_PROPS.flatMap(p=>p.parts.map(x=>({...x,scad:x.scad??x.id,prop:p.id,qty:x.per*p.count+x.spare})));
 export const BRICKS=PRINT_PROPS.reduce((s,p)=>s+p.bricks,0);
 
-// The plate plan: parts that fit the 256 mm bed together share a plate. The frames
-// that get pixels print first, since the pixels land from 28 Nov; the bases only
-// hold bricks, so they go last, the long plates overnight. `test` plates come first
-// to check the strip and brick fit, and count towards the totals.
+// The print queue, one step per kind of plate, easiest and surest first: small
+// flat parts whose fit only the strip decides, then the parts that wait on the
+// pole's size, then everything that holds a brick, once a brick is measured.
+// Parts that fit the 256 mm bed together share a plate. `needs` names what to
+// measure before that step; its `plates` are printed one by one and ticked off.
+const times=(n,parts)=>Array.from({length:n},()=>parts);
 export const PLATES=[
- {id:'test-mini',name:'Test: mini-tree base + top cap',parts:{'minitree-base':1,'minitree-top':1},count:1,when:'First',test:true},
- {id:'test-foot',name:'Test: post foot + post',parts:{'fence-foot':1,'fence-post':1},count:1,when:'First',test:true},
- {id:'minitree',name:'Mini-tree base + top cap',parts:{'minitree-base':1,'minitree-top':1},count:11,when:'By 28 Nov, daytime'},
- {id:'ring-weight',name:'Ring segment with brick tray + 2 ring segments',parts:{'tree-ring-weight':1,'tree-ring':2},count:4,when:'By 28 Nov, overnight'},
- {id:'ring',name:'5 ring segments',parts:{'tree-ring':5},count:1,when:'By 28 Nov'},
- {id:'hub',name:'Crown hub + star holder, once pole_d is set',parts:{'tree-crown':1,'tree-star-holder':1},count:1,when:'By 28 Nov'},
- {id:'cane',name:'Cane base',parts:{'cane-base':1},count:8,when:'By 4 Dec, overnight'},
- {id:'foot',name:'Post foot + post',parts:{'fence-foot':1,'fence-post':1},count:9,when:'By 4 Dec, daytime'},
- {id:'post',name:'Spare post',parts:{'fence-post':1},count:1,when:'Any gap'},
+ {id:'test-mini',name:'Test plate: one mini tree',plates:times(1,{'minitree-base':1,'minitree-top':1}),when:'First',test:true,
+  why:'Small and quick, and it checks the two fits most parts share: the mounting strip should slide snugly into a channel and a bamboo cane through the rod hole. If both fit, print everything else as it is.'},
+ {id:'minitree',name:'Mini trees',plates:times(11,{'minitree-base':1,'minitree-top':1}),when:'By 28 Nov',
+  why:'The other 11 base rings and top caps: a short plate each, flat on the bed, nothing to measure.'},
+ {id:'post',name:'Ground strip posts',plates:[{'fence-post':6},{'fence-post':5}],when:'By 28 Nov',
+  why:'The posts lie flat, six to a plate. Each only plugs into its foot\'s socket, so the brick doesn\'t matter: 10 needed and a spare.'},
+ {id:'ring',name:'Tree ring segments',plates:[{'tree-ring':5},{'tree-ring':5},{'tree-ring':3}],when:'By 28 Nov',
+  why:'The plain segments of the tree\'s base ring, five to a plate: 12 needed and a spare.'},
+ {id:'hub',name:'Crown hub and star holder',plates:times(1,{'tree-crown':1,'tree-star-holder':1}),when:'By 28 Nov',needs:'pole',
+  why:'Both slide over the pole. Measure the pipe first and set pole_d in both files to its size: as drawn (32 mm) the hole is too small for 1-inch pipe. Brim on the star holder.'},
+ {id:'test-foot',name:'Test plate: one post foot',plates:times(1,{'fence-foot':1}),when:'Once the brick is known',test:true,needs:'brick',
+  why:'Checks that the brick drops into a tray and that a post fits the socket. If the brick isn\'t 22 × 11 cm or less, change brick_l, brick_w and brick_h in lib.scad and export this and the next steps again.'},
+ {id:'ring-weight',name:'Ring segments with brick tray',plates:times(4,{'tree-ring-weight':1}),when:'By 4 Dec',needs:'brick',
+  why:'The four segments that each hold a brick: front, back, left and right of the tree.'},
+ {id:'foot',name:'Post feet',plates:times(9,{'fence-foot':1}),when:'By 4 Dec',needs:'brick',
+  why:'The other nine feet, one brick each. Hidden behind the strip, so they print coarser.'},
+ {id:'cane',name:'Cane bases',plates:times(8,{'cane-base':1}),when:'By 4 Dec',needs:'brick',
+  why:'The biggest prints, nearly the whole bed, two bricks each. Run them overnight.'},
 ];
+// Each plate is a task of its step: task id `p<n>`, saved by the step guide as
+// print/<stepId>/<taskId> (storageKey 'print'), which the site's Worker accepts.
+export const plateTaskId=i=>`p${i+1}`;
+export const PRINT_TICK_IDS=PLATES.flatMap(s=>s.plates.map((_,i)=>`print/${s.id}/${plateTaskId(i)}`));

@@ -45,19 +45,20 @@ test('the finished props are drawn from the printed parts, nothing staked into t
  for(const p of PRINT_PROPS)assert.ok(ASSEMBLIES[p.id],p.id);
 });
 
-test('the plate plan prints every part exactly as many times as needed, each plate fitting the bed',()=>{
+test('the print queue prints every part exactly as many times as needed, each plate fitting the bed',()=>{
  const n={};
- for(const pl of PLATES)for(const [id,k] of Object.entries(pl.parts)){
-  assert.ok(MANIFEST[id],`${pl.id}: ${id}`);n[id]=(n[id]??0)+k*pl.count;
- }
+ for(const st of PLATES)for(const pl of st.plates)for(const [id,k] of Object.entries(pl)){assert.ok(MANIFEST[id],`${st.id}: ${id}`);n[id]=(n[id]??0)+k;}
  for(const p of PARTS)assert.equal(n[p.id],p.qty,p.id);
- for(const pl of PLATES){
-  const sizes=Object.entries(pl.parts).flatMap(([id,k])=>Array(k).fill(MANIFEST[id].size));
-  // Shortest side of each part along X (it can be turned), longest along Y.
+ for(const st of PLATES)for(const pl of st.plates){
+  const sizes=Object.entries(pl).flatMap(([id,k])=>Array(k).fill(MANIFEST[id].size));
+  // Side by side along X, 5 mm apart: each part turned with its short side along X.
   const x=sizes.reduce((s,v)=>s+Math.min(v[0],v[1]),0)+5*(sizes.length-1);
-  assert.ok(x<=BED.x&&sizes.every(v=>Math.max(v[0],v[1])<=BED.y),`${pl.id}: ${x} mm`);
+  assert.ok(x<=BED.x&&sizes.every(v=>Math.max(v[0],v[1])<=BED.y),`${st.id}: ${x} mm`);
  }
- assert.equal(PLATES.filter(p=>p.test).length,2);
+ assert.equal(new Set(PLATES.map(s=>s.id)).size,PLATES.length);
+ // Nothing that holds a brick comes before the step that measures one.
+ const firstBrick=PLATES.findIndex(s=>s.needs==='brick'),bricky=new Set(['cane-base','fence-foot','tree-ring-weight']);
+ PLATES.forEach((st,i)=>{if(st.plates.some(pl=>Object.keys(pl).some(id=>bricky.has(id))))assert.ok(i>=firstBrick&&st.needs==='brick',st.id);});
  for(const id of BASE_PARTS)assert.ok(MANIFEST[id],id);
  assert.ok(NOZZLES.find(z=>z.id==='n06').speed<1);
 });
