@@ -1,5 +1,5 @@
 <script setup>
-import {PRINT_PROPS,PARTS,BED,FILAMENT,SETTINGS,MINI_SPOKE_CM,STRAND_CM,BRICK,BRICKS,PARASOL,NOZZLES,NOZZLE_STEPS,BASE_PARTS,BASE_SPEED,GRAMS_PER_HOUR,MEASURE,PLATES} from '~~/src/print/parts.js';
+import {PRINT_PROPS,PARTS,BED,FILAMENT,SETTINGS,MINI_SPOKE_CM,STRAND_CM,BRICK,BRICKS,PARASOL,NOZZLES,NOZZLE_STEPS,BASE_PARTS,BASE_SPEED,GRAMS_PER_HOUR,MEASURE,PLATES,plateTaskId} from '~~/src/print/parts.js';
 import {ASSEMBLIES} from '~~/src/print/assembly.js';
 import MANIFEST from '~~/outputs/print/manifest.json';
 
@@ -22,12 +22,18 @@ const spare=FILAMENT.rolls*FILAMENT.grams-total.grams;
 const nozzle=ref('n06');
 const currentNozzle=computed(()=>NOZZLES.find(n=>n.id===nozzle.value));
 const grams=parts=>Object.entries(parts).reduce((s,[id,n])=>s+n*info(id).grams,0);
-const plateGrams=st=>st.plates.reduce((s,pl)=>s+grams(pl),0);
 const hours=(parts,nz)=>Object.entries(parts).reduce((s,[id,n])=>s+n*info(id).grams/GRAMS_PER_HOUR*nz.speed*(BASE_PARTS.includes(id)?BASE_SPEED:1),0);
 const plateHours=(st,nz)=>st.plates.reduce((s,pl)=>s+hours(pl,nz),0);
-const plateParts=st=>Object.entries(st.plates[0]).map(([id,n])=>`${n} × ${PARTS.find(p=>p.id===id).name.toLowerCase()}`).join(', ');
 const hoursFor=nz=>PLATES.reduce((s,st)=>s+plateHours(st,nz),0);
 const plateCount=PLATES.reduce((s,st)=>s+st.plates.length,0);
+// The print queue for the step guide: a step per kind of plate, a task per plate.
+const NEEDS={pole:'Measure the pole first',brick:'Needs the brick size'};
+const queue=computed(()=>PLATES.map(st=>({id:st.id,title:st.name,
+ intro:`${st.needs?`<b>${NEEDS[st.needs]}.</b> `:''}${st.why}`,
+ tasks:st.plates.map((pl,i)=>({id:plateTaskId(i),
+  html:`<b>Plate ${i+1}${st.plates.length>1?` of ${st.plates.length}`:''}</b>: ${Object.entries(pl).map(([id,n])=>`${n} × ${PARTS.find(p=>p.id===id).name.toLowerCase()}`).join(', ')}`,
+  note:`${grams(pl)} g of PETG, about ${fmtHours(hours(pl,currentNozzle.value))} on the ${currentNozzle.value.short} nozzle`}))})));
+const stepPartIds=st=>[...new Set(st.plates.flatMap(pl=>Object.keys(pl)))];
 const fmtHours=h=>h<10?`${Math.round(h*2)/2} h`:`${Math.round(h)} h`;
 const mode=ref('prop'),prop=ref(PRINT_PROPS[0].id),part=ref(PARTS[0].id);
 const currentProp=computed(()=>PRINT_PROPS.find(p=>p.id===prop.value));
@@ -73,6 +79,58 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
         <div class="glass"><b>{{ Math.round(hoursFor(NOZZLES[1])) }} h</b><span>of printing on the 0.6 mm nozzle, about {{ Math.round(hoursFor(NOZZLES[0])) }} h on the 0.4 mm</span></div>
       </div>
 
+      <section id="plates" class="guide-block">
+        <div class="guide-head">
+          <h2><UIcon name="i-lucide-list-checks" class="card-icon" /> Print queue</h2>
+          <div class="house-toggle" role="group" aria-label="Nozzle">
+            <button v-for="n in NOZZLES" :key="n.id" type="button" :aria-pressed="n.id===nozzle" @click="nozzle=n.id">{{ n.name }}</button>
+          </div>
+        </div>
+        <p class="lead">{{ plateCount }} plates, about {{ Math.round(hoursFor(currentNozzle)) }} hours on the {{ currentNozzle.short }} nozzle. One plate at a time: print it, tick it off, and the next one is waiting. The small flat parts come first; everything that holds a brick waits until a brick is measured.</p>
+        <StepGuide :steps="queue" storage-key="print">
+          <template v-for="st in PLATES" :key="st.id" #[`step-${st.id}`]>
+            <div class="plate-files">
+              <span v-for="id in stepPartIds(st)" :key="id" class="plate-file">
+                <span>{{ PARTS.find(p=>p.id===id).name }}</span>
+                <UButton :to="`/outputs/print/${id}.stl`" external download size="xs" icon="i-lucide-download" label="STL" color="primary" variant="subtle" />
+                <UButton size="xs" icon="i-lucide-rotate-3d" label="On the bed" color="neutral" variant="subtle" @click="showPart(id)" />
+              </span>
+            </div>
+          </template>
+        </StepGuide>
+        <div class="nozzle-grid">
+          <div class="glass">
+            <h3>Settings on the {{ currentNozzle.name }}</h3>
+            <table class="nozzle">
+              <thead><tr><th>Parts</th><th>Layer</th><th class="num">Walls</th><th class="num">Top / bottom</th><th class="num">Infill</th></tr></thead>
+              <tbody><tr v-for="r in currentNozzle.rows" :key="r.parts"><td>{{ r.parts }}</td><td>{{ r.layer }}</td><td class="num">{{ r.walls }}</td><td class="num">{{ r.shells }}</td><td class="num">{{ r.infill }}</td></tr></tbody>
+            </table>
+            <p class="tip">Times are rough, at {{ GRAMS_PER_HOUR }} g of PETG an hour on the 0.4 mm nozzle; Bambu Studio shows the real time per plate. Run the long plates overnight and swap the short ones in the day.</p>
+          </div>
+          <div class="glass">
+            <h3>Switching to the 0.6 mm nozzle</h3>
+            <ol class="howto compact"><li v-for="t in NOZZLE_STEPS" :key="t">{{ t }}</li></ol>
+          </div>
+        </div>
+      </section>
+      <section id="before" class="guide-block">
+        <h2><UIcon name="i-lucide-ruler" class="card-icon" /> Before you print</h2>
+        <p class="lead">The sizes the parts are drawn for. Every part adds its own clearance, 0.4 mm a side, so enter sizes as measured.</p>
+        <div class="glass guide-table">
+          <table class="measure">
+            <thead><tr><th>Measure</th><th>Drawn for</th><th>Change it in</th><th>Affects</th></tr></thead>
+            <tbody>
+              <tr v-for="m in MEASURE" :key="m.what" :class="{warn:m.warn}">
+                <td><b>{{ m.what }}</b><small>{{ m.has }}</small></td>
+                <td>{{ m.drawn }}<small v-if="m.warn" class="warn-text">{{ m.warn }}</small><small v-else-if="m.note">{{ m.note }}</small></td>
+                <td><code>{{ m.where }}</code></td>
+                <td>{{ m.parts }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lead">Two of them can wait: the queue's first steps need only the strip, and it says when to measure the pole and the brick. To change a size, edit <a href="/outputs/print/lib.scad" download>lib.scad</a> (or the part's own file) in <a href="https://openscad.org/" target="_blank" rel="noopener">OpenSCAD</a>, then F6 to render and F7 to export the STL.</p>
+      </section>
       <section id="viewer" class="viewer glass" aria-label="3D view">
         <div class="stage">
           <ClientOnly><PartViewer :mode="mode" :prop="prop" :part="part" :bed="BED" :parts="PARTS.map(p=>p.id)" @thumbs="t=>thumbs=t" /></ClientOnly>
@@ -104,30 +162,6 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
             </button>
           </template>
         </nav>
-      </section>
-
-      <section id="before" class="guide-block">
-        <h2><UIcon name="i-lucide-ruler" class="card-icon" /> Before you print</h2>
-        <p class="lead">Measure four things, then print the two test plates. Every part adds its own clearance, 0.4 mm a side, so enter sizes as measured.</p>
-        <div class="glass guide-table">
-          <table class="measure">
-            <thead><tr><th>Measure</th><th>Drawn for</th><th>Change it in</th><th>Affects</th></tr></thead>
-            <tbody>
-              <tr v-for="m in MEASURE" :key="m.what" :class="{warn:m.warn}">
-                <td><b>{{ m.what }}</b><small>{{ m.has }}</small></td>
-                <td>{{ m.drawn }}<small v-if="m.warn" class="warn-text">{{ m.warn }}</small><small v-else-if="m.note">{{ m.note }}</small></td>
-                <td><code>{{ m.where }}</code></td>
-                <td>{{ m.parts }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ol class="howto">
-          <li><b>Swap to the 0.6 mm nozzle</b> if you have it, before anything else (see <a href="#plates">the plate plan</a>).</li>
-          <li><b>Print the two test plates:</b> a mini-tree base with its top cap, and a post foot with a post. The strip should slide snugly into the channels, a bamboo cane through the rod hole, and a brick drop into the tray.</li>
-          <li><b>If they fit,</b> print the rest as they are. If not, change the size in <a href="/outputs/print/lib.scad" download>lib.scad</a> in <a href="https://openscad.org/" target="_blank" rel="noopener">OpenSCAD</a> (F6 to render, F7 to export the STL).</li>
-          <li><b>Print the crown hub and star holder</b> only once the pole is bought and <code>pole_d</code> is set to its measured size.</li>
-        </ol>
       </section>
       <section v-for="p in PRINT_PROPS" :id="p.id" :key="p.id" class="prop-block">
         <header>
@@ -163,44 +197,6 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
               </p>
             </div>
           </article>
-        </div>
-      </section>
-
-      <section id="plates" class="guide-block">
-        <div class="guide-head">
-          <h2><UIcon name="i-lucide-layers" class="card-icon" /> Plate plan</h2>
-          <div class="house-toggle" role="group" aria-label="Nozzle">
-            <button v-for="n in NOZZLES" :key="n.id" type="button" :aria-pressed="n.id===nozzle" @click="nozzle=n.id">{{ n.name }}</button>
-          </div>
-        </div>
-        <p class="lead">{{ plateCount }} plates and about {{ Math.round(hoursFor(currentNozzle)) }} hours on the {{ currentNozzle.short }} nozzle. Parts that fit the bed together share a plate; the rest nearly fill it alone, so more per plate would only save the few minutes of heating and calibration each. The frames that get pixels go first, since the pixels land from 28 Nov; the bases only hold bricks, so they go last.</p>
-        <div class="glass guide-table">
-          <table class="plates">
-            <thead><tr><th>Plate</th><th class="num">Plates</th><th class="num">PETG</th><th class="num">Time</th><th class="when">When</th></tr></thead>
-            <tbody>
-              <tr v-for="pl in PLATES" :key="pl.id" :class="{test:pl.test}">
-                <td><b>{{ pl.name }}</b><small>{{ plateParts(pl) }}</small><small class="when-m">{{ pl.when }}</small></td>
-                <td class="num">{{ pl.plates.length }}</td>
-                <td class="num">{{ plateGrams(pl) }} g</td>
-                <td class="num">{{ fmtHours(plateHours(pl,currentNozzle)) }}</td>
-                <td class="when">{{ pl.when }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="nozzle-grid">
-          <div class="glass">
-            <h3>Settings on the {{ currentNozzle.name }}</h3>
-            <table class="nozzle">
-              <thead><tr><th>Parts</th><th>Layer</th><th class="num">Walls</th><th class="num">Top / bottom</th><th class="num">Infill</th></tr></thead>
-              <tbody><tr v-for="r in currentNozzle.rows" :key="r.parts"><td>{{ r.parts }}</td><td>{{ r.layer }}</td><td class="num">{{ r.walls }}</td><td class="num">{{ r.shells }}</td><td class="num">{{ r.infill }}</td></tr></tbody>
-            </table>
-            <p class="tip">Times are rough, at {{ GRAMS_PER_HOUR }} g of PETG an hour on the 0.4 mm nozzle; Bambu Studio shows the real time per plate. Run the long plates overnight and swap the short ones in the day.</p>
-          </div>
-          <div class="glass">
-            <h3>Switching to the 0.6 mm nozzle</h3>
-            <ol class="howto compact"><li v-for="t in NOZZLE_STEPS" :key="t">{{ t }}</li></ol>
-          </div>
         </div>
       </section>
       <section class="wiring-notes">
@@ -302,7 +298,6 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 .guide-table .num,.nozzle .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .measure tr.warn td:first-child b{color:var(--gold)}
 .warn-text{color:#f0a48a!important}
-.plates tr.test td:first-child b::after{content:'test';margin-left:8px;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:500;color:#2a1a0c;background:var(--gold)}
 .howto{margin:14px 0 0;padding-left:20px;list-style:decimal;color:#a3b3c3;font-size:13.5px;line-height:1.6;max-width:820px}
 .howto li{margin:5px 0}
 .howto li::marker{color:var(--gold-soft)}
@@ -312,7 +307,8 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
 .nozzle-grid{display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-top:12px}
 .nozzle-grid>div{padding:18px 20px}
 .nozzle-grid h3{margin:0 0 8px}
-.guide-table small.when-m{display:none;color:var(--gold-soft)}
+.plate-files{display:flex;flex-wrap:wrap;gap:8px 18px;padding-top:12px;border-top:1px solid #ffffff0a}
+.plate-file{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#d6dfe6}
 .settings th{width:84px;text-transform:none;letter-spacing:0;font-size:12px;color:#8397a9;border-bottom:1px solid #ffffff0a;vertical-align:top;padding:7px 8px 7px 0}
 .settings td{padding:7px 0}
 @media (max-width:980px){
@@ -329,8 +325,6 @@ useSeoMeta({description:DESCRIPTION,ogType:'website',ogSiteName:'Winterlight',og
   .prop-thumb{width:100%;max-width:340px}
   .part-grid{grid-template-columns:1fr}
   .part{grid-template-columns:110px minmax(0,1fr);gap:12px}
-  .plates .when{display:none}
-  .guide-table small.when-m{display:block}
   .guide-table{padding:4px 12px 2px}
 }
 </style>
