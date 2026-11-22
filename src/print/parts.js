@@ -44,7 +44,7 @@ export const GRAMS_PER_HOUR=25;
 // so enter the size as measured.
 export const MEASURE=[
  {what:'Tree pole',has:'1-inch galvanised pipe from Hubo, 33.7 mm',drawn:'32 mm',where:'pole_d in tree-crown.scad and tree-star-holder.scad',parts:'Crown hub, star holder',warn:'Too small: the hole comes out 33.2 mm. Measure the pipe and set pole_d before printing these two.'},
- {what:'Mounting strip',has:'LEDshows strip, arrived: 30 mm wide',drawn:'30 × 2 mm',where:'strip_w and strip_t in lib.scad',parts:'Every strip channel'},
+ {what:'Mounting strip',has:'LEDshows strip, arrived: 30 mm wide',drawn:'30 × 1.54 mm',where:'strip_w and strip_t in lib.scad',parts:'Every strip channel'},
  {what:'Coro',has:'3 mm sheets, arrived 19 Nov',drawn:'3 mm',where:'coro_t in cane-base.scad and tree-star-holder.scad',parts:'Cane base, star holder'},
  {what:'Paving brick',has:'Borrowed, or the Brico 22 × 11 × 7 cm brick',drawn:'22 × 11 × 8 cm',where:'brick_l, brick_w and brick_h in lib.scad',parts:'Cane base, post foot, weighted ring segment',note:'A 7 cm brick fits as it is.'},
 ];

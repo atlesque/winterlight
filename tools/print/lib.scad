@@ -3,7 +3,7 @@
 // command line (-D strip_w=20) or in OpenSCAD's Customizer before printing.
 $fn = 72;
 strip_w = 30;   // pixel mounting strip width
-strip_t = 2;    // pixel mounting strip thickness
+strip_t = 1.54; // pixel mounting strip thickness (measured)
 clr = 0.4;      // clearance per side, a snug slide fit in PETG
 wall = 3;       // channel walls
 tie_d = 4.5;    // holes for the 2.5 mm cable ties or an M4 bolt
