@@ -7,6 +7,7 @@ const PAGES=[
   {label:'Show software',description:'Data, services and the show file',icon:'i-lucide-network',to:'/software.html',paths:['/software','/software.html']},
   {label:'Build runbook',description:'From ordering to the first test run',icon:'i-lucide-list-checks',to:'/runbook.html',paths:['/runbook','/runbook.html']},
   {label:'3D prints',description:'PETG parts for the A1',icon:'i-lucide-printer',to:'/print.html',paths:['/print','/print.html']},
+  {label:'Cutting the coro',description:'Templates and how to cut the props',icon:'i-lucide-scissors',to:'/cutting.html',paths:['/cutting','/cutting.html']},
   {label:'Measure the house',description:'What to measure, on the 3D model',icon:'i-lucide-ruler',to:'/measure.html',paths:['/measure','/measure.html']},
 ];
 const route=useRoute();
