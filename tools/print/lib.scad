@@ -8,11 +8,18 @@ clr = 0.4;      // clearance per side, a snug slide fit in PETG
 wall = 3;       // channel walls
 tie_d = 4.5;    // holes for the 2.5 mm cable ties or an M4 bolt
 
+// Closed slots the strip slides through (the ground strip's posts).
 slot_t = strip_t + 2*clr;
 slot_w = strip_w + 2*clr;
+// Open pockets the strip ends sit in (mini trees, tree hub and ring): a close
+// fit across, and a little shallower than the strip, so the strip stands
+// proud of the face and the cable tie clamps it down.
+proud = 0.3;
+pocket_t = strip_t - proud;
+pocket_w = strip_w + 2*0.2;
 // Outside size of a strip channel: radial depth and tangential width.
-ch_depth = slot_t + wall;
-ch_width = slot_w + 2*wall;
+ch_depth = pocket_t + wall;
+ch_width = pocket_w + 2*wall;
 
 // A channel that holds a strip's end: the strip runs up +Z with its face
 // (and its pixels) towards +X. Open on the +X side so the strip drops in,
@@ -21,7 +28,7 @@ module channel(h, floor = 3) {
   z0 = h*0.55;
   difference() {
     translate([-ch_depth, -ch_width/2, 0]) cube([ch_depth, ch_width, h]);
-    translate([-slot_t, -slot_w/2, floor]) cube([slot_t + 1, slot_w, h]);
+    translate([-pocket_t, -pocket_w/2, floor]) cube([pocket_t + 1, pocket_w, h]);
     // Tie groove, 1 mm deep, round the back and both sides.
     difference() {
       translate([-ch_depth - 1, -ch_width/2 - 1, z0]) cube([ch_depth + 2, ch_width + 2, 5]);

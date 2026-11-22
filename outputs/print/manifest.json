@@ -5,17 +5,17 @@
    162,
    31.9
   ],
-  "volume": 63,
-  "grams": 64
+  "volume": 60.2,
+  "grams": 61
  },
  "minitree-top": {
   "size": [
    88.4,
-   95,
-   32.3
+   94.8,
+   32.2
   ],
-  "volume": 51.8,
-  "grams": 53
+  "volume": 50.5,
+  "grams": 51
  },
  "tree-crown": {
   "size": [
@@ -23,8 +23,8 @@
    209.1,
    60
   ],
-  "volume": 166.5,
-  "grams": 169
+  "volume": 159.9,
+  "grams": 162
  },
  "tree-star-holder": {
   "size": [
@@ -41,7 +41,7 @@
    183.2,
    36.7
   ],
-  "volume": 45,
+  "volume": 44.8,
   "grams": 46
  },
  "tree-ring-weight": {
@@ -50,7 +50,7 @@
    229.2,
    36.7
   ],
-  "volume": 76.6,
+  "volume": 76.4,
   "grams": 78
  },
  "cane-base": {
