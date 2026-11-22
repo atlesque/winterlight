@@ -4,7 +4,7 @@
 include <lib.scad>
 spokes = 6;
 r_base = 80;
-r_top = 34;
+r_top = 42;
 height = 550;
 rod_d = 12;      // centre rod: 10–12 mm bamboo cane
 ch_h = 32;

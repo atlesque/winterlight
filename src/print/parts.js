@@ -44,7 +44,7 @@ export const GRAMS_PER_HOUR=25;
 // so enter the size as measured.
 export const MEASURE=[
  {what:'Tree pole',has:'1-inch galvanised pipe from Hubo, 33.7 mm',drawn:'32 mm',where:'pole_d in tree-crown.scad and tree-star-holder.scad',parts:'Crown hub, star holder',warn:'Too small: the hole comes out 33.2 mm. Measure the pipe and set pole_d before printing these two.'},
- {what:'Mounting strip',has:'LEDshows strip, arrived',drawn:'25 × 2 mm',where:'strip_w and strip_t in lib.scad',parts:'Every strip channel'},
+ {what:'Mounting strip',has:'LEDshows strip, arrived: 30 mm wide',drawn:'30 × 2 mm',where:'strip_w and strip_t in lib.scad',parts:'Every strip channel'},
  {what:'Coro',has:'3 mm sheets, arrived 19 Nov',drawn:'3 mm',where:'coro_t in cane-base.scad and tree-star-holder.scad',parts:'Cane base, star holder'},
  {what:'Paving brick',has:'Borrowed, or the Brico 22 × 11 × 7 cm brick',drawn:'22 × 11 × 8 cm',where:'brick_l, brick_w and brick_h in lib.scad',parts:'Cane base, post foot, weighted ring segment',note:'A 7 cm brick fits as it is.'},
 ];
@@ -61,7 +61,7 @@ const tree={r_base:mm(L.tree.radius),height:mm(L.tree.height)};
 const mini={r_base:mm(L.minitrees.radius),height:mm(L.minitrees.height)};
 // Spoke and strand cut lengths: from channel floor to channel floor along the slope.
 const slope=(rise,run)=>Math.round(Math.hypot(rise,run)/10);
-export const MINI_SPOKE_CM=slope(mini.height-3-4,mini.r_base-34),STRAND_CM=slope(tree.height-5-35,tree.r_base-88);
+export const MINI_SPOKE_CM=slope(mini.height-3-4,mini.r_base-42),STRAND_CM=slope(tree.height-5-35,tree.r_base-100);
 
 // The paving in front of the house is stone, so nothing stands on a stake:
 // the tree, the canes and the ground strip stand on printed trays weighed down
@@ -118,8 +118,8 @@ export const PLATES=[
   why:'The posts lie flat, six to a plate. Each only plugs into its foot\'s socket, so the brick doesn\'t matter: 10 needed and a spare.'},
  {id:'ring',name:'Tree ring segments',plates:[{'tree-ring':5},{'tree-ring':5},{'tree-ring':3}],when:'By 28 Nov',
   why:'The plain segments of the tree\'s base ring, five to a plate: 12 needed and a spare.'},
- {id:'hub',name:'Crown hub and star holder',plates:times(1,{'tree-crown':1,'tree-star-holder':1}),when:'By 28 Nov',needs:'pole',
-  why:'Both slide over the pole. Measure the pipe first and set pole_d in both files to its size: as drawn (32 mm) the hole is too small for 1-inch pipe. Brim on the star holder.'},
+ {id:'hub',name:'Crown hub and star holder',plates:[{'tree-crown':1},{'tree-star-holder':1}],when:'By 28 Nov',needs:'pole',
+  why:'Both slide over the pole. Measure the pipe first and set pole_d in both files to its size: as drawn (32 mm) the hole is too small for 1-inch pipe. Brim on the star holder. With the 30 mm strip the hub is too wide to share a plate, so they print one after the other.'},
  {id:'test-foot',name:'Test plate: one post foot',plates:times(1,{'fence-foot':1}),when:'Once the brick is known',test:true,needs:'brick',
   why:'Checks that the brick drops into a tray and that a post fits the socket. If the brick isn\'t 22 × 11 cm or less, change brick_l, brick_w and brick_h in lib.scad and export this and the next steps again.'},
  {id:'ring-weight',name:'Ring segments with brick tray',plates:times(4,{'tree-ring-weight':1}),when:'By 4 Dec',needs:'brick',

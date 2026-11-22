@@ -4,7 +4,7 @@
 include <lib.scad>
 spokes = 6;
 r_base = 80;     // spoke radius at the base (the model's 8 cm)
-r_top = 34;      // spoke radius at the top cap (they can't meet at a point)
+r_top = 42;      // spoke radius at the top cap: room for six 30 mm channels
 height = 550;    // base to tip, as in the model
 rod_d = 12;      // centre rod: 10–12 mm bamboo cane
 ch_h = 32;

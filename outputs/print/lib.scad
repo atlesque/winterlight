@@ -2,7 +2,7 @@
 // Millimetres. Measure your own mounting strip and set strip_w / strip_t on the
 // command line (-D strip_w=20) or in OpenSCAD's Customizer before printing.
 $fn = 72;
-strip_w = 25;   // pixel mounting strip width
+strip_w = 30;   // pixel mounting strip width
 strip_t = 2;    // pixel mounting strip thickness
 clr = 0.4;      // clearance per side, a snug slide fit in PETG
 wall = 3;       // channel walls

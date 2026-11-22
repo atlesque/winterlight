@@ -5,7 +5,7 @@
 include <lib.scad>
 strands = 16;
 r_base = 420;
-r_hub = 88;
+r_hub = 100;
 height = 2500;
 weighted = true;
 tilt = atan((r_base - r_hub)/height);

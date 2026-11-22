@@ -31,7 +31,7 @@ function miniTree(){
  const red=[];
  for(let i=0;i<6;i++){
   const a=i*Math.PI/3,d=[Math.cos(a),Math.sin(a),0],from=[...scale(d,r0-1.4).slice(0,2),3],to=[...scale(d,r1-1.4).slice(0,2),h-3];
-  items.push({strip:{a:from,b:to,n:d,w:25,t:2}});red.push(...onStrip(from,to,d,70,.08,.9));
+  items.push({strip:{a:from,b:to,n:d,w:30,t:2}});red.push(...onStrip(from,to,d,70,.08,.9));
  }
  items.push({pixels:red,color:PIX.red});
  return items;
@@ -48,7 +48,7 @@ function tree(){
   items.push({stl:weighted?'tree-ring-weight':'tree-ring',m:rz(deg),t:[0,0,0]});
   if(weighted)items.push({box:[BW,BL,BH],c:[...scale(d,R+10+WALL+CLR+BW/2).slice(0,2),FLOOR+BH/2],rz:deg,color:COLORS.brick});
   const from=[...scale(d,R-1.4).slice(0,2),8],to=[...scale(d,hub-1.4).slice(0,2),H-3];
-  items.push({strip:{a:from,b:to,n:d,w:25,t:2}});yellow.push(...onStrip(from,to,d,120,.03,.97));
+  items.push({strip:{a:from,b:to,n:d,w:30,t:2}});yellow.push(...onStrip(from,to,d,120,.03,.97));
  }
  // The coro star: its bottom notch sits on the V floor of the holder's slot.
  const S=mm(L.tree.star.radius),slope=(.809-.42)/.588,top=50+24+(40+slope*45)+8,notch=holder+top-40+30,cz=notch+.42*S;
@@ -80,7 +80,7 @@ function fence(){
   items.push({stl:'fence-post',m:[[0,0,1],[1,0,0],[0,1,0]],t:[x-8,0,0]});
  }
  const a=[-250,6.6,y],b=[1750,6.6,y];
- items.push({strip:{a,b,n:[0,1,0],w:25,t:2}});
+ items.push({strip:{a,b,n:[0,1,0],w:30,t:2}});
  const pts=onStrip(a,b,[0,1,0],50,.01,.99);
  items.push({pixels:pts.filter((_,i)=>i%2===0),color:PIX.yellow},{pixels:pts.filter((_,i)=>i%2),color:PIX.blue});
  return items;
