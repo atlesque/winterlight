@@ -6,14 +6,15 @@ import {MEASUREMENTS} from '../measures/measures.js';
 import {PARTS as PRINT_PARTS,BRICK,BRICKS,PARASOL} from '../print/parts.js';
 import PRINT_MANIFEST from '../../outputs/print/manifest.json' with {type:'json'};
 import {CONTROLLERS} from '../software/plan.js';
+import {CORO_TEMPLATES,CORO_PROPS} from '../coro.js';
 // The 3D prints page (print.html): how many parts, how much PETG, and a link to a prop's section.
 const PRINT_COUNT=PRINT_PARTS.reduce((s,p)=>s+p.qty,0),PRINT_GRAMS=PRINT_PARTS.reduce((s,p)=>s+p.qty*(PRINT_MANIFEST[p.id]?.grams??0),0);
 const PRINT_LINK=id=>({href:`/print.html#${id}`,label:'3D prints'});
-// The coro templates made by tools/templates/make.mjs (outputs/templates/).
-export const TEMPLATES=[
- {file:'christmas-circle',title:'Christmas circle',cut:2},{file:'peace-sign',title:'Peace sign',cut:1},
- {file:'candy-cane',title:'Candy cane',cut:8},{file:'tree-star',title:'Tree star',cut:1},
-];
+// The coro templates made by tools/templates/make.mjs (outputs/templates/), and the
+// cutting page (cutting.html) that explains them.
+export const TEMPLATES=CORO_TEMPLATES;
+const CUT_LINK=id=>({href:`/cutting.html${id?`#${id}`:''}`,label:'Cutting guide'});
+const coro=kind=>CORO_PROPS.find(p=>p.kind===kind);
 
 // The build runbook (runbook.html): chapters of to-dos from buying the parts
 // to the first test run. Quantities come from the cost model for the full show
@@ -260,13 +261,13 @@ export const CHAPTERS=[
   {id:'build-boxes',text:'Build the facade board for the garage wall and the garden box: a controller, two power supplies and fuses in each',tip:'Fuse every power supply output and keep the mains side covered. In the garden box, mount the parts on its plate with room round the supplies, bring every cable in from below through a gland, and the data and injection leads in as pigtail tails.'},
   {id:'build-fm',text:'Wire the FM transmitter\'s 12 V socket lead to a power supply',tip:'Fused, off the facade board. The transmitter goes on the street side of the garage, out of any metal box, with the USB sound card\'s output in its 3.5 mm input.'},
   {id:'build-print',text:`Print the ${PRINT_COUNT} PETG parts on the A1: mini-tree frames, the tree's hub, ring and star holder, cane bases and ground strip posts`,link:{href:'/print.html',label:'3D prints'},tip:'Print one mini-tree base and one post foot first to check the mounting strip and a brick fit; the sizes can be changed before the rest.'},
-  {id:'build-templates',text:'Print the prop templates 1:1 and stick them on the coro',links:TEMPLATES.map(t=>({href:`/outputs/templates/${t.file}.pdf`,label:`${t.title} (cut ${t.cut})`})),tip:'Tile them on A4 at home or print them as one A1/A0 sheet at a copy shop. Lay them with the flutes running vertically, so rain drains out and the props stay stiff.'},
-  {id:'build-wreaths',text:'Cut and drill the two Christmas circles',tip:'On a scrap board: straight edges with a snap-off knife along a steel ruler, in two or three light passes. Curves with the knife in short cuts, or a jigsaw with a fine blade. Holes with the 12 mm step drill through the template marks, then pull the template off.'},
-  {id:'build-peace',text:'Cut and drill the peace sign'},
-  {id:'build-canes',text:`Cut and drill the ${g.canes.props.length} candy canes`},
-  {id:'build-star',text:'Cut and drill the tree star',link:PRINT_LINK('tree'),tip:'One star from the template: cut the outer and inner edges of the grey band, drill the 30 pixel holes with the 12 mm step drill, then two 5 mm holes just above the bottom notch to tie it into the star holder\'s slot.'},
+  {id:'build-templates',text:'Print the prop templates 1:1 and stick them on the coro',links:[CUT_LINK(),...TEMPLATES.map(t=>({href:`/outputs/templates/${t.file}.pdf`,label:`${t.title} (cut ${t.cut})`}))],tip:'One print of each is enough: the first circle and the first cane are the masters for the rest. Print them on A4 at home (the cutting guide has tiled versions) or as one sheet at a copy shop (the circle needs A0). Lay them with the flutes running vertically, so rain drains out and the props stay stiff.'},
+  {id:'build-wreaths',text:'Cut and drill the two Christmas circles',link:CUT_LINK('wreath'),tip:`On a scrap board: drill the ${coro('wreath').holes} holes with the 12 mm step drill through the template marks while the piece is still in the sheet, cut the ${coro('wreath').openings} openings inside, then the outer edge. Straight edges with the FatMax and a fresh trapezoid blade along a steel ruler, in two or three light passes across the flutes; curves in short cuts. Use the first circle as the tracing master and drill guide for the second.`},
+  {id:'build-peace',text:'Cut and drill the peace sign',link:CUT_LINK('peace')},
+  {id:'build-canes',text:`Cut and drill the ${g.canes.props.length} candy canes`,link:CUT_LINK('cane'),tip:'Cut them all the same, using the first as the master and drill guide. The coro is plain on both sides, so turn four of them over for the hooks that point the other way.'},
+  {id:'build-star',text:'Cut and drill the tree star',links:[CUT_LINK('star'),PRINT_LINK('tree')],tip:'One star from the template: cut the outer and inner edges of the grey band, drill the 30 pixel holes with the 12 mm step drill, then two 5 mm holes just above the bottom notch to tie it into the star holder\'s slot.'},
   {id:'build-letters',text:`Check the ${g.letters.props.length} letters: ${g.letters.pixels} holes, all taking a 12 mm pixel`},
-  {id:'build-push',text:'Push the pixels into the letters and coro props and tie the spare wire behind',tip:'Start each prop at the corner nearest its box, so the data runs the same way as in the model. Where two pixels sit further apart than the string\'s 10 cm (between the circles\' rings, the peace sign\'s strokes, some letters\' strokes), cut and solder in a short piece of 3-core wire. Cut off the pixels a prop doesn\'t use: every prop must carry exactly its pixel count, or every prop after it on the port lights the wrong pixels.'},
+  {id:'build-push',text:'Push the pixels into the letters and coro props and tie the spare wire behind',tip:'Start each prop at the corner nearest its box, so the data runs the same way as in the model. Where two pixels sit further apart than the string\'s 10 cm (between the circles\' rings and at their bow, some letters\' strokes), cut and solder in a short piece of 3-core wire. The peace sign needs none: its pixels without a hole of their own give the string enough slack. Cut off the pixels a prop doesn\'t use: every prop must carry exactly its pixel count, or every prop after it on the port lights the wrong pixels.'},
   {id:'build-strips',text:`Fix the house strips to mounting strip: upper ${g.upper.pixels}, lower ${g.lower.pixels} pixels with icicle drops`,tip:'With 10 cm between pixels the string can\'t drop and come straight back up: make each drop a loop, pixels going down and coming back up, and wire the eave strip from its right end, nearest the garage hole.'},
   {id:'build-windows',text:`Fix the window outlines to mounting strip: ${g.windows.pixels} pixels at 10 cm`,tip:'In data order: the garage door first (starting at its left foot), then the small window, the front door and the kitchen window. A 2 m extension bridges each opening to the next. The outlines sit on the brick 12 cm outside each opening, so the built-in shutters still close; fix nothing to the shutter boxes or guides.'},
   {id:'build-minitrees',text:`String the ${g.minitrees.props.length} mini trees on their printed frames, ${each('minitrees')} pixels each`,link:PRINT_LINK('minitrees'),tip:'Up one spoke and down the next, so the string never has to jump from the top back to the base.'},
