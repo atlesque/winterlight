@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
-import {PARTS,PRINT_PROPS,BED,FILAMENT,FENCE_POSTS} from '../src/print/parts.js';
+import {PARTS,PRINT_PROPS,BED,FILAMENT,FENCE_POSTS,PLATES,NOZZLES,BASE_PARTS} from '../src/print/parts.js';
 import {OWN_CHANNELS} from '../src/props.js';
 import {measure} from '../tools/print/make.mjs';
 import {ASSEMBLIES} from '../src/print/assembly.js';
@@ -43,4 +43,22 @@ test('the finished props are drawn from the printed parts, nothing staked into t
   if(id!=='minitrees')for(const i of a.items.filter(i=>i.cyl))assert.ok(i.cyl.z0>=0,id);
  }
  for(const p of PRINT_PROPS)assert.ok(ASSEMBLIES[p.id],p.id);
+});
+
+test('the print queue prints every part exactly as many times as needed, each plate fitting the bed',()=>{
+ const n={};
+ for(const st of PLATES)for(const pl of st.plates)for(const [id,k] of Object.entries(pl)){assert.ok(MANIFEST[id],`${st.id}: ${id}`);n[id]=(n[id]??0)+k;}
+ for(const p of PARTS)assert.equal(n[p.id],p.qty,p.id);
+ for(const st of PLATES)for(const pl of st.plates){
+  const sizes=Object.entries(pl).flatMap(([id,k])=>Array(k).fill(MANIFEST[id].size));
+  // Side by side along X, 5 mm apart: each part turned with its short side along X.
+  const x=sizes.reduce((s,v)=>s+Math.min(v[0],v[1]),0)+5*(sizes.length-1);
+  assert.ok(x<=BED.x&&sizes.every(v=>Math.max(v[0],v[1])<=BED.y),`${st.id}: ${x} mm`);
+ }
+ assert.equal(new Set(PLATES.map(s=>s.id)).size,PLATES.length);
+ // Nothing that holds a brick comes before the step that measures one.
+ const firstBrick=PLATES.findIndex(s=>s.needs==='brick'),bricky=new Set(['cane-base','fence-foot','tree-ring-weight']);
+ PLATES.forEach((st,i)=>{if(st.plates.some(pl=>Object.keys(pl).some(id=>bricky.has(id))))assert.ok(i>=firstBrick&&st.needs==='brick',st.id);});
+ for(const id of BASE_PARTS)assert.ok(MANIFEST[id],id);
+ assert.ok(NOZZLES.find(z=>z.id==='n06').speed<1);
 });
