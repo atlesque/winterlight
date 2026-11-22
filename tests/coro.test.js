@@ -36,3 +36,17 @@ test('every template has its full size and A4 PDF',()=>{
  for(const p of CORO_PROPS)for(const f of [`${p.file}.svg`,`${p.file}.pdf`,`${p.file}-a4.pdf`])
   assert.ok(existsSync(new URL(`../outputs/templates/${f}`,import.meta.url)),f);
 });
+
+test('the step-by-step guide cuts every piece once, and its ticks are accepted by the Worker',async()=>{
+ const {CUTTING_STEPS,CUTTING_TICK_IDS,CUT_PIECES}=await import('../src/guides/cutting.js');
+ const {GUIDE_STEP_IDS}=await import('../src/guides/index.js');
+ const {statements}=await import('../worker/index.js');
+ assert.equal(new Set(CUTTING_TICK_IDS).size,CUTTING_TICK_IDS.length);
+ assert.equal(new Set(GUIDE_STEP_IDS).size,GUIDE_STEP_IDS.length);
+ assert.equal(CUT_PIECES.length,CORO_PIECES);
+ assert.equal(CUTTING_STEPS.filter(s=>s.sheet!==null).length,CORO_PIECES);
+ for(const s of CUTTING_STEPS)assert.ok(s.tasks.length>0,s.id);
+ const db={prepare:()=>({bind:(...a)=>a})};
+ assert.equal(statements(db,{done:Object.fromEntries(CUTTING_TICK_IDS.map(id=>[id,true]))}).length,CUTTING_TICK_IDS.length);
+ assert.throws(()=>statements(db,{done:{'cut/nope/x':true}}));
+});
