@@ -38,3 +38,16 @@ export const FSEQ_MB=Math.round(TOTAL_CHANNELS*FSEQ_FRAMES/1e5)/10;
 // E1.31 would need this many 512-channel universes (170 pixels each); DDP needs none.
 export const UNIVERSES=CONTROLLERS.reduce((s,c)=>s+Math.ceil(c.pixels/170),0);
 export const PLAYER=WIRING.parts.player;
+
+// One row per controller port, for its own setup page: the port's pixels and
+// where its block starts in the controller's own numbering (1-based).
+export function portRows(){
+ return CONTROLLERS.flatMap(c=>c.ports.map(p=>({controller:c.name,port:p.n,chain:p.name,pixels:p.pixels,
+  localStart:p.start-c.start+1,localEnd:p.end-c.start+1,showStart:p.start,showEnd:p.end})));
+}
+// One row per prop: which pixels of its port it owns, to check at the test pattern.
+export function propRows(){
+ return WIRING.zones.flatMap((z,zi)=>z.ports.flatMap(p=>{const c=CONTROLLERS[zi],port=c.ports.find(x=>x.n===p.n);
+  return p.props.map(prop=>({controller:c.name,port:p.n,prop:prop.name,id:prop.id,pixels:prop.pixels,firstPixel:prop.first+1,lastPixel:prop.first+prop.pixels,
+   showStart:port.start+prop.first*3,showEnd:port.start+(prop.first+prop.pixels)*3-1}));}));
+}
