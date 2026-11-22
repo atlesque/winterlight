@@ -28,12 +28,16 @@ ch_width = pocket_w + 2*wall;
 // cable tie in through one hole of a pair, across the strip's face and back
 // out through the other, and close it behind the wall. One or two ties.
 tie_pitch = 14;  // centre to centre of the two holes of a pair
+centre_d = 10;   // a larger hole in the middle of the four, for a tie or bolt
 module channel(h, floor = 3) {
   difference() {
     translate([-ch_depth, -ch_width/2, 0]) cube([ch_depth, ch_width, h]);
     translate([-pocket_t, -pocket_w/2, floor]) cube([pocket_t + 1, pocket_w, h]);
     for (z = [floor + 7, h - 8], y = [-tie_pitch/2, tie_pitch/2])
       translate([-ch_depth - 1, y, z]) rotate([0, 90, 0]) cylinder(d = tie_d, h = ch_depth + 2, $fn = 24);
+    // Centre hole, drawn as a teardrop (point up) so it prints without support.
+    translate([-ch_depth - 1, 0, (floor + 7 + h - 8)/2]) rotate([0, 90, 0]) linear_extrude(ch_depth + 2)
+      hull() { circle(d = centre_d, $fn = 48); translate([-centre_d/2*sqrt(2), 0]) circle(d = 0.1); }
   }
 }
 
