@@ -116,8 +116,10 @@ useSeoMeta({
           </div>
           <p v-show="player.shows('ours')&&state.wiring" class="note wiring-note"><a href="/wiring.html">Open the wiring plan</a></p>
         </div>
-        <div class="field-title">Props <span id="frame-label" class="note">{{ state.frameLabel }}</span></div>
-        <PropBoard :ref="e=>{el.board.value=e;}" />
+        <div class="field-title">Props <span id="frame-label" class="note">{{ state.frameLabel }}</span>
+          <button v-if="state.focus.length" id="clear-picks" type="button" class="text-button clear-picks" @click="player.clearPicks">Show all ({{ state.focus.length }} picked)</button></div>
+        <p id="pick-hint" class="note pick-hint">{{ state.focus.length?'Picked props glow at full brightness, the rest are dimmed. Tap again or press Esc to undo.':'Tap a prop to highlight it on the house, or a row title for the whole prop.' }}</p>
+        <PropBoard :ref="e=>{el.board.value=e;}" :picked="state.focus" @pick="player.togglePick" />
       </aside>
     </main>
 

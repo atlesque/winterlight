@@ -8,6 +8,8 @@ import {createShowClock,HOSTED_VIDEO,SOURCE_RATE,matchesSource,rememberVideo,rec
 // takes per-channel colour states and levels) and its own wording.
 export const formatTime=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
 const SOUNDTRACK_SECONDS=185.875737;
+// How bright the props that aren't picked stay while some are, as a share of their show level.
+export const FOCUS_DIM=.06;
 
 // The houses the page can show, in the order the toggle lists them.
 export const MODES=['original','ours','split'];
@@ -23,6 +25,9 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
   cueInfo:'Loading detected timing…',cueChip:'VIDEO',rangeName:'Detected range',rangeStart:'0:00',rangeEnd:'',
   videoStatus:'Looking for the original video…',videoEmpty:false,videoChange:false,playbackError:'',
   brightness:100,allOn:false,wiring:false,volume:35,sceneError:'',
+  // Channels picked on the prop board: they light at full brightness on the
+  // houses while every other channel keeps the show but drops to FOCUS_DIM.
+  focus:[],
  });
  const page=computed(()=>modes[state.mode]);
  const shows=id=>state.mode==='split'||state.mode===id;
@@ -130,6 +135,7 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
   if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();step((e.key==='ArrowLeft'?-1:1)*(e.shiftKey?Math.round(rate()):1));}
   else if(e.key===','||e.key==='.'){e.preventDefault();step(e.key===','?-1:1);}
   else if(e.key===' '&&tag!=='BUTTON'){e.preventDefault();togglePlay();}
+  else if(e.key==='Escape'&&state.focus.length)clearPicks();
  }
 
  watch(()=>state.volume,v=>{if(el.audio.value)el.audio.value.volume=el.video.value.volume=v/100;});
@@ -138,12 +144,25 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
  watch(()=>state.wiring,on=>scenes.ours?.setWiring?.(on));
 
  const states=new Uint8Array(CHANNELS.length),levels=new Uint8Array(CHANNELS.length),ALL_ON=new Uint8Array(CHANNELS.map(c=>c.palette==='multi'?3:1)),FULL=new Uint8Array(CHANNELS.length).fill(100);
+ // With props picked, the houses draw from these: picked channels fully on in
+ // all their colours, the rest at their show state but dimmed. The board keeps
+ // the real show values, so it still reads what the video is doing.
+ const focusValues=new Uint8Array(CHANNELS.length),focusLevels=new Uint8Array(CHANNELS.length),picked=new Uint8Array(CHANNELS.length);
+ watch(()=>state.focus,f=>{picked.fill(0);for(const i of f)picked[i]=1;},{deep:true});
+ function focused(values,level){
+  for(let i=0;i<CHANNELS.length;i++){
+   if(picked[i]){focusValues[i]=ALL_ON[i];focusLevels[i]=100;}
+   else{focusValues[i]=values[i];focusLevels[i]=values[i]?Math.max(1,Math.round(level[i]*FOCUS_DIM)):0;}
+  }
+  return [focusValues,focusLevels];
+ }
  let lastUI=0;
  function animate(now){
   frameRequest=requestAnimationFrame(animate);
   const t=clock.time(),d=Number.isFinite(media().duration)?media().duration:SOUNDTRACK_SECONDS,brightness=state.brightness/100;
   const values=state.allOn?ALL_ON:cues?cues.stateAt(t,states,levels):states.fill(0),level=state.allOn?FULL:levels;
-  for(const id of HOUSES)if(shows(id))scenes[id]?.draw(values,level,brightness);el.board.value?.update(values,level);if(state.overlayOn)paintOverlay();
+  const [drawValues,drawLevels]=state.focus.length?focused(values,level):[values,level];
+  for(const id of HOUSES)if(shows(id))scenes[id]?.draw(drawValues,drawLevels,brightness);el.board.value?.update(values,level);if(state.overlayOn)paintOverlay();
   const paused=media().paused;
   if(paused||now-lastUI>80){lastUI=now;state.time=formatTime(t);state.duration=formatTime(d);const timeline=el.timeline.value;timeline.max=d;if(!scrubbing)timeline.value=t;timeline.style.setProperty('--progress',`${Math.min(100,t/d*100)}%`);
    const f=frameAt(t);state.frame=(f+1).toLocaleString();
@@ -170,7 +189,7 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
   for(const type of ['pointerup','pointercancel'])addEventListener(type,scrubEnd);
   frameRequest=requestAnimationFrame(animate);
   // Read-only diagnostics for browser checks.
-  window[debugName]={get status(){const t=clock.time();return {time:t,clock:clock.usingVideo?'video':'soundtrack',videoTime:video.currentTime,frame:frameAt(t),channels:CHANNELS.length,mode:state.mode,view:state.view,bulbs:Object.fromEntries(HOUSES.map(id=>[id,scenes[id]?.bulbCount])),lit:[...states].filter(Boolean).length,cues:!!cues};}};
+  window[debugName]={get status(){const t=clock.time();return {time:t,clock:clock.usingVideo?'video':'soundtrack',videoTime:video.currentTime,frame:frameAt(t),channels:CHANNELS.length,mode:state.mode,view:state.view,bulbs:Object.fromEntries(HOUSES.map(id=>[id,scenes[id]?.bulbCount])),lit:[...states].filter(Boolean).length,focus:[...state.focus],cues:!!cues};}};
  });
  onBeforeUnmount(()=>{
   cancelAnimationFrame(frameRequest);removeEventListener('keydown',onKey);
@@ -178,5 +197,14 @@ export function useShowPlayer({houses,modes,debugName='winterlight'}){
   clock?.media.pause();if(videoUrl)URL.revokeObjectURL(videoUrl);delete window[debugName];
  });
 
- return {el,state,page,shows,setMode,pressView,togglePlay,restart,step,scrubStart,scrub,scrubDone,pickVideo,changeVideo};
+ // Picking props on the board: a lamp toggles its channel, a group's title
+ // toggles the whole prop (all of it picked, or none), and clearing restores the show.
+ const isPicked=i=>state.focus.includes(i);
+ function togglePick(ids){
+  const all=ids.every(isPicked);
+  state.focus=all?state.focus.filter(i=>!ids.includes(i)):[...new Set([...state.focus,...ids])];
+ }
+ const clearPicks=()=>{state.focus=[];};
+
+ return {el,state,page,shows,setMode,togglePick,clearPicks,pressView,togglePlay,restart,step,scrubStart,scrub,scrubDone,pickVideo,changeVideo};
 }
