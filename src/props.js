@@ -101,7 +101,8 @@ const geometry={
   minitree(channel,index){
     const {spots,height,radius:r}=L.minitrees,{x,y,z}=spots[index],top=[x,y+height,z],bulbs=[],frames=[];
     // Up one spoke and down the next, so the string never doubles back.
-    for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,y,z+Math.sin(a)*r],spoke=along([base,top],.07);
+    // Nine pixels a spoke, about 3 cm apart on the 27 cm strip.
+    for(let s=0;s<6;s++){const a=2*Math.PI*s/6,base=[x+Math.cos(a)*r,y,z+Math.sin(a)*r],spoke=along([base,top],dist(base,top)/8);
       bulbs.push(...(s%2?spoke.reverse():spoke).map(p=>bulb(p,COLORS.red,0,.75)));frames.push([base,top]);}
     return {bulbs,frames};
   },

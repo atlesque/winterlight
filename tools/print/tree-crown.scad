@@ -5,7 +5,7 @@
 include <lib.scad>
 strands = 16;
 r_base = 420;    // strand radius on the ground (the model's 42 cm)
-r_hub = 88;      // strand radius at the hub: 16 channels need this much room
+r_hub = 100;     // strand radius at the hub: 16 channels of 30 mm strip need this much room
 height = 2500;   // ground to hub, the model's tree height
 pole_d = 32;     // measure the pole and set this
 ch_h = 36;

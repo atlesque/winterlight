@@ -44,7 +44,7 @@ export const GRAMS_PER_HOUR=25;
 // so enter the size as measured.
 export const MEASURE=[
  {what:'Tree pole',has:'1-inch galvanised pipe from Hubo, 33.7 mm',drawn:'32 mm',where:'pole_d in tree-crown.scad and tree-star-holder.scad',parts:'Crown hub, star holder',warn:'Too small: the hole comes out 33.2 mm. Measure the pipe and set pole_d before printing these two.'},
- {what:'Mounting strip',has:'LEDshows strip, arrived',drawn:'25 × 2 mm',where:'strip_w and strip_t in lib.scad',parts:'Every strip channel'},
+ {what:'Mounting strip',has:'LEDshows strip, arrived: 30 mm wide',drawn:'30 × 1.54 mm',where:'strip_w and strip_t in lib.scad',parts:'Every strip channel'},
  {what:'Coro',has:'3 mm sheets, arrived 19 Nov',drawn:'3 mm',where:'coro_t in cane-base.scad and tree-star-holder.scad',parts:'Cane base, star holder'},
  {what:'Paving brick',has:'Borrowed, or the Brico 22 × 11 × 7 cm brick',drawn:'22 × 11 × 8 cm',where:'brick_l, brick_w and brick_h in lib.scad',parts:'Cane base, post foot, weighted ring segment',note:'A 7 cm brick fits as it is.'},
 ];
@@ -61,7 +61,7 @@ const tree={r_base:mm(L.tree.radius),height:mm(L.tree.height)};
 const mini={r_base:mm(L.minitrees.radius),height:mm(L.minitrees.height)};
 // Spoke and strand cut lengths: from channel floor to channel floor along the slope.
 const slope=(rise,run)=>Math.round(Math.hypot(rise,run)/10);
-export const MINI_SPOKE_CM=slope(mini.height-3-4,mini.r_base-34),STRAND_CM=slope(tree.height-5-35,tree.r_base-88);
+export const MINI_SPOKE_CM=slope(mini.height-3-4,mini.r_base-42),STRAND_CM=slope(tree.height-5-35,tree.r_base-100);
 
 // The paving in front of the house is stone, so nothing stands on a stake:
 // the tree, the canes and the ground strip stand on printed trays weighed down
@@ -77,8 +77,8 @@ export const PRINT_PROPS=[
  {id:'minitrees',name:'Mini trees',count:count('minitree'),icon:'i-lucide-tree-pine',bricks:0,
   points:[`${count('minitree')} trees, each standing on top of a clipped bush`,`6 spokes of mounting strip, ${MINI_SPOKE_CM} cm each, between a printed base and top cap`,'A rod of about 1.2 m through the middle, down through the bush into the soil','Base ring tied to a couple of branches'],
   parts:[
-   {id:'minitree-base',name:'Base ring',per:1,spare:1,params:{...mini},how:'Flat side down. Stand a spoke in each channel and tie it.'},
-   {id:'minitree-top',name:'Top cap',per:1,spare:1,params:{...mini},how:'Prints upside down. Push onto the rod, spokes into the channels, tie.'},
+   {id:'minitree-base',name:'Base ring',per:1,spare:1,params:{...mini},how:'Flat side down. Stand a spoke in each channel, drill 4.5 mm through the tie holes into the strip, and tie it through them.'},
+   {id:'minitree-top',name:'Top cap',per:1,spare:1,params:{...mini},how:'Prints upside down. Push onto the rod, spokes into the channels, drill through the tie holes and tie.'},
   ]},
  {id:'tree',name:'Wireframe tree',count:1,icon:'i-lucide-triangle',bricks:ringWeights,
   points:[`Pole in a ${PARASOL.kg} kg parasol base, cut to about 2.6 m`,`${count('treeStrip')} strands of mounting strip, about ${STRAND_CM} cm each, from a ring on the ground up to a crown hub`,`The ring is ${count('treeStrip')} puzzle segments, ${mm(L.tree.radius)*2/10} cm across; ${ringWeights} of them hold a brick`,'The base and bricks hold it to about 60 km/h; four guy lines from the hub to the planting tiles\' soil hold it in a storm','The coro star sits on a holder on top of the pole'],
@@ -111,15 +111,15 @@ export const BRICKS=PRINT_PROPS.reduce((s,p)=>s+p.bricks,0);
 const times=(n,parts)=>Array.from({length:n},()=>parts);
 export const PLATES=[
  {id:'test-mini',name:'Test plate: one mini tree',plates:times(1,{'minitree-base':1,'minitree-top':1}),when:'First',test:true,
-  why:'Small and quick, and it checks the two fits most parts share: the mounting strip should slide snugly into a channel and a bamboo cane through the rod hole. If both fit, print everything else as it is.'},
+  why:'Small and quick, and it checks the two fits most parts share: the mounting strip should sit snugly in a channel and lock with a cable tie through the holes in its back, and a bamboo cane should go through the rod hole. If both fit, print everything else as it is.'},
  {id:'minitree',name:'Mini trees',plates:times(11,{'minitree-base':1,'minitree-top':1}),when:'By 28 Nov',
   why:'The other 11 base rings and top caps: a short plate each, flat on the bed, nothing to measure.'},
  {id:'post',name:'Ground strip posts',plates:[{'fence-post':6},{'fence-post':5}],when:'By 28 Nov',
   why:'The posts lie flat, six to a plate. Each only plugs into its foot\'s socket, so the brick doesn\'t matter: 10 needed and a spare.'},
  {id:'ring',name:'Tree ring segments',plates:[{'tree-ring':5},{'tree-ring':5},{'tree-ring':3}],when:'By 28 Nov',
   why:'The plain segments of the tree\'s base ring, five to a plate: 12 needed and a spare.'},
- {id:'hub',name:'Crown hub and star holder',plates:times(1,{'tree-crown':1,'tree-star-holder':1}),when:'By 28 Nov',needs:'pole',
-  why:'Both slide over the pole. Measure the pipe first and set pole_d in both files to its size: as drawn (32 mm) the hole is too small for 1-inch pipe. Brim on the star holder.'},
+ {id:'hub',name:'Crown hub and star holder',plates:[{'tree-crown':1},{'tree-star-holder':1}],when:'By 28 Nov',needs:'pole',
+  why:'Both slide over the pole. Measure the pipe first and set pole_d in both files to its size: as drawn (32 mm) the hole is too small for 1-inch pipe. Brim on the star holder. With the 30 mm strip the hub is too wide to share a plate, so they print one after the other.'},
  {id:'test-foot',name:'Test plate: one post foot',plates:times(1,{'fence-foot':1}),when:'Once the brick is known',test:true,needs:'brick',
   why:'Checks that the brick drops into a tray and that a post fits the socket. If the brick isn\'t 22 × 11 cm or less, change brick_l, brick_w and brick_h in lib.scad and export this and the next steps again.'},
  {id:'ring-weight',name:'Ring segments with brick tray',plates:times(4,{'tree-ring-weight':1}),when:'By 4 Dec',needs:'brick',

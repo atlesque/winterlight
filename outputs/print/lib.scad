@@ -2,31 +2,42 @@
 // Millimetres. Measure your own mounting strip and set strip_w / strip_t on the
 // command line (-D strip_w=20) or in OpenSCAD's Customizer before printing.
 $fn = 72;
-strip_w = 25;   // pixel mounting strip width
-strip_t = 2;    // pixel mounting strip thickness
+strip_w = 30;   // pixel mounting strip width
+strip_t = 1.54; // pixel mounting strip thickness (measured)
 clr = 0.4;      // clearance per side, a snug slide fit in PETG
 wall = 3;       // channel walls
 tie_d = 4.5;    // holes for the 2.5 mm cable ties or an M4 bolt
 
+// Closed slots the strip slides through (the ground strip's posts).
 slot_t = strip_t + 2*clr;
 slot_w = strip_w + 2*clr;
+// Open pockets the strip ends sit in (mini trees, tree hub and ring): a close
+// fit across, and a little shallower than the strip, so the strip stands
+// proud of the face and the cable tie clamps it down.
+proud = 0.3;
+pocket_t = strip_t - proud;
+pocket_w = strip_w + 2*0.2;
 // Outside size of a strip channel: radial depth and tangential width.
-ch_depth = slot_t + wall;
-ch_width = slot_w + 2*wall;
+ch_depth = pocket_t + wall;
+ch_width = pocket_w + 2*wall;
 
 // A channel that holds a strip's end: the strip runs up +Z with its face
-// (and its pixels) towards +X. Open on the +X side so the strip drops in,
-// with a groove round the outside where a cable tie pulls it home.
+// (and its pixels) towards +X. Open on the +X side so the strip drops in.
+// Two pairs of holes go through the back wall: with the strip in place, drill
+// through them into the strip (the part is the drill guide), then thread a
+// cable tie in through one hole of a pair, across the strip's face and back
+// out through the other, and close it behind the wall. One or two ties.
+tie_pitch = 14;  // centre to centre of the two holes of a pair
+centre_d = 10;   // a larger hole in the middle of the four, for a tie or bolt
 module channel(h, floor = 3) {
-  z0 = h*0.55;
   difference() {
     translate([-ch_depth, -ch_width/2, 0]) cube([ch_depth, ch_width, h]);
-    translate([-slot_t, -slot_w/2, floor]) cube([slot_t + 1, slot_w, h]);
-    // Tie groove, 1 mm deep, round the back and both sides.
-    difference() {
-      translate([-ch_depth - 1, -ch_width/2 - 1, z0]) cube([ch_depth + 2, ch_width + 2, 5]);
-      translate([-ch_depth + 1, -ch_width/2 + 1, z0 - 1]) cube([ch_depth + 2, ch_width - 2, 7]);
-    }
+    translate([-pocket_t, -pocket_w/2, floor]) cube([pocket_t + 1, pocket_w, h]);
+    for (z = [floor + 7, h - 8], y = [-tie_pitch/2, tie_pitch/2])
+      translate([-ch_depth - 1, y, z]) rotate([0, 90, 0]) cylinder(d = tie_d, h = ch_depth + 2, $fn = 24);
+    // Centre hole, drawn as a teardrop (point up) so it prints without support.
+    translate([-ch_depth - 1, 0, (floor + 7 + h - 8)/2]) rotate([0, 90, 0]) linear_extrude(ch_depth + 2)
+      hull() { circle(d = centre_d, $fn = 48); translate([-centre_d/2*sqrt(2), 0]) circle(d = 0.1); }
   }
 }
 
