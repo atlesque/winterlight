@@ -50,6 +50,6 @@ export const PROP_LAYOUT = {
   canes:{xs:tick(5.75,8.34,8),z:3.51,height:.6,hook:.12},
   // Eleven short trees standing on the bush tops: a row of three across each
   // bush, two on the back right one. Listed left to right so chases still run across.
-  minitrees:{height:.55,radius:.08,spots:HOUSE.planters.tiles.flatMap((t,i)=>(i===1?[-.15,.15]:[-.22,0,.22]).map(dx=>({x:+(t.x+dx).toFixed(3),z:t.z,y:+(.037+HOUSE.planters.bush).toFixed(3)}))).sort((a,b)=>a.x-b.x||a.z-b.z)},
+  minitrees:{height:.275,radius:.08,spots:HOUSE.planters.tiles.flatMap((t,i)=>(i===1?[-.15,.15]:[-.22,0,.22]).map(dx=>({x:+(t.x+dx).toFixed(3),z:t.z,y:+(.037+HOUSE.planters.bush).toFixed(3)}))).sort((a,b)=>a.x-b.x||a.z-b.z)},
   fence:{path:[[5.58,.3,.3],[5.58,.3,3.66],[8.5,.3,3.66]]},
 };

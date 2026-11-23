@@ -5,7 +5,7 @@ include <lib.scad>
 spokes = 6;
 r_base = 80;
 r_top = 42;
-height = 550;
+height = 275;
 rod_d = 12;      // centre rod: 10–12 mm bamboo cane
 ch_h = 32;
 tilt = atan((r_base - r_top)/height);

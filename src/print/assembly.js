@@ -24,7 +24,7 @@ const [BL,BW,BH]=BRICK.size;
 const CLR=3,WALL=1.6,FLOOR=1.6,trayIn=n=>[BL+2*CLR,n*(BW+2*CLR)];
 
 function miniTree(){
- const r0=mm(L.minitrees.radius),h=mm(L.minitrees.height),r1=34,items=[];
+ const r0=mm(L.minitrees.radius),h=mm(L.minitrees.height),r1=42,items=[];
  items.push({ground:'bush',box:[720,720,300],c:[0,0,-150]});
  items.push({stl:'minitree-base',m:I,t:[0,0,0]},{stl:'minitree-top',m:FLIP,t:[0,0,h]});
  items.push({cyl:{r:4,z0:-150,z1:h-5},at:[0,0],color:COLORS.rod});
