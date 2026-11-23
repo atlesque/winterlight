@@ -138,6 +138,8 @@ canvas { display: block; outline: none; }
 .source-card strong .info-tip { margin-left: 2px; }
 .settings { margin-top: 20px; border-top: 1px solid var(--hairline); padding-top: 18px; }
 .sidebar .field-title { margin-top: 24px; }
+.clear-picks { margin-left: auto; }
+.pick-hint { margin: -4px 0 10px; }
 
 .transport { flex-shrink: 0; height: 84px; margin: 0 16px 14px; display: flex; align-items: center; gap: 16px; padding: 0 24px; background: var(--glass-strong); border: 1px solid var(--hairline); border-radius: 18px; backdrop-filter: blur(16px); box-shadow: 0 20px 50px -30px #000, inset 0 1px 0 #ffffff0a; }
 .play-button { display: grid; place-items: center; flex-shrink: 0; width: 46px; height: 46px; border: 0; border-radius: 50%; font-size: 19px; color: #2a1a0c; background: radial-gradient(circle at 35% 30%, #fde6c6, #e7a96c 70%); box-shadow: 0 0 0 4px #efc1971f, 0 0 22px #efc19744; transition: transform .15s, box-shadow .3s; }
